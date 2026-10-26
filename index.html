@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вызывной лист | Call Sheet Manager</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: { 950: '#090d16' }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: #ffffff !important; color: #000000 !important; }
+            .print-bg-white { background-color: #ffffff !important; color: #000000 !important; border-color: #cbd5e1 !important; }
+            input, textarea { border: none !important; background: transparent !important; resize: none !important; }
+        }
+        .editable-field:hover {
+            outline: 1px dashed rgba(245, 158, 11, 0.4);
+            border-radius: 4px;
+        }
+        .editable-field:focus {
+            outline: 2px solid rgba(245, 158, 11, 0.8);
+            border-radius: 4px;
+            background: rgba(15, 23, 42, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-amber-500 selection:text-slate-950 font-sans pb-20">
+
+    <!-- Top Navigation / Header Bar -->
+    <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500">
+                    <i class="fa-solid fa-clapperboard"></i>
+                </div>
+                <div>
+                    <span class="text-xs uppercase tracking-widest text-amber-500 font-semibold block" contenteditable="true" id="meta-day">СЪЕМОЧНЫЙ ДЕНЬ #04</span>
+                    <h1 class="text-base sm:text-lg font-bold text-slate-100 truncate max-w-xs sm:max-w-md" contenteditable="true" id="meta-project">Проект «Аврора» (Смена 12)</h1>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button onclick="toggleEditMode()" id="edit-mode-btn" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs sm:text-sm font-medium transition flex items-center space-x-2">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span id="edit-mode-text">Режим правки</span>
+                </button>
+                <button onclick="exportJSON()" class="hidden sm:flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 text-xs sm:text-sm font-medium transition">
+                    <i class="fa-solid fa-download"></i>
+                    <span>JSON</span>
+                </button>
+                <label class="hidden sm:flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 text-xs sm:text-sm font-medium transition cursor-pointer">
+                    <i class="fa-solid fa-upload"></i>
+                    <span>Импорт</span>
+                    <input type="file" id="import-file" accept=".json" onchange="importJSON(event)" class="hidden">
+                </label>
+                <button onclick="window.print()" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 text-xs sm:text-sm transition flex items-center space-x-2 shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-print"></i>
+                    <span class="hidden sm:inline">Печать / PDF</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+
+        <!-- Top Alert / General Call Banner -->
+        <div class="bg-gradient-to-r from-amber-500/20 via-slate-900 to-slate-900 border border-amber-500/40 rounded-xl p-4 sm:p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-start space-x-4">
+                <div class="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shrink-0 shadow-md">
+                    <i class="fa-solid fa-bell"></i>
+                </div>
+                <div>
+                    <div class="text-xs uppercase tracking-wider text-amber-400 font-bold">Общий сбор группы (General Crew Call)</div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight editable-field" contenteditable="true" id="general-call-time">07:30</div>
+                    <p class="text-xs sm:text-sm text-slate-300 mt-0.5 editable-field" contenteditable="true" id="general-call-desc">Получение раций, инструктаж по ТБ, проверка пропусков на КПП</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4 border-t md:border-t-0 md:border-l border-slate-800 pt-3 md:pt-0 md:pl-6">
+                <div>
+                    <div class="text-xs text-slate-400">Дата смены</div>
+                    <div class="text-sm sm:text-base font-bold text-slate-200 editable-field" contenteditable="true" id="meta-date">Понедельник, 27 октября 2026</div>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-400">Версия</div>
+                    <div class="text-sm sm:text-base font-bold text-amber-400 editable-field" contenteditable="true" id="meta-version">Rev. 2.1</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid: Weather & Location -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Weather Widget -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute top-0 right-0 p-4 text-slate-700/50 text-6{-xl} pointer-events-none">
+                    <i class="fa-solid fa-cloud-sun"></i>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs uppercase tracking-wider text-slate-400 font-bold"><i class="fa-solid fa-temperature-three-quarters text-amber-500 mr-1.5"></i> Погода на площадке</span>
+                        <select id="weather-location-select" onchange="updateWeatherPreset()" class="bg-slate-800 text-xs text-slate-300 border border-slate-700 rounded px-2 py-1 outline-none no-print">
+                            <option value="moscow">Москва (Студия)</option>
+                            <option value="nature">Лесной массив (Натура)</option>
+                            <option value="night">Ночная смена (Улица)</option>
+                        </select>
+                    </div>
+                    <div class="flex items-baseline space-x-3 my-2">
+                        <span class="text-4xl font-extrabold text-white editable-field" contenteditable="true" id="weather-temp">+12°C</span>
+                        <span class="text-sm text-amber-400 font-medium editable-field" contenteditable="true" id="weather-condition">Переменная облачность</span>
+                    </div>
+                    <p class="text-xs text-slate-400 editable-field" contenteditable="true" id="weather-desc">Утром возможна легкая дымка. Днем без осадков.</p>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-800 text-center">
+                    <div>
+                        <div class="text-[10px] text-slate-500 uppercase">Ветер</div>
+                        <div class="text-xs font-semibold text-slate-300 editable-field" contenteditable="true" id="weather-wind">3 м/с, С-З</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-500 uppercase">Осадки</div>
+                        <div class="text-xs font-semibold text-slate-300 editable-field" contenteditable="true" id="weather-rain">0%</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-500 uppercase">Свет</div>
+                        <div class="text-xs font-semibold text-slate-300 editable-field" contenteditable="true" id="weather-daylight">07:45 — 18:10</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location & Logistics -->
+            <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs uppercase tracking-wider text-slate-400 font-bold"><i class="fa-solid fa-location-dot text-amber-500 mr-1.5"></i> Локация и логистика</span>
+                        <span class="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">Основная точка</span>
+                    </div>
+                    <div class="text-lg font-bold text-white mb-1 editable-field" contenteditable="true" id="location-name">Киностудия «Амедиа» / Пав. №4</div>
+                    <div class="text-sm text-slate-300 mb-3 editable-field" contenteditable="true" id="location-address">Москва, ул. Домостроительная, 1с2 (КПП №2 для техники)</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-slate-950/60 p-3 rounded-lg border border-slate-800/80">
+                        <div>
+                            <span class="text-slate-500 block mb-0.5">Парковка / Заезд:</span>
+                            <span class="text-slate-300 font-medium editable-field" contenteditable="true" id="location-parking">Грузовой транспорт через ворота №3 по спискам АНО. Легковые на внешней парковке.</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block mb-0.5">Особые отметки:</span>
+                            <span class="text-slate-300 font-medium editable-field" contenteditable="true" id="location-notes">Строгий пропускной режим. Наличие паспорта обязательно. Курение в павильоне запрещено.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- General Timeline / Schedule -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-clock text-amber-500"></i>
+                    <h2 class="text-base font-bold text-white uppercase tracking-wider">Общий таймлайн смены</h2>
+                </div>
+                <button onclick="addTimelineRow()" class="hidden edit-action-btn text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg transition items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Добавить веху</span>
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
+                            <th class="py-2.5 px-3 font-semibold w-28">Время</th>
+                            <th class="py-2.5 px-3 font-semibold">Событие / Веха</th>
+                            <th class="py-2.5 px-3 font-semibold">Ответственный</th>
+                            <th class="py-2.5 px-3 font-semibold text-right w-16 edit-action-btn hidden">Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timeline-tbody" class="divide-y divide-slate-800/60 text-sm">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Departments & Crew Call Times -->
+        <div>
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-users text-amber-500"></i>
+                    <h2 class="text-base font-bold text-white uppercase tracking-wider">Явка департаментов и съемочной группы</h2>
+                </div>
+                <button onclick="addDepartment()" class="hidden edit-action-btn text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg transition items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Добавить департамент</span>
+                </button>
+            </div>
+            
+            <div id="departments-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Key Contacts -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-address-book text-amber-500"></i>
+                    <h2 class="text-base font-bold text-white uppercase tracking-wider">Ключевые контакты</h2>
+                </div>
+                <button onclick="addContact()" class="hidden edit-action-btn text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg transition items-center space-x-1.5">
+                    <i class="fa-solid fa-plus"></i><span>Добавить контакт</span>
+                </button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="contacts-grid">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Producer Notes & Catering -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+                <div class="flex items-center space-x-2 mb-3">
+                    <i class="fa-solid fa-utensils text-amber-500"></i>
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider">Питание и кейтеринг</h3>
+                </div>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between py-1.5 border-b border-slate-800">
+                        <span class="text-slate-400">Завтрак:</span>
+                        <span class="text-white font-medium editable-field" contenteditable="true" id="catering-breakfast">07:00 — 08:30 (Столовая пав. №2)</span>
+                    </div>
+                    <div class="flex justify-between py-1.5 border-b border-slate-800">
+                        <span class="text-slate-400">Обед (Обеденный перерыв):</span>
+                        <span class="text-white font-medium editable-field" contenteditable="true" id="catering-lunch">14:00 — 14:45 (По группам)</span>
+                    </div>
+                    <div class="flex justify-between py-1.5">
+                        <span class="text-slate-400">Полдник / Чай:</span>
+                        <span class="text-white font-medium editable-field" contenteditable="true" id="catering-tea">18:30 (У плейбека)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+                <div class="flex items-center space-x-2 mb-3">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider">Примечания и безопасность</h3>
+                </div>
+                <ul class="text-xs sm:text-sm text-slate-300 space-y-2 list-disc list-inside editable-field" contenteditable="true" id="safety-notes">
+                    <li>Каждому участнику съемочной группы иметь при себе бейдж и паспорт.</li>
+                    <li>Соблюдение правил противопожарной безопасности в павильоне обязательно.</li>
+                    <li>Работа на высоте свыше 1,8м только со страховочными поясами.</li>
+                    <li>Запрещена фото/видеофиксация закрытых декораций без согласования с продюсером.</li>
+                </ul>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer Actions -->
+    <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 text-center text-xs text-slate-500 no-print flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>Call Sheet Generator &bull; Powered by Web Canvas & LocalStorage</div>
+        <div class="flex items-center space-x-4">
+            <button onclick="resetToDefaults()" class="hover:text-red-400 transition">Сбросить по умолчанию</button>
+            <button onclick="saveChanges()" class="bg-amber-500 text-slate-950 font-semibold px-4 py-2 rounded-lg hover:bg-amber-400 transition shadow">Сохранить изменения</button>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Default Data Structure
+        const defaultData = {
+            metaDay: "СЪЕМОЧНЫЙ ДЕНЬ #04",
+            metaProject: "Проект «Аврора» (Смена 12)",
+            metaDate: "Понедельник, 27 октября 2026",
+            metaVersion: "Rev. 2.1",
+            generalCallTime: "07:30",
+            generalCallDesc: "Получение раций, инструктаж по ТБ, проверка пропусков на КПП",
+            weatherTemp: "+12°C",
+            weatherCondition: "Переменная облачность",
+            weatherDesc: "Утром возможна легкая дымка. Днем без осадков.",
+            weatherWind: "3 м/с, С-З",
+            weatherRain: "0%",
+            weatherDaylight: "07:45 — 18:10",
+            locationName: "Киностудия «Амедиа» / Пав. №4",
+            locationAddress: "Москва, ул. Домостроительная, 1с2 (КПП №2 для техники)",
+            locationParking: "Грузовой транспорт через ворота №3 по спискам АНО. Легковые на внешней парковке.",
+            locationNotes: "Строгий пропускной режим. Наличие паспорта обязательно. Курение в павильоне запрещено.",
+            cateringBreakfast: "07:00 — 08:30 (Столовая пав. №2)",
+            cateringLunch: "14:00 — 14:45 (По группам)",
+            cateringTea: "18:30 (У плейбека)",
+            safetyNotesHTML: "<li>Каждому участнику съемочной группы иметь при себе бейдж и паспорт.</li><li>Соблюдение правил противопожарной безопасности в павильоне обязательно.</li><li>Работа на высоте свыше 1,8м только со страховочными поясами.</li><li>Запрещена фото/видеофиксация закрытых декораций без согласования с продюсером.</li>",
+            
+            timeline: [
+                { time: "07:00", event: "Заезд техслужб, охраны и кейтеринга", responsible: "А. Белоусов / Администрация" },
+                { time: "07:30", event: "Общий сбор группы, получение раций", responsible: "О. Зломанов / Технический отдел" },
+                { time: "08:00", event: "Грим и костюм актеров главных ролей", responsible: "Художники по гриму" },
+                { time: "09:00", event: "Технический репетиционный прогон сцены №14", responsible: "Режиссер / Оператор-постановщик" },
+                { time: "10:00", event: "Мотор! Съемка сцены №14, 15, 16", responsible: "Съемочная группа" },
+                { time: "14:00", event: "Обеденный перерыв", responsible: "Кейтеринг" },
+                { time: "19:00", event: "Смена окончена, сдача оборудования, Wrap", responsible: "Все департаменты" }
+            ],
+
+            departments: [
+                {
+                    name: "Режиссура и Продюсеры",
+                    time: "07:30",
+                    crew: [
+                        { role: "Режиссер-постановщик", name: "Арсентий Райков", phone: "+7 (999) 111-22-33" },
+                        { role: "Продюсер", name: "Борислав Володин", phone: "+7 (999) 222-33-44" },
+                        { role: "Второй режиссер", name: "Екатерина Арсеньева", phone: "+7 (999) 333-44-55" }
+                    ]
+                },
+                {
+                    name: "Операторская группа",
+                    time: "07:30",
+                    crew: [
+                        { role: "Оператор-постановщик", name: "Сергей Кондрашин", phone: "+7 (999) 444-55-66" },
+                        { role: "Механик камеры", name: "Евгений Рыбалко", phone: "+7 (999) 555-66-77" },
+                        { role: "Гафер (Осветитель)", name: "Даниил Почанин", phone: "+7 (999) 666-77-88" }
+                    ]
+                },
+                {
+                    name: "Технический отдел и Плейбек",
+                    time: "07:00",
+                    crew: [
+                        { role: "Технический директор", name: "Олег Зломанов", phone: "+7 (999) 777-88-99" },
+                        { role: "Инженер Плейбека", name: "Артем Сидоренко", phone: "+7 (999) 888-99-00" },
+                        { role: "Специалист по свету/звуку", name: "Богдан Смутный", phone: "+7 (999) 000-11-22" }
+                    ]
+                }
+            ],
+
+            contacts: [
+                { role: "Директор площадки", name: "Анастасия Шанаева", phone: "+7 (999) 123-45-67" },
+                { role: "Главный администратор", name: "Андрей Дубовой", phone: "+7 (999) 234-56-78" },
+                { role: "Скорая / Безопасность", name: "Дежурный врач", phone: "+7 (999) 345-67-89" },
+                { role: "Логистика и Тракты", name: "Алексей Дубовой", phone: "+7 (999) 456-78-90" }
+            ]
+        };
+
+        let isEditMode = false;
+
+        // Initialize App
+        function initApp() {
+            const saved = localStorage.getItem('call_sheet_data');
+            const data = saved ? JSON.parse(saved) : defaultData;
+            renderData(data);
+        }
+
+        function renderData(data) {
+            document.getElementById('meta-day').innerText = data.metaDay;
+            document.getElementById('meta-project').innerText = data.metaProject;
+            document.getElementById('meta-date').innerText = data.metaDate;
+            document.getElementById('meta-version').innerText = data.metaVersion;
+            document.getElementById('general-call-time').innerText = data.generalCallTime;
+            document.getElementById('general-call-desc').innerText = data.generalCallDesc;
+            
+            document.getElementById('weather-temp').innerText = data.weatherTemp;
+            document.getElementById('weather-condition').innerText = data.weatherCondition;
+            document.getElementById('weather-desc').innerText = data.weatherDesc;
+            document.getElementById('weather-wind').innerText = data.weatherWind;
+            document.getElementById('weather-rain').innerText = data.weatherRain;
+            document.getElementById('weather-daylight').innerText = data.weatherDaylight;
+
+            document.getElementById('location-name').innerText = data.locationName;
+            document.getElementById('location-address').innerText = data.locationAddress;
+            document.getElementById('location-parking').innerText = data.locationParking;
+            document.getElementById('location-notes').innerText = data.locationNotes;
+
+            document.getElementById('catering-breakfast').innerText = data.cateringBreakfast;
+            document.getElementById('catering-lunch').innerText = data.cateringLunch;
+            document.getElementById('catering-tea').innerText = data.cateringTea;
+            document.getElementById('safety-notes').innerHTML = data.safetyNotesHTML;
+
+            // Render Timeline
+            const timelineTbody = document.getElementById('timeline-tbody');
+            timelineTbody.innerHTML = '';
+            data.timeline.forEach((item, index) => {
+                timelineTbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="py-2.5 px-3 font-mono font-bold text-amber-400 editable-field" contenteditable="${isEditMode}" data-timeline-time="${index}">${item.time}</td>
+                        <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-timeline-event="${index}">${item.event}</td>
+                        <td class="py-2.5 px-3 text-slate-400 editable-field" contenteditable="${isEditMode}" data-timeline-resp="${index}">${item.responsible}</td>
+                        <td class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
+                            <button onclick="removeTimelineRow(${index})" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            // Render Departments
+            const deptContainer = document.getElementById('departments-container');
+            deptContainer.innerHTML = '';
+            data.departments.forEach((dept, dIndex) => {
+                let crewRows = '';
+                dept.crew.forEach((c, cIndex) => {
+                    crewRows += `
+                        <div class="flex items-center justify-between py-2 border-b border-slate-800/60 last:border-0 text-sm">
+                            <div>
+                                <div class="text-xs text-slate-400 editable-field" contenteditable="${isEditMode}" data-dept-role="${dIndex}-${cIndex}">${c.role}</div>
+                                <div class="font-semibold text-white editable-field" contenteditable="${isEditMode}" data-dept-name="${dIndex}-${cIndex}">${c.name}</div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <a href="tel:${c.phone}" class="text-xs text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1 rounded-md transition editable-field" contenteditable="${isEditMode}" data-dept-phone="${dIndex}-${cIndex}">${c.phone}</a>
+                                ${isEditMode ? `<button onclick="removeCrewMember(${dIndex}, ${cIndex})" class="text-red-400 hover:text-red-300 text-xs px-1"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                deptContainer.innerHTML += `
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-800">
+                                <div>
+                                    <h3 class="font-bold text-white uppercase tracking-wider text-sm editable-field" contenteditable="${isEditMode}" data-dept-title="${dIndex}">${dept.name}</h3>
+                                    <span class="text-xs text-slate-400">Сбор группы: <strong class="text-amber-400 editable-field" contenteditable="${isEditMode}" data-dept-calltime="${dIndex}">${dept.time}</strong></span>
+                                </div>
+                                ${isEditMode ? `<button onclick="removeDepartment(${dIndex})" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i> Удалить сектор</button>` : ''}
+                            </div>
+                            <div class="space-y-1">
+                                ${crewRows}
+                            </div>
+                        </div>
+                        ${isEditMode ? `<div class="mt-4 pt-2 border-t border-slate-800"><button onclick="addCrewMember(${dIndex})" class="w-full py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition">+ Добавить сотрудника</button></div>` : ''}
+                    </div>
+                `;
+            });
+
+            // Render Contacts
+            const contactsGrid = document.getElementById('contacts-grid');
+            contactsGrid.innerHTML = '';
+            data.contacts.forEach((contact, index) => {
+                contactsGrid.innerHTML += `
+                    <div class="bg-slate-950/50 p-3.5 rounded-lg border border-slate-800 flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs text-slate-400 editable-field" contenteditable="${isEditMode}" data-contact-role="${index}">${contact.role}</div>
+                            <div class="font-bold text-white text-sm editable-field" contenteditable="${isEditMode}" data-contact-name="${index}">${contact.name}</div>
+                        </div>
+                        <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                            <a href="tel:${contact.phone}" class="text-xs text-amber-400 font-semibold hover:underline editable-field" contenteditable="${isEditMode}" data-contact-phone="${index}">${contact.phone}</a>
+                            ${isEditMode ? `<button onclick="removeContact(${index})" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Collect Current Data from DOM
+        function collectDataFromDOM() {
+            let data = {
+                metaDay: document.getElementById('meta-day').innerText,
+                metaProject: document.getElementById('meta-project').innerText,
+                metaDate: document.getElementById('meta-date').innerText,
+                metaVersion: document.getElementById('meta-version').innerText,
+                generalCallTime: document.getElementById('general-call-time').innerText,
+                generalCallDesc: document.getElementById('general-call-desc').innerText,
+                weatherTemp: document.getElementById('weather-temp').innerText,
+                weatherCondition: document.getElementById('weather-condition').innerText,
+                weatherDesc: document.getElementById('weather-desc').innerText,
+                weatherWind: document.getElementById('weather-wind').innerText,
+                weatherRain: document.getElementById('weather-rain').innerText,
+                weatherDaylight: document.getElementById('weather-daylight').innerText,
+                locationName: document.getElementById('location-name').innerText,
+                locationAddress: document.getElementById('location-address').innerText,
+                locationParking: document.getElementById('location-parking').innerText,
+                locationNotes: document.getElementById('location-notes').innerText,
+                cateringBreakfast: document.getElementById('catering-breakfast').innerText,
+                cateringLunch: document.getElementById('catering-lunch').innerText,
+                cateringTea: document.getElementById('catering-tea').innerText,
+                safetyNotesHTML: document.getElementById('safety-notes').innerHTML,
+                timeline: [],
+                departments: [],
+                contacts: []
+            };
+
+            // Collect Timeline
+            document.querySelectorAll('[data-timeline-time]').forEach((el, index) => {
+                const time = el.innerText;
+                const event = document.querySelector(`[data-timeline-event="${index}"]`).innerText;
+                const responsible = document.querySelector(`[data-timeline-resp="${index}"]`).innerText;
+                data.timeline.push({ time, event, responsible });
+            });
+
+            // Collect Departments
+            // We can parse unique department indices
+            let deptIndices = new Set();
+            document.querySelectorAll('[data-dept-title]').forEach(el => deptIndices.add(el.getAttribute('data-dept-title')));
+            deptIndices.forEach(dIdx => {
+                const name = document.querySelector(`[data-dept-title="${dIdx}"]`).innerText;
+                const time = document.querySelector(`[data-dept-calltime="${dIdx}"]`).innerText;
+                let crew = [];
+                
+                let cIndices = new Set();
+                document.querySelectorAll(`[data-dept-role^="${dIdx}-"]`).forEach(el => {
+                    const parts = el.getAttribute('data-dept-role').split('-');
+                    cIndices.add(parts[1]);
+                });
+
+                cIndices.forEach(cIdx => {
+                    const role = document.querySelector(`[data-dept-role="${dIdx}-${cIdx}"]`).innerText;
+                    const name = document.querySelector(`[data-dept-name="${dIdx}-${cIdx}"]`).innerText;
+                    const phone = document.querySelector(`[data-dept-phone="${dIdx}-${cIdx}"]`).innerText;
+                    crew.push({ role, name, phone });
+                });
+
+                data.departments.push({ name, time, crew });
+            });
+
+            // Collect Contacts
+            document.querySelectorAll('[data-contact-role]').forEach((el, index) => {
+                const role = el.innerText;
+                const name = document.querySelector(`[data-contact-name="${index}"]`).innerText;
+                const phone = document.querySelector(`[data-contact-phone="${index}"]`).innerText;
+                data.contacts.push({ role, name, phone });
+            });
+
+            return data;
+        }
+
+        // Toggle Edit Mode
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const btnText = document.getElementById('edit-mode-text');
+            const btn = document.getElementById('edit-mode-btn');
+            
+            if (isEditMode) {
+                btnText.innerText = "Готово (Просмотр)";
+                btn.classList.add('bg-amber-500', 'text-slate-950', 'border-amber-400');
+                btn.classList.remove('bg-amber-500/10', 'text-amber-400');
+                document.querySelectorAll('.edit-action-btn').forEach(el => el.classList.remove('hidden'));
+            } else {
+                saveChanges();
+                btnText.innerText = "Режим правки";
+                btn.classList.remove('bg-amber-500', 'text-slate-950', 'border-amber-400');
+                btn.classList.add('bg-amber-500/10', 'text-amber-400');
+                document.querySelectorAll('.edit-action-btn').forEach(el => el.classList.add('hidden'));
+            }
+            renderData(collectDataFromDOM());
+        }
+
+        // Save Changes to LocalStorage
+        function saveChanges() {
+            const data = collectDataFromDOM();
+            localStorage.setItem('call_sheet_data', JSON.stringify(data));
+            alert('Вызывной лист успешно сохранен в памяти браузера!');
+        }
+
+        // Reset to Defaults
+        function resetToDefaults() {
+            if (confirm('Сбросить все изменения к исходному шаблону?')) {
+                localStorage.removeItem('call_sheet_data');
+                renderData(defaultData);
+            }
+        }
+
+        // Add / Remove Operations
+        function addTimelineRow() {
+            let data = collectDataFromDOM();
+            data.timeline.push({ time: "12:00", event: "Новое событие", responsible: "Ответственный" });
+            renderData(data);
+        }
+
+        function removeTimelineRow(index) {
+            let data = collectDataFromDOM();
+            data.timeline.splice(index, 1);
+            renderData(data);
+        }
+
+        function addDepartment() {
+            let data = collectDataFromDOM();
+            data.departments.push({
+                name: "Новый департамент",
+                time: "08:00",
+                crew: [{ role: "Специалист", name: "Имя Фамилия", phone: "+7 (999) 000-00-00" }]
+            });
+            renderData(data);
+        }
+
+        function removeDepartment(dIndex) {
+            let data = collectDataFromDOM();
+            data.departments.splice(dIndex, 1);
+            renderData(data);
+        }
+
+        function addCrewMember(dIndex) {
+            let data = collectDataFromDOM();
+            data.departments[dIndex].crew.push({ role: "Должность", name: "Имя Фамилия", phone: "+7 (999) 000-00-00" });
+            renderData(data);
+        }
+
+        function removeCrewMember(dIndex, cIndex) {
+            let data = collectDataFromDOM();
+            data.departments[dIndex].crew.splice(cIndex, 1);
+            renderData(data);
+        }
+
+        function addContact() {
+            let data = collectDataFromDOM();
+            data.contacts.push({ role: "Должность", name: "Имя Фамилия", phone: "+7 (999) 000-00-00" });
+            renderData(data);
+        }
+
+        function removeContact(index) {
+            let data = collectDataFromDOM();
+            data.contacts.splice(index, 1);
+            renderData(data);
+        }
+
+        // Weather Preset Selector
+        function updateWeatherPreset() {
+            const val = document.getElementById('weather-location-select').value;
+            if (val === 'moscow') {
+                document.getElementById('weather-temp').innerText = "+12°C";
+                document.getElementById('weather-condition').innerText = "Переменная облачность";
+                document.getElementById('weather-desc').innerText = "Утром возможна легкая дымка. Днем без осадков.";
+                document.getElementById('weather-wind').innerText = "3 м/с, С-З";
+            } else if (val === 'nature') {
+                document.getElementById('weather-temp').innerText = "+9°C";
+                document.getElementById('weather-condition').innerText = "Ясно, солнечно";
+                document.getElementById('weather-desc').innerText = "На натуре прохладно. Утренний туман рассеется к 09:30.";
+                document.getElementById('weather-wind').innerText = "2 м/с, С";
+            } else if (val === 'night') {
+                document.getElementById('weather-temp').innerText = "+4°C";
+                document.getElementById('weather-condition').innerText = "Ясно, прохладно";
+                document.getElementById('weather-desc').innerText = "Ночная смена. Возможен легкий заморозок на грунте к 03:00.";
+                document.getElementById('weather-wind').innerText = "1 м/с, Ю-З";
+            }
+        }
+
+        // Export JSON
+        function exportJSON() {
+            const data = collectDataFromDOM();
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `call_sheet_${Date.now()}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        // Import JSON
+        function importJSON(event) {
+            const fileReader = new FileReader();
+            if (event.target.files[0]) {
+                fileReader.readAsText(event.target.files[0], "UTF-8");
+                fileReader.onload = (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        renderData(importedData);
+                        localStorage.setItem('call_sheet_data', JSON.stringify(importedData));
+                        alert('Вызывной лист успешно импортирован!');
+                    } catch (err) {
+                        alert('Ошибка чтения JSON файла.');
+                    }
+                };
+            }
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
