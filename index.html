@@ -426,22 +426,38 @@
             fetchOnlineWeather();
         }
 
-        // Автоматический запрос погоды и точного времени рассвета/заката через Open-Meteo API
+        // Универсальный запрос погоды, прогноза и астрономии для любой выбранной даты
         async function fetchOnlineWeather() {
             const selectedDate = document.getElementById('meta-date-picker').value || new Date().toISOString().split('T')[0];
+            const todayStr = new Date().toISOString().split('T')[0];
             
             try {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=sunrise,sunset&start_date=${selectedDate}&end_date=${selectedDate}&timezone=Europe%2FMoscow`;
+                let url;
+                if (selectedDate === todayStr) {
+                    url = `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=sunrise,sunset&timezone=Europe%2FMoscow`;
+                } else {
+                    url = `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum&start_date=${selectedDate}&end_date=${selectedDate}&timezone=Europe%2FMoscow`;
+                }
                 
                 const response = await fetch(url);
                 const data = await response.json();
                 
-                if (data && data.current) {
+                if (selectedDate === todayStr && data && data.current) {
                     document.getElementById('weather-temp').innerText = `+${Math.round(data.current.temperature_2m)}°C`;
                     document.getElementById('weather-wind').innerText = `${data.current.wind_speed_10m} м/с`;
                     document.getElementById('weather-rain').innerText = `${data.current.precipitation} мм`;
                     document.getElementById('weather-humidity').innerText = `${data.current.relative_humidity_2m}%`;
-                    document.getElementById('weather-condition').innerText = "Онлайн (актуально)";
+                    document.getElementById('weather-condition').innerText = "Онлайн (сегодня)";
+                } else if (data && data.daily) {
+                    const maxT = data.daily.temperature_2m_max ? Math.round(data.daily.temperature_2m_max[0]) : '--';
+                    const minT = data.daily.temperature_2m_min ? Math.round(data.daily.temperature_2m_min[0]) : '--';
+                    const rain = data.daily.precipitation_sum ? data.daily.precipitation_sum[0] : 0;
+                    
+                    document.getElementById('weather-temp').innerText = `от ${minT}° до ${maxT}°C`;
+                    document.getElementById('weather-wind').innerText = `По прогнозу`;
+                    document.getElementById('weather-rain').innerText = `${rain} мм`;
+                    document.getElementById('weather-humidity').innerText = `--%`;
+                    document.getElementById('weather-condition').innerText = "Прогноз на дату";
                 }
 
                 if (data && data.daily && data.daily.sunrise && data.daily.sunset && data.daily.sunrise.length > 0) {
@@ -568,7 +584,6 @@
             a.click();
         }
 
-        // Автозапуск при загрузке страницы: загружаем данные и сразу подтягиваем онлайн погоду/световой день
         window.onload = function() {
             initApp();
             fetchOnlineWeather();
