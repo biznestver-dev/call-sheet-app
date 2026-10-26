@@ -420,11 +420,13 @@
             });
         }
 
+        // Автоматический запрос при смене даты в календаре
         function updateDateFromPicker(input) {
             saveChanges();
+            fetchOnlineWeather();
         }
 
-        // Автоматический запрос погоды и точного времени рассвета/заката на выбранную дату через Open-Meteo API
+        // Автоматический запрос погоды и точного времени рассвета/заката через Open-Meteo API
         async function fetchOnlineWeather() {
             const selectedDate = document.getElementById('meta-date-picker').value || new Date().toISOString().split('T')[0];
             
@@ -449,10 +451,8 @@
                     document.getElementById('sun-rise').innerText = sunriseTime;
                     document.getElementById('sun-set').innerText = sunsetTime;
                 }
-                
-                alert(`Данные погоды и светового дня на ${selectedDate} успешно получены из сети!`);
             } catch (err) {
-                alert('Не удалось получить данные. Проверьте подключение к интернету.');
+                console.error('Не удалось получить данные погоды:', err);
             }
         }
 
@@ -568,7 +568,11 @@
             a.click();
         }
 
-        window.onload = initApp;
+        // Автозапуск при загрузке страницы: загружаем данные и сразу подтягиваем онлайн погоду/световой день
+        window.onload = function() {
+            initApp();
+            fetchOnlineWeather();
+        };
     </script>
 </body>
 </html>
