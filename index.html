@@ -36,29 +36,29 @@
             border-radius: 4px;
             background: rgba(15, 23, 42, 0.6);
         }
-        /* Анимация дождя */
-        @keyframes fall {
-            0% { transform: translateY(-10px); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateY(60px); opacity: 0; }
+        /* Реалистичная анимация капель дождя */
+        @keyframes realisticRain {
+            0% { transform: translateY(-10px) scaleX(0.8); opacity: 0; }
+            30% { opacity: 0.8; }
+            100% { transform: translateY(70px) scaleX(0.8); opacity: 0; }
         }
-        .rain-drop {
+        .realistic-rain-drop {
             position: absolute;
-            width: 2px;
-            height: 12px;
-            background: rgba(147, 197, 253, 0.6);
-            animation: fall 0.8s linear infinite;
+            width: 1.5px;
+            height: 14px;
+            background: linear-gradient(to bottom, rgba(147, 197, 253, 0.1), rgba(147, 197, 253, 0.8));
+            animation: realisticRain 0.7s linear infinite;
         }
-        /* Анимация звезд */
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
+        /* Мерцание звезд */
+        @keyframes starGlow {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
         }
-        .star {
+        .realistic-star {
             position: absolute;
-            background: white;
+            background: #ffffff;
             border-radius: 50%;
-            animation: twinkle 2s infinite ease-in-out;
+            animation: starGlow 2.5s infinite ease-in-out;
         }
     </style>
 </head>
@@ -120,7 +120,7 @@
             </div>
         </div>
 
-        <!-- Grid: Weather & Dynamic Sky Widget -->
+        <!-- Grid: Weather & Realistic Atmosphere Widget -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Weather Widget with Online Fetch Option -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between">
@@ -154,47 +154,47 @@
                 </div>
             </div>
 
-            <!-- Dynamic Live Sky & Weather Atmosphere Widget -->
-            <div id="sky-widget-container" class="bg-gradient-to-br from-blue-900/60 via-slate-900 to-slate-950 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700">
-                <!-- Decorative animated sky elements container -->
+            <!-- Realistic Atmosphere & Time-of-Day Widget -->
+            <div id="sky-widget-container" class="bg-gradient-to-br from-blue-900/80 via-slate-900 to-slate-950 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700">
+                <!-- Контейнер для динамических световых и погодных эффектов -->
                 <div id="sky-effects" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
 
                 <div>
                     <div class="flex items-center justify-between mb-3 relative z-10">
-                        <span class="text-xs uppercase tracking-wider text-slate-300 font-bold flex items-center space-x-1.5">
+                        <span class="text-xs uppercase tracking-wider text-slate-200 font-bold flex items-center space-x-1.5">
                             <span id="sky-icon-indicator"><i class="fa-solid fa-sun text-amber-400"></i></span>
                             <span id="sky-status-title">Дневной свет</span>
                         </span>
-                        <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium" id="sky-phase-badge">Live Atmosphere</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded bg-black/40 text-amber-300 border border-amber-500/30 font-medium backdrop-blur-md" id="sky-phase-badge">Real-Time Atmosphere</span>
                     </div>
 
-                    <!-- Visual Atmosphere Display Area -->
-                    <div class="relative h-20 bg-slate-950/60 backdrop-blur-sm rounded-lg border border-slate-800/80 flex items-center justify-between px-5 overflow-hidden my-3 z-10">
-                        <div class="flex items-center space-x-3">
-                            <div id="sky-main-icon" class="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-lg shadow-lg">
+                    <!-- Визуальная область с фотореалистичным превью времени -->
+                    <div class="relative h-20 bg-slate-950/70 backdrop-blur-md rounded-lg border border-slate-800/80 flex items-center justify-between px-5 overflow-hidden my-3 z-10 shadow-inner">
+                        <div class="flex items-center space-x-3.5">
+                            <div id="sky-main-icon" class="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/50 flex items-center justify-center text-amber-400 text-xl shadow-lg">
                                 <i class="fa-solid fa-sun"></i>
                             </div>
                             <div>
-                                <div class="text-xs text-slate-400" id="sky-subtitle">Текущая фаза смены</div>
-                                <div class="text-sm font-bold text-white" id="sky-main-desc">Ясно, съемочный день</div>
+                                <div class="text-[11px] text-slate-400 font-medium" id="sky-subtitle">Текущая фаза смены</div>
+                                <div class="text-sm font-extrabold text-white tracking-wide" id="sky-main-desc">Ясно, съемочный день</div>
                             </div>
                         </div>
                         <div class="text-right">
-                            <div class="text-[10px] text-amber-400 font-semibold uppercase">Золотой час</div>
+                            <div class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Золотой час</div>
                             <div class="text-xs font-bold text-slate-200 editable-field" contenteditable="true" id="golden-hour">17:15 — 18:00</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4 pt-3 border-t border-slate-800/80 text-center relative z-10">
-                    <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800/80">
+                    <div class="bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
                         <div class="text-[10px] text-slate-400 uppercase flex items-center justify-center space-x-1">
                             <i class="fa-solid fa-sunrise text-amber-400"></i>
                             <span>Рассвет</span>
                         </div>
                         <div class="text-sm font-bold text-slate-200 mt-1 editable-field" contenteditable="true" id="sun-rise">07:42</div>
                     </div>
-                    <div class="bg-slate-950/50 p-2 rounded-lg border border-slate-800/80">
+                    <div class="bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
                         <div class="text-[10px] text-slate-400 uppercase flex items-center justify-center space-x-1">
                             <i class="fa-solid fa-sunset text-orange-400"></i>
                             <span>Закат</span>
@@ -444,8 +444,7 @@
                 `;
             });
 
-            // Обновляем виджет живого неба и атмосферы
-            updateLiveSkyAndWeather();
+            updateRealTimeAtmosphere();
         }
 
         function updateDateFromPicker(input) {
@@ -453,13 +452,13 @@
             fetchOnlineWeather();
         }
 
-        // Функция динамического обновления атмосферы виджета (время суток + погода)
-        function updateLiveSkyAndWeather() {
+        // Продвинутая функция фотореалистичного отображения атмосферы и погоды
+        function updateRealTimeAtmosphere() {
             const now = new Date();
             const currentHour = now.getHours();
             
-            const sunriseStr = document.getElementById('sun-rise').innerText; // например "07:42"
-            const sunsetStr = document.getElementById('sun-set').innerText;   // например "18:12"
+            const sunriseStr = document.getElementById('sun-rise').innerText;
+            const sunsetStr = document.getElementById('sun-set').innerText;
             
             const sunriseHour = parseInt(sunriseStr.split(':')[0]) || 7;
             const sunsetHour = parseInt(sunsetStr.split(':')[0]) || 18;
@@ -471,74 +470,79 @@
             const mainDesc = document.getElementById('sky-main-desc');
             const effectsContainer = document.getElementById('sky-effects');
             
-            effectsContainer.innerHTML = ''; // Очищаем старые спецэффекты
+            effectsContainer.innerHTML = '';
 
             let conditionText = document.getElementById('weather-condition').innerText.toLowerCase();
             let isRain = conditionText.includes('дождь') || conditionText.includes('осадки') || conditionText.includes('ливень');
             let isSnow = conditionText.includes('снег');
 
-            // Определяем фазу дня и настраиваем визуал
+            // Тонкая настройка под время суток и погодные условия
             if (currentHour >= sunriseHour && currentHour < sunriseHour + 2) {
-                // Рассвет / Утро
-                widgetContainer.className = "bg-gradient-to-br from-amber-950/70 via-slate-900 to-slate-950 border border-amber-500/30 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
-                iconContainer.className = "w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/50 flex items-center justify-center text-amber-400 text-lg shadow-lg";
+                // Рассвет
+                widgetContainer.className = "bg-gradient-to-br from-amber-900/60 via-amber-950/40 to-slate-950 border border-amber-500/40 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
+                iconContainer.className = "w-11 h-11 rounded-xl bg-amber-500/25 border border-amber-500/60 flex items-center justify-center text-amber-300 text-xl shadow-lg shadow-amber-500/20";
                 iconContainer.innerHTML = '<i class="fa-solid fa-sunrise"></i>';
                 iconIndicator.innerHTML = '<i class="fa-solid fa-sunrise text-amber-400"></i>';
-                statusTitle.innerText = "Утро / Рассвет";
-                mainDesc.innerText = "Утреннее режимное время";
+                statusTitle.innerText = "Утренний рассвет";
+                mainDesc.innerText = "Мягкий режимный свет";
             } else if (currentHour >= sunsetHour - 1 && currentHour <= sunsetHour + 1) {
-                // Золотой час / Закат
-                widgetContainer.className = "bg-gradient-to-br from-orange-950/80 via-slate-900 to-slate-950 border border-orange-500/40 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
-                iconContainer.className = "w-10 h-10 rounded-full bg-orange-500/20 border border-orange-500/50 flex items-center justify-center text-orange-400 text-lg shadow-lg";
+                // Закат / Золотой час
+                widgetContainer.className = "bg-gradient-to-br from-orange-950/80 via-red-950/40 to-slate-950 border border-orange-500/50 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
+                iconContainer.className = "w-11 h-11 rounded-xl bg-orange-500/25 border border-orange-500/60 flex items-center justify-center text-orange-400 text-xl shadow-lg shadow-orange-500/20";
                 iconContainer.innerHTML = '<i class="fa-solid fa-sunset"></i>';
                 iconIndicator.innerHTML = '<i class="fa-solid fa-sunset text-orange-400"></i>';
-                statusTitle.innerText = "Золотой час (Закат)";
-                mainDesc.innerText = "Идеально для красивых кадров";
+                statusTitle.innerText = "Закат / Золотой час";
+                mainDesc.innerText = "Лучшее время для драмы в кадре";
             } else if (currentHour > sunriseHour + 2 && currentHour < sunsetHour - 1) {
                 // День
-                widgetContainer.className = "bg-gradient-to-br from-blue-950/60 via-slate-900 to-slate-950 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
                 if (isRain) {
-                    iconContainer.className = "w-10 h-10 rounded-full bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 text-lg shadow-lg";
+                    widgetContainer.className = "bg-gradient-to-br from-blue-950/80 via-slate-900 to-slate-950 border border-blue-500/40 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
+                    iconContainer.className = "w-11 h-11 rounded-xl bg-blue-500/25 border border-blue-500/50 flex items-center justify-center text-blue-300 text-xl shadow-lg";
                     iconContainer.innerHTML = '<i class="fa-solid fa-cloud-rain"></i>';
+                    iconIndicator.innerHTML = '<i class="fa-solid fa-cloud-rain text-blue-400"></i>';
                     statusTitle.innerText = "Дневной дождь";
-                    mainDesc.innerText = "Съемка с учетом осадков";
-                    // Генерация капель дождя
-                    for(let i=0; i<15; i++) {
+                    mainDesc.innerText = "Осадки на площадке";
+                    
+                    // Генерация реалистичного дождя
+                    for(let i=0; i<18; i++) {
                         let drop = document.createElement('div');
-                        drop.className = 'rain-drop';
+                        drop.className = 'realistic-rain-drop';
                         drop.style.left = `${Math.random() * 100}%`;
-                        drop.style.animationDelay = `${Math.random()}s`;
+                        drop.style.animationDelay = `${Math.random() * 0.8}s`;
+                        drop.style.animationDuration = `${0.5 + Math.random() * 0.4}s`;
                         effectsContainer.appendChild(drop);
                     }
                 } else {
-                    iconContainer.className = "w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-lg shadow-lg";
+                    widgetContainer.className = "bg-gradient-to-br from-blue-900/60 via-slate-900/90 to-slate-950 border border-blue-500/30 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
+                    iconContainer.className = "w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-xl shadow-lg";
                     iconContainer.innerHTML = '<i class="fa-solid fa-sun"></i>';
-                    statusTitle.innerText = "Дневной свет";
-                    mainDesc.innerText = "Активная фаза смены";
+                    iconIndicator.innerHTML = '<i class="fa-solid fa-sun text-amber-400"></i>';
+                    statusTitle.innerText = "Ясный день";
+                    mainDesc.innerText = "Активная фаза съемок";
                 }
             } else {
-                // Ночь / Вечер после заката
-                widgetContainer.className = "bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-950 border border-indigo-500/30 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
-                iconContainer.className = "w-10 h-10 rounded-full bg-indigo-500/20 border border-indigo-500/50 flex items-center justify-center text-indigo-300 text-lg shadow-lg";
+                // Ночь
+                widgetContainer.className = "bg-gradient-to-br from-indigo-950/90 via-slate-950 to-slate-950 border border-indigo-500/40 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
+                iconContainer.className = "w-11 h-11 rounded-xl bg-indigo-500/25 border border-indigo-500/50 flex items-center justify-center text-indigo-300 text-xl shadow-lg shadow-indigo-500/20";
                 iconContainer.innerHTML = '<i class="fa-solid fa-moon"></i>';
                 iconIndicator.innerHTML = '<i class="fa-solid fa-moon text-indigo-300"></i>';
-                statusTitle.innerText = "Ночное время";
-                mainDesc.innerText = "Ночные сценичные блоки";
-                // Генерация звезд
-                for(let i=0; i<10; i++) {
+                statusTitle.innerText = "Ночная смена";
+                mainDesc.innerText = "Ночной съемочный блок";
+                
+                // Генерация звезд на небе
+                for(let i=0; i<12; i++) {
                     let star = document.createElement('div');
-                    star.className = 'star';
-                    star.style.width = `${Math.random() * 3 + 1}px`;
+                    star.className = 'realistic-star';
+                    star.style.width = `${Math.random() * 3 + 1.5}px`;
                     star.style.height = star.style.width;
                     star.style.left = `${Math.random() * 100}%`;
                     star.style.top = `${Math.random() * 100}%`;
-                    star.style.animationDelay = `${Math.random() * 2}s`;
+                    star.style.animationDelay = `${Math.random() * 3}s`;
                     effectsContainer.appendChild(star);
                 }
             }
         }
 
-        // Универсальный запрос погоды и астрономии
         async function fetchOnlineWeather() {
             const selectedDate = document.getElementById('meta-date-picker').value || new Date().toISOString().split('T')[0];
             const todayStr = new Date().toISOString().split('T')[0];
@@ -580,8 +584,7 @@
                     document.getElementById('sun-set').innerText = sunsetTime;
                 }
 
-                // Пересчитываем визуальное небо под новые данные
-                updateLiveSkyAndWeather();
+                updateRealTimeAtmosphere();
             } catch (err) {
                 console.error('Не удалось получить данные погоды:', err);
             }
