@@ -36,6 +36,14 @@
             border-radius: 4px;
             background: rgba(15, 23, 42, 0.6);
         }
+        /* Эффект мигающих часов для разделителя */
+        @keyframes clockBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+        .time-blink {
+            animation: clockBlink 1s infinite steps(1, start);
+        }
         /* Реалистичная анимация капель дождя */
         @keyframes realisticRain {
             0% { transform: translateY(-10px) scaleX(0.8); opacity: 0; }
@@ -96,7 +104,7 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
 
-        <!-- Top Alert / General Call Banner -->
+        <!-- Top Alert / General Call Banner with Interactive Time Picker -->
         <div class="bg-gradient-to-r from-amber-500/20 via-slate-900 to-slate-900 border border-amber-500/40 rounded-xl p-4 sm:p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-start space-x-4">
                 <div class="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shrink-0 shadow-md">
@@ -104,8 +112,12 @@
                 </div>
                 <div>
                     <div class="text-xs uppercase tracking-wider text-amber-400 font-bold">Общий сбор группы (General Crew Call)</div>
-                    <div class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight editable-field" contenteditable="true" id="general-call-time">07:30</div>
-                    <p class="text-xs sm:text-sm text-slate-300 mt-0.5 editable-field" contenteditable="true" id="general-call-desc">Получение раций, инструктаж по ТБ, проверка пропусков на КПП</p>
+                    <!-- Интерактивный выбор времени сбора -->
+                    <div class="flex items-center space-x-2 mt-1">
+                        <input type="time" id="general-call-time" onchange="saveChanges()" class="bg-slate-800/80 text-white font-black text-2xl sm:text-3xl px-3 py-1 rounded-lg border border-slate-700 outline-none focus:border-amber-500 tracking-tight">
+                        <span class="text-xs text-slate-400 hidden sm:inline">(Нажмите для изменения)</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-300 mt-1.5 editable-field" contenteditable="true" id="general-call-desc">Получение раций, инструктаж по ТБ, проверка пропусков на КПП</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4 border-t md:border-t-0 md:border-l border-slate-800 pt-3 md:pt-0 md:pl-6">
@@ -156,7 +168,6 @@
 
             <!-- Realistic Atmosphere & Time-of-Day Widget -->
             <div id="sky-widget-container" class="bg-gradient-to-br from-blue-900/80 via-slate-900 to-slate-950 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700">
-                <!-- Контейнер для динамических световых и погодных эффектов -->
                 <div id="sky-effects" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
 
                 <div>
@@ -168,10 +179,9 @@
                         <span class="text-[10px] px-2 py-0.5 rounded bg-black/40 text-amber-300 border border-amber-500/30 font-medium backdrop-blur-md" id="sky-phase-badge">Real-Time Atmosphere</span>
                     </div>
 
-                    <!-- Визуальная область с фотореалистичным превью времени -->
                     <div class="relative h-20 bg-slate-950/70 backdrop-blur-md rounded-lg border border-slate-800/80 flex items-center justify-between px-5 overflow-hidden my-3 z-10 shadow-inner">
                         <div class="flex items-center space-x-3.5">
-                            <div id="sky-main-icon" class="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/50 flex items-center justify-center text-amber-400 text-xl shadow-lg">
+                            <div id="sky-main-icon" class="w-11 h-11 rounded-xl bg-amber-500/25 border border-amber-500/50 flex items-center justify-center text-amber-400 text-xl shadow-lg">
                                 <i class="fa-solid fa-sun"></i>
                             </div>
                             <div>
@@ -236,7 +246,7 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
-                            <th class="py-2.5 px-3 font-semibold w-28">Время</th>
+                            <th class="py-2.5 px-3 font-semibold w-32">Время</th>
                             <th class="py-2.5 px-3 font-semibold">Событие / Веха</th>
                             <th class="py-2.5 px-3 font-semibold">Ответственный</th>
                             <th class="py-2.5 px-3 font-semibold text-right w-16 edit-action-btn hidden">Действие</th>
@@ -346,6 +356,14 @@
             renderData(data);
         }
 
+        // Функция форматирования времени с мигающим разделителем `:`
+        function formatBlinkingTime(timeStr) {
+            if (!timeStr || !timeStr.includes(':')) return timeStr;
+            const parts = timeStr.split(':');
+            if (parts.length < 2) return timeStr;
+            return `${parts[0]}<span class="time-blink text-amber-400 font-black">:</span>${parts[1]}`;
+        }
+
         function renderData(data) {
             document.getElementById('meta-day').innerText = data.metaDay;
             document.getElementById('meta-project').innerText = data.metaProject;
@@ -356,7 +374,8 @@
                 dateInput.value = data.metaDate;
             }
 
-            document.getElementById('general-call-time').innerText = data.generalCallTime;
+            // Общий сбор через input[type="time"]
+            document.getElementById('general-call-time').value = data.generalCallTime || "07:30";
             document.getElementById('general-call-desc').innerText = data.generalCallDesc;
             
             document.getElementById('weather-temp').innerText = data.weatherTemp;
@@ -373,13 +392,17 @@
             document.getElementById('location-address').innerText = data.locationAddress;
             document.getElementById('location-parking').innerText = data.locationParking;
 
-            // Timeline
+            // Timeline с выбором времени в режиме правки
             const timelineTbody = document.getElementById('timeline-tbody');
             timelineTbody.innerHTML = '';
             data.timeline.forEach((item, index) => {
+                let timeCellContent = isEditMode 
+                    ? `<input type="time" value="${item.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-2 py-1 rounded border border-slate-700 text-sm outline-none" data-timeline-time="${index}">`
+                    : `<span class="font-mono font-bold text-amber-400 text-base" data-timeline-time="${index}">${formatBlinkingTime(item.time)}</span>`;
+
                 timelineTbody.innerHTML += `
                     <tr class="hover:bg-slate-800/40 transition">
-                        <td class="py-2.5 px-3 font-mono font-bold text-amber-400 editable-field" contenteditable="${isEditMode}" data-timeline-time="${index}">${item.time}</td>
+                        <td class="py-2.5 px-3">${timeCellContent}</td>
                         <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-timeline-event="${index}">${item.event}</td>
                         <td class="py-2.5 px-3 text-slate-400 editable-field" contenteditable="${isEditMode}" data-timeline-resp="${index}">${item.responsible}</td>
                         <td class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
@@ -409,13 +432,17 @@
                     `;
                 });
 
+                let deptCallTimeContent = isEditMode
+                    ? `<input type="time" value="${dept.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-1.5 py-0.5 rounded border border-slate-700 text-xs outline-none" data-dept-calltime="${dIndex}">`
+                    : `<strong class="text-amber-400 font-mono" data-dept-calltime="${dIndex}">${formatBlinkingTime(dept.time)}</strong>`;
+
                 deptContainer.innerHTML += `
                     <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-800">
                                 <div>
                                     <h3 class="font-bold text-white uppercase tracking-wider text-sm editable-field" contenteditable="${isEditMode}" data-dept-title="${dIndex}">${dept.name}</h3>
-                                    <span class="text-xs text-slate-400">Сбор: <strong class="text-amber-400 editable-field" contenteditable="${isEditMode}" data-dept-calltime="${dIndex}">${dept.time}</strong></span>
+                                    <span class="text-xs text-slate-400">Сбор: ${deptCallTimeContent}</span>
                                 </div>
                                 ${isEditMode ? `<button onclick="removeDepartment(${dIndex})" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
                             </div>
@@ -452,7 +479,6 @@
             fetchOnlineWeather();
         }
 
-        // Продвинутая функция фотореалистичного отображения атмосферы и погоды
         function updateRealTimeAtmosphere() {
             const now = new Date();
             const currentHour = now.getHours();
@@ -474,11 +500,8 @@
 
             let conditionText = document.getElementById('weather-condition').innerText.toLowerCase();
             let isRain = conditionText.includes('дождь') || conditionText.includes('осадки') || conditionText.includes('ливень');
-            let isSnow = conditionText.includes('снег');
 
-            // Тонкая настройка под время суток и погодные условия
             if (currentHour >= sunriseHour && currentHour < sunriseHour + 2) {
-                // Рассвет
                 widgetContainer.className = "bg-gradient-to-br from-amber-900/60 via-amber-950/40 to-slate-950 border border-amber-500/40 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
                 iconContainer.className = "w-11 h-11 rounded-xl bg-amber-500/25 border border-amber-500/60 flex items-center justify-center text-amber-300 text-xl shadow-lg shadow-amber-500/20";
                 iconContainer.innerHTML = '<i class="fa-solid fa-sunrise"></i>';
@@ -486,7 +509,6 @@
                 statusTitle.innerText = "Утренний рассвет";
                 mainDesc.innerText = "Мягкий режимный свет";
             } else if (currentHour >= sunsetHour - 1 && currentHour <= sunsetHour + 1) {
-                // Закат / Золотой час
                 widgetContainer.className = "bg-gradient-to-br from-orange-950/80 via-red-950/40 to-slate-950 border border-orange-500/50 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
                 iconContainer.className = "w-11 h-11 rounded-xl bg-orange-500/25 border border-orange-500/60 flex items-center justify-center text-orange-400 text-xl shadow-lg shadow-orange-500/20";
                 iconContainer.innerHTML = '<i class="fa-solid fa-sunset"></i>';
@@ -494,7 +516,6 @@
                 statusTitle.innerText = "Закат / Золотой час";
                 mainDesc.innerText = "Лучшее время для драмы в кадре";
             } else if (currentHour > sunriseHour + 2 && currentHour < sunsetHour - 1) {
-                // День
                 if (isRain) {
                     widgetContainer.className = "bg-gradient-to-br from-blue-950/80 via-slate-900 to-slate-950 border border-blue-500/40 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
                     iconContainer.className = "w-11 h-11 rounded-xl bg-blue-500/25 border border-blue-500/50 flex items-center justify-center text-blue-300 text-xl shadow-lg";
@@ -503,7 +524,6 @@
                     statusTitle.innerText = "Дневной дождь";
                     mainDesc.innerText = "Осадки на площадке";
                     
-                    // Генерация реалистичного дождя
                     for(let i=0; i<18; i++) {
                         let drop = document.createElement('div');
                         drop.className = 'realistic-rain-drop';
@@ -521,7 +541,6 @@
                     mainDesc.innerText = "Активная фаза съемок";
                 }
             } else {
-                // Ночь
                 widgetContainer.className = "bg-gradient-to-br from-indigo-950/90 via-slate-950 to-slate-950 border border-indigo-500/40 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
                 iconContainer.className = "w-11 h-11 rounded-xl bg-indigo-500/25 border border-indigo-500/50 flex items-center justify-center text-indigo-300 text-xl shadow-lg shadow-indigo-500/20";
                 iconContainer.innerHTML = '<i class="fa-solid fa-moon"></i>';
@@ -529,7 +548,6 @@
                 statusTitle.innerText = "Ночная смена";
                 mainDesc.innerText = "Ночной съемочный блок";
                 
-                // Генерация звезд на небе
                 for(let i=0; i<12; i++) {
                     let star = document.createElement('div');
                     star.className = 'realistic-star';
@@ -596,7 +614,7 @@
                 metaProject: document.getElementById('meta-project').innerText,
                 metaDate: document.getElementById('meta-date-picker').value,
                 metaVersion: document.getElementById('meta-version').innerText,
-                generalCallTime: document.getElementById('general-call-time').innerText,
+                generalCallTime: document.getElementById('general-call-time').value,
                 generalCallDesc: document.getElementById('general-call-desc').innerText,
                 weatherTemp: document.getElementById('weather-temp').innerText,
                 weatherCondition: document.getElementById('weather-condition').innerText,
@@ -615,8 +633,9 @@
                 contacts: []
             };
 
+            // Сбор таймлайна с учетом input[type="time"] в режиме правки или текста в режиме просмотра
             document.querySelectorAll('[data-timeline-time]').forEach((el, index) => {
-                const time = el.innerText;
+                const time = isEditMode ? el.value : el.innerText.trim();
                 const event = document.querySelector(`[data-timeline-event="${index}"]`).innerText;
                 const responsible = document.querySelector(`[data-timeline-resp="${index}"]`).innerText;
                 data.timeline.push({ time, event, responsible });
@@ -626,7 +645,8 @@
             document.querySelectorAll('[data-dept-title]').forEach(el => deptIndices.add(el.getAttribute('data-dept-title')));
             deptIndices.forEach(dIdx => {
                 const name = document.querySelector(`[data-dept-title="${dIdx}"]`).innerText;
-                const time = document.querySelector(`[data-dept-calltime="${dIdx}"]`).innerText;
+                const timeEl = document.querySelector(`[data-dept-calltime="${dIdx}"]`);
+                const time = isEditMode ? timeEl.value : timeEl.innerText.trim();
                 let crew = [];
                 let cIndices = new Set();
                 document.querySelectorAll(`[data-dept-role^="${dIdx}-"]`).forEach(el => {
@@ -689,7 +709,7 @@
         function removeDepartment(i) { let d = collectDataFromDOM(); d.departments.splice(i, 1); renderData(d); }
         function addCrewMember(dIdx) { let d = collectDataFromDOM(); d.departments[dIdx].crew.push({ role: "Должность", name: "Имя", phone: "+7..." }); renderData(d); }
         function removeCrewMember(dIdx, cIdx) { let d = collectDataFromDOM(); d.departments[dIdx].crew.splice(cIdx, 1); renderData(d); }
-        function addContact() { let d = collectDataFromDOM(); d.contacts.push({ role: "Должность", name: "Имя", phone: "+7..." }); renderData(d); }
+        function addContact() { let d = collectDataFromDOM(); d.contacts.pop ? d.contacts.push({ role: "Должность", name: "Имя", phone: "+7..." }) : ''; renderData(d); }
         function removeContact(i) { let d = collectDataFromDOM(); d.contacts.splice(i, 1); renderData(d); }
 
         function exportJSON() {
