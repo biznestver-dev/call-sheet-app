@@ -430,7 +430,7 @@
                 });
 
                 let deptCallTimeContent = isEditMode
-                    ? `<input type="time" value="${dept.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-1.5 py-0.5 rounded border border-slate-700 text-xs outline-none" data-dept-calltime="${dIndex}">`
+                    ? `<input type="time" value="${dept.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-1.5 py-0.5 rounded border border-slate-700 text-xs outline-none inline-block" data-dept-calltime="${dIndex}">`
                     : `<strong class="text-amber-400 font-mono" data-dept-calltime="${dIndex}">${formatBlinkingTime(dept.time)}</strong>`;
 
                 deptContainer.innerHTML += `
@@ -630,21 +630,33 @@
                 contacts: []
             };
 
-            // Сбор таймлайна с учетом input[type="time"] в режиме правки
             document.querySelectorAll('[data-timeline-time]').forEach((el, index) => {
-                const time = isEditMode ? el.value : el.innerText.trim();
+                let rawTime = "00:00";
+                if (isEditMode) {
+                    rawTime = el.value || "00:00";
+                } else {
+                    let match = el.innerHTML.match(/(\d{2})[:\s\S]*?(\d{2})/);
+                    rawTime = match ? `${match[1]}:${match[2]}` : el.innerText.trim();
+                }
+
                 const event = document.querySelector(`[data-timeline-event="${index}"]`).innerText;
                 const responsible = document.querySelector(`[data-timeline-resp="${index}"]`).innerText;
-                data.timeline.push({ time, event, responsible });
+                data.timeline.push({ time: rawTime, event, responsible });
             });
 
-            // Сбор департаментов с учетом input[type="time"] для явки в режиме правки
             let deptIndices = new Set();
             document.querySelectorAll('[data-dept-title]').forEach(el => deptIndices.add(el.getAttribute('data-dept-title')));
             deptIndices.forEach(dIdx => {
                 const name = document.querySelector(`[data-dept-title="${dIdx}"]`).innerText;
                 const timeEl = document.querySelector(`[data-dept-calltime="${dIdx}"]`);
-                const time = isEditMode ? timeEl.value : timeEl.innerText.trim();
+                let deptTime = "00:00";
+                if (isEditMode) {
+                    deptTime = timeEl.value || "00:00";
+                } else {
+                    let match = timeEl.innerHTML.match(/(\d{2})[:\s\S]*?(\d{2})/);
+                    deptTime = match ? `${match[1]}:${match[2]}` : timeEl.innerText.trim();
+                }
+
                 let crew = [];
                 let cIndices = new Set();
                 document.querySelectorAll(`[data-dept-role^="${dIdx}-"]`).forEach(el => {
@@ -656,7 +668,7 @@
                     const phone = document.querySelector(`[data-dept-phone="${dIdx}-${cIdx}"]`).innerText;
                     crew.push({ role, name, phone });
                 });
-                data.departments.push({ name, time, crew });
+                data.departments.push({ name, time: deptTime, crew });
             });
 
             document.querySelectorAll('[data-contact-role]').forEach((el, index) => {
