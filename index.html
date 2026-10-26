@@ -104,7 +104,7 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
 
-        <!-- Top Alert / General Call Banner with Interactive Time Picker -->
+        <!-- Top Alert / General Call Banner -->
         <div class="bg-gradient-to-r from-amber-500/20 via-slate-900 to-slate-900 border border-amber-500/40 rounded-xl p-4 sm:p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-start space-x-4">
                 <div class="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shrink-0 shadow-md">
@@ -112,7 +112,6 @@
                 </div>
                 <div>
                     <div class="text-xs uppercase tracking-wider text-amber-400 font-bold">Общий сбор группы (General Crew Call)</div>
-                    <!-- Интерактивный выбор времени сбора -->
                     <div class="flex items-center space-x-2 mt-1">
                         <input type="time" id="general-call-time" onchange="saveChanges()" class="bg-slate-800/80 text-white font-black text-2xl sm:text-3xl px-3 py-1 rounded-lg border border-slate-700 outline-none focus:border-amber-500 tracking-tight">
                         <span class="text-xs text-slate-400 hidden sm:inline">(Нажмите для изменения)</span>
@@ -356,7 +355,6 @@
             renderData(data);
         }
 
-        // Функция форматирования времени с мигающим разделителем `:`
         function formatBlinkingTime(timeStr) {
             if (!timeStr || !timeStr.includes(':')) return timeStr;
             const parts = timeStr.split(':');
@@ -374,7 +372,6 @@
                 dateInput.value = data.metaDate;
             }
 
-            // Общий сбор через input[type="time"]
             document.getElementById('general-call-time').value = data.generalCallTime || "07:30";
             document.getElementById('general-call-desc').innerText = data.generalCallDesc;
             
@@ -412,7 +409,7 @@
                 `;
             });
 
-            // Departments
+            // Departments с выбором времени явки в режиме правки
             const deptContainer = document.getElementById('departments-container');
             deptContainer.innerHTML = '';
             data.departments.forEach((dept, dIndex) => {
@@ -633,7 +630,7 @@
                 contacts: []
             };
 
-            // Сбор таймлайна с учетом input[type="time"] в режиме правки или текста в режиме просмотра
+            // Сбор таймлайна с учетом input[type="time"] в режиме правки
             document.querySelectorAll('[data-timeline-time]').forEach((el, index) => {
                 const time = isEditMode ? el.value : el.innerText.trim();
                 const event = document.querySelector(`[data-timeline-event="${index}"]`).innerText;
@@ -641,6 +638,7 @@
                 data.timeline.push({ time, event, responsible });
             });
 
+            // Сбор департаментов с учетом input[type="time"] для явки в режиме правки
             let deptIndices = new Set();
             document.querySelectorAll('[data-dept-title]').forEach(el => deptIndices.add(el.getAttribute('data-dept-title')));
             deptIndices.forEach(dIdx => {
@@ -709,7 +707,7 @@
         function removeDepartment(i) { let d = collectDataFromDOM(); d.departments.splice(i, 1); renderData(d); }
         function addCrewMember(dIdx) { let d = collectDataFromDOM(); d.departments[dIdx].crew.push({ role: "Должность", name: "Имя", phone: "+7..." }); renderData(d); }
         function removeCrewMember(dIdx, cIdx) { let d = collectDataFromDOM(); d.departments[dIdx].crew.splice(cIdx, 1); renderData(d); }
-        function addContact() { let d = collectDataFromDOM(); d.contacts.pop ? d.contacts.push({ role: "Должность", name: "Имя", phone: "+7..." }) : ''; renderData(d); }
+        function addContact() { let d = collectDataFromDOM(); d.contacts.push({ role: "Должность", name: "Имя", phone: "+7..." }); renderData(d); }
         function removeContact(i) { let d = collectDataFromDOM(); d.contacts.splice(i, 1); renderData(d); }
 
         function exportJSON() {
