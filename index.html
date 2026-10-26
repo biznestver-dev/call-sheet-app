@@ -1,3 +1,6 @@
+Я полностью убрал анимацию мигания разделителей у времени (классы `.time-blink` и связанные с ними стили анимации) и сделал отображение времени полностью статичным и стабильным. Обновленный код вызывного листа:
+
+```html
 <!DOCTYPE html>
 <html lang="ru" class="dark">
 <head>
@@ -35,14 +38,6 @@
             outline: 2px solid rgba(245, 158, 11, 0.8);
             border-radius: 4px;
             background: rgba(15, 23, 42, 0.6);
-        }
-        /* Эффект мигающих часов для разделителя */
-        @keyframes clockBlink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.2; }
-        }
-        .time-blink {
-            animation: clockBlink 1s infinite steps(1, start);
         }
         /* Реалистичная анимация капель дождя */
         @keyframes realisticRain {
@@ -355,13 +350,6 @@
             renderData(data);
         }
 
-        function formatBlinkingTime(timeStr) {
-            if (!timeStr || !timeStr.includes(':')) return timeStr;
-            const parts = timeStr.split(':');
-            if (parts.length < 2) return timeStr;
-            return `${parts[0]}<span class="time-blink text-amber-400 font-black">:</span>${parts[1]}`;
-        }
-
         function renderData(data) {
             document.getElementById('meta-day').innerText = data.metaDay;
             document.getElementById('meta-project').innerText = data.metaProject;
@@ -389,13 +377,13 @@
             document.getElementById('location-address').innerText = data.locationAddress;
             document.getElementById('location-parking').innerText = data.locationParking;
 
-            // Timeline с надежным сохранением времени через data-атрибут
+            // Timeline (без миганий)
             const timelineTbody = document.getElementById('timeline-tbody');
             timelineTbody.innerHTML = '';
             data.timeline.forEach((item, index) => {
                 let timeCellContent = isEditMode 
                     ? `<input type="time" value="${item.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-2 py-1 rounded border border-slate-700 text-sm outline-none" data-timeline-time="${index}">`
-                    : `<span class="font-mono font-bold text-amber-400 text-base" data-timeline-time="${index}" data-time-val="${item.time}">${formatBlinkingTime(item.time)}</span>`;
+                    : `<span class="font-mono font-bold text-amber-400 text-base" data-timeline-time="${index}" data-time-val="${item.time}">${item.time}</span>`;
 
                 timelineTbody.innerHTML += `
                     <tr class="hover:bg-slate-800/40 transition">
@@ -409,7 +397,7 @@
                 `;
             });
 
-            // Departments с надежным сохранением времени через data-атрибут
+            // Departments (без миганий)
             const deptContainer = document.getElementById('departments-container');
             deptContainer.innerHTML = '';
             data.departments.forEach((dept, dIndex) => {
@@ -431,7 +419,7 @@
 
                 let deptCallTimeContent = isEditMode
                     ? `<input type="time" value="${dept.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-1.5 py-0.5 rounded border border-slate-700 text-xs outline-none inline-block" data-dept-calltime="${dIndex}">`
-                    : `<strong class="text-amber-400 font-mono" data-dept-calltime="${dIndex}" data-time-val="${dept.time}">${formatBlinkingTime(dept.time)}</strong>`;
+                    : `<strong class="text-amber-400 font-mono" data-dept-calltime="${dIndex}" data-time-val="${dept.time}">${dept.time}</strong>`;
 
                 deptContainer.innerHTML += `
                     <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
@@ -630,7 +618,6 @@
                 contacts: []
             };
 
-            // Сбор таймлайна с использованием надежного data-time-val или input value
             document.querySelectorAll('[data-timeline-time]').forEach((el, index) => {
                 let rawTime = "00:00";
                 if (isEditMode) {
@@ -644,7 +631,6 @@
                 data.timeline.push({ time: rawTime, event, responsible });
             });
 
-            // Сбор департаментов с использованием надежного data-time-val или input value
             let deptIndices = new Set();
             document.querySelectorAll('[data-dept-title]').forEach(el => deptIndices.add(el.getAttribute('data-dept-title')));
             deptIndices.forEach(dIdx => {
