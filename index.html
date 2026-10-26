@@ -1,3 +1,6 @@
+Вот полный и готовый к работе код файла `index.html` с поддержкой выбора даты, онлайн-запроса погоды и автоматического расчета точного времени рассвета и заката для выбранного дня через метеорологическое API:
+
+```html
 <!DOCTYPE html>
 <html lang="ru" class="dark">
 <head>
@@ -98,7 +101,6 @@
                     <div class="text-xs text-slate-400 mb-1">Дата смены</div>
                     <!-- Интерактивный выбор даты -->
                     <input type="date" id="meta-date-picker" onchange="updateDateFromPicker(this)" class="bg-slate-800 text-amber-400 font-bold text-sm px-3 py-1.5 rounded-lg border border-slate-700 outline-none no-print">
-                    <div class="text-sm sm:text-base font-bold text-slate-200 hidden" id="meta-date-display">Понедельник, 27 октября 2026</div>
                 </div>
                 <div>
                     <div class="text-xs text-slate-400 mb-1">Версия</div>
@@ -151,9 +153,7 @@
 
                     <!-- Visual Sun Animation Area -->
                     <div class="relative h-20 bg-slate-950/80 rounded-lg border border-slate-800 flex items-center justify-center overflow-hidden my-3">
-                        <!-- Horizon Line -->
                         <div class="absolute w-full h-[1px] bg-amber-500/30 top-1/2"></div>
-                        <!-- Sun Orbit visual representation -->
                         <div class="absolute w-36 h-36 rounded-full border border-dashed border-amber-500/20 flex items-center justify-center sun-icon">
                             <div class="w-4 h-4 rounded-full bg-amber-400 shadow-lg shadow-amber-500/50 absolute -top-2"></div>
                         </div>
@@ -329,7 +329,6 @@
             document.getElementById('meta-project').innerText = data.metaProject;
             document.getElementById('meta-version').innerText = data.metaVersion;
             
-            // Date picker
             const dateInput = document.getElementById('meta-date-picker');
             if (data.metaDate) {
                 dateInput.value = data.metaDate;
@@ -425,13 +424,17 @@
         }
 
         function updateDateFromPicker(input) {
-            console.log("Selected date:", input.value);
+            saveChanges();
         }
 
-        // Fetch real online weather (Open-Meteo API for Moscow coordinates)
+        // Автоматический запрос погоды и точного времени рассвета/заката на выбранную дату через Open-Meteo API
         async function fetchOnlineWeather() {
+            const selectedDate = document.getElementById('meta-date-picker').value || new Date().toISOString().split('T')[0];
+            
             try {
-                const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=sunrise,sunset&timezone=Europe%2FMoscow');
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=sunrise,sunset&start_date=${selectedDate}&end_date=${selectedDate}&timezone=Europe%2FMoscow`;
+                
+                const response = await fetch(url);
                 const data = await response.json();
                 
                 if (data && data.current) {
@@ -439,18 +442,20 @@
                     document.getElementById('weather-wind').innerText = `${data.current.wind_speed_10m} м/с`;
                     document.getElementById('weather-rain').innerText = `${data.current.precipitation} мм`;
                     document.getElementById('weather-humidity').innerText = `${data.current.relative_humidity_2m}%`;
-                    document.getElementById('weather-condition').innerText = "Онлайн-данные актуальны";
+                    document.getElementById('weather-condition').innerText = "Онлайн (актуально)";
                 }
 
-                if (data && data.daily && data.daily.sunrise && data.daily.sunset) {
+                if (data && data.daily && data.daily.sunrise && data.daily.sunset && data.daily.sunrise.length > 0) {
                     const sunriseTime = data.daily.sunrise[0].split('T')[1];
                     const sunsetTime = data.daily.sunset[0].split('T')[1];
+                    
                     document.getElementById('sun-rise').innerText = sunriseTime;
                     document.getElementById('sun-set').innerText = sunsetTime;
                 }
-                alert('Погода и данные светового дня успешно обновлены из сети!');
+                
+                alert(`Данные погоды и светового дня на ${selectedDate} успешно получены из сети!`);
             } catch (err) {
-                alert('Не удалось получить данные погоды. Проверьте подключение к интернету.');
+                alert('Не удалось получить данные. Проверьте подключение к интернету.');
             }
         }
 
