@@ -389,13 +389,13 @@
             document.getElementById('location-address').innerText = data.locationAddress;
             document.getElementById('location-parking').innerText = data.locationParking;
 
-            // Timeline с выбором времени в режиме правки
+            // Timeline с надежным сохранением времени через data-атрибут
             const timelineTbody = document.getElementById('timeline-tbody');
             timelineTbody.innerHTML = '';
             data.timeline.forEach((item, index) => {
                 let timeCellContent = isEditMode 
                     ? `<input type="time" value="${item.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-2 py-1 rounded border border-slate-700 text-sm outline-none" data-timeline-time="${index}">`
-                    : `<span class="font-mono font-bold text-amber-400 text-base" data-timeline-time="${index}">${formatBlinkingTime(item.time)}</span>`;
+                    : `<span class="font-mono font-bold text-amber-400 text-base" data-timeline-time="${index}" data-time-val="${item.time}">${formatBlinkingTime(item.time)}</span>`;
 
                 timelineTbody.innerHTML += `
                     <tr class="hover:bg-slate-800/40 transition">
@@ -409,7 +409,7 @@
                 `;
             });
 
-            // Departments с выбором времени явки в режиме правки
+            // Departments с надежным сохранением времени через data-атрибут
             const deptContainer = document.getElementById('departments-container');
             deptContainer.innerHTML = '';
             data.departments.forEach((dept, dIndex) => {
@@ -431,7 +431,7 @@
 
                 let deptCallTimeContent = isEditMode
                     ? `<input type="time" value="${dept.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-1.5 py-0.5 rounded border border-slate-700 text-xs outline-none inline-block" data-dept-calltime="${dIndex}">`
-                    : `<strong class="text-amber-400 font-mono" data-dept-calltime="${dIndex}">${formatBlinkingTime(dept.time)}</strong>`;
+                    : `<strong class="text-amber-400 font-mono" data-dept-calltime="${dIndex}" data-time-val="${dept.time}">${formatBlinkingTime(dept.time)}</strong>`;
 
                 deptContainer.innerHTML += `
                     <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
@@ -591,7 +591,7 @@
                     document.getElementById('weather-condition').innerText = "Прогноз на дату";
                 }
 
-                if (data && data.daily && data.daily.sunrise && data.daily.sunset && data.daily.sunrise.length > 0) {
+                if (data && data.daily && data.daily.sunrise && data.daily.sunrise.length > 0) {
                     const sunriseTime = data.daily.sunrise[0].split('T')[1];
                     const sunsetTime = data.daily.sunset[0].split('T')[1];
                     
@@ -630,13 +630,13 @@
                 contacts: []
             };
 
+            // Сбор таймлайна с использованием надежного data-time-val или input value
             document.querySelectorAll('[data-timeline-time]').forEach((el, index) => {
                 let rawTime = "00:00";
                 if (isEditMode) {
                     rawTime = el.value || "00:00";
                 } else {
-                    let match = el.innerHTML.match(/(\d{2})[:\s\S]*?(\d{2})/);
-                    rawTime = match ? `${match[1]}:${match[2]}` : el.innerText.trim();
+                    rawTime = el.getAttribute('data-time-val') || "00:00";
                 }
 
                 const event = document.querySelector(`[data-timeline-event="${index}"]`).innerText;
@@ -644,6 +644,7 @@
                 data.timeline.push({ time: rawTime, event, responsible });
             });
 
+            // Сбор департаментов с использованием надежного data-time-val или input value
             let deptIndices = new Set();
             document.querySelectorAll('[data-dept-title]').forEach(el => deptIndices.add(el.getAttribute('data-dept-title')));
             deptIndices.forEach(dIdx => {
@@ -653,8 +654,7 @@
                 if (isEditMode) {
                     deptTime = timeEl.value || "00:00";
                 } else {
-                    let match = timeEl.innerHTML.match(/(\d{2})[:\s\S]*?(\d{2})/);
-                    deptTime = match ? `${match[1]}:${match[2]}` : timeEl.innerText.trim();
+                    deptTime = timeEl.getAttribute('data-time-val') || "00:00";
                 }
 
                 let crew = [];
