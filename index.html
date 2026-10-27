@@ -82,6 +82,39 @@
             filter: brightness(0.7) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3);
         }
 
+        /* Анимация осадков (дождь/снег) */
+        @keyframes fallRain {
+            0% { transform: translateY(-20px); opacity: 0; }
+            20% { opacity: 0.8; }
+            80% { opacity: 0.8; }
+            100% { transform: translateY(180px); opacity: 0; }
+        }
+        .rain-drop {
+            position: absolute;
+            width: 1.5px;
+            height: 12px;
+            background: linear-gradient(transparent, rgba(56, 189, 248, 0.85));
+            animation: fallRain 0.7s infinite linear;
+            pointer-events: none;
+            z-index: 3;
+        }
+        @keyframes fallSnow {
+            0% { transform: translateY(-20px) translateX(0); opacity: 0; }
+            30% { opacity: 0.9; }
+            70% { opacity: 0.9; }
+            100% { transform: translateY(180px) translateX(15px); opacity: 0; }
+        }
+        .snow-flake {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            animation: fallSnow 3.5s infinite linear;
+            pointer-events: none;
+            z-index: 3;
+        }
+
         @keyframes driftCloud1 {
             0% { transform: translateX(-160px) scale(0.9); opacity: 0.1; }
             25% { opacity: 0.6; }
@@ -280,6 +313,9 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" id="top-widgets-grid">
             
             <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500 flex flex-col justify-between" id="weather-widget-card">
+                <!-- Контейнер для анимации осадков (дождь/снег) -->
+                <div class="absolute inset-0 overflow-hidden pointer-events-none z-0" id="precipitation-container"></div>
+
                 <div class="absolute inset-0 overflow-hidden pointer-events-none z-0" id="sky-bg-container">
                     <div class="absolute -top-10 -right-10 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl transition-all duration-500" id="corona-bg"></div>
                     <div class="cloud-layer-1"></div>
@@ -384,7 +420,6 @@
                         <span>Почасовой трек смены</span>
                         <span class="text-amber-400 font-normal">UTC+3</span>
                     </div>
-                    <!-- Динамический почасовой трек погоды -->
                     <div class="grid grid-cols-8 gap-1 bg-slate-950/80 p-2 rounded-2xl border border-white/5 text-[9px] text-slate-300 text-center backdrop-blur-sm shadow-inner" id="hourly-forecast-grid">
                         <div class="flex flex-col items-center opacity-70" data-hour="6"><span>06:00</span><i class="fa-solid fa-cloud-sun text-[10px] my-0.5 text-sky-400"></i><span class="font-bold">+3°</span></div>
                         <div class="flex flex-col items-center opacity-70" data-hour="9"><span>09:00</span><i class="fa-solid fa-cloud text-[10px] my-0.5 text-slate-300"></i><span class="font-bold">+5°</span></div>
@@ -701,6 +736,24 @@
         let currentLon = 37.6338;
         let currentWeatherMode = 'day';
         let widgetSunLights = [];
+
+        // Функция генерации анимации осадков (дождь/снег)
+        function initPrecipitationEffect(type = 'rain') {
+            const container = document.getElementById('precipitation-container');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            const count = type === 'snow' ? 25 : 35;
+            for (let i = 0; i < count; i++) {
+                const el = document.createElement('div');
+                el.className = type === 'snow' ? 'snow-flake' : 'rain-drop';
+                el.style.left = `${Math.random() * 100}%`;
+                el.style.top = `${Math.random() * -50}px`;
+                el.style.animationDelay = `${Math.random() * 2}s`;
+                el.style.animationDuration = `${type === 'snow' ? (2 + Math.random() * 2) : (0.5 + Math.random() * 0.4)}s`;
+                container.appendChild(el);
+            }
+        }
 
         function getMoonPhaseAngle(dateObj) {
             const year = dateObj.getFullYear();
@@ -1239,7 +1292,6 @@
             const timeDisplay = document.getElementById('currentTimeDisplay');
             if (timeDisplay) timeDisplay.textContent = timeStr;
 
-            // Динамическая подсветка часа в погоде на основе слайдера
             highlightHourlyForecast(hours);
 
             const dayProgress = minutesOfDay / 1440;
@@ -1273,7 +1325,6 @@
             if (!grid) return;
             const items = grid.querySelectorAll('[data-hour]');
             
-            // Находим ближайший слот из [6, 9, 12, 15, 18, 21, 0, 3]
             const slots = [6, 9, 12, 15, 18, 21, 0, 3];
             let closestSlot = slots.reduce((prev, curr) => Math.abs(curr - currentHour) < Math.abs(prev - currentHour) ? curr : prev);
 
@@ -1313,6 +1364,7 @@
                     if (pressureVal) pressureVal.innerText = `${pressure} мм`;
 
                     checkStormAlert(wind);
+                    initPrecipitationEffect(temp <= 0 ? 'snow' : 'rain');
                 }
             } catch (err) {
                 console.error('Ошибка получения погоды:', err);
@@ -1349,6 +1401,7 @@
             initMiniMap(data.lat, data.lon);
             calculateGoldenHours();
             updateSunLightPosition();
+            initPrecipitationEffect('rain');
         }
 
         function renderData(data) {
