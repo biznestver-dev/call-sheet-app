@@ -211,8 +211,8 @@
                     <i class="fa-solid fa-clapperboard" id="project-icon"></i>
                 </div>
                 <div>
-                    <span class="text-xs uppercase tracking-widest text-amber-500 font-semibold block" contenteditable="true" id="meta-day">СЪЕМОЧНЫЙ ДЕНЬ #04</span>
-                    <h1 class="text-base sm:text-lg font-bold text-slate-100 truncate max-w-xs sm:max-w-md" contenteditable="true" id="meta-project">Проект «Аврора» (Смена 12)</h1>
+                    <span class="text-xs uppercase tracking-widest text-amber-500 font-semibold block" contenteditable="false" id="meta-day">СЪЕМОЧНЫЙ ДЕНЬ #04</span>
+                    <h1 class="text-base sm:text-lg font-bold text-slate-100 truncate max-w-xs sm:max-w-md" contenteditable="false" id="meta-project">Проект «Аврора» (Смена 12)</h1>
                 </div>
             </div>
 
@@ -250,14 +250,14 @@
                     <div class="text-xs uppercase tracking-wider text-amber-400 font-bold" id="general-call-title-label">Общий сбор группы (General Crew Call)</div>
                     <div class="flex items-center space-x-3 mt-1 flex-wrap gap-y-2">
                         <!-- Время сбора -->
-                        <input type="time" id="general-call-time" onchange="saveChanges()" class="bg-slate-800/80 text-white font-black text-2xl sm:text-3xl px-3 py-1 rounded-lg border border-slate-700 outline-none focus:border-amber-500 tracking-tight">
+                        <input type="time" id="general-call-time" onchange="saveChanges()" class="bg-slate-800/80 text-white font-black text-2xl sm:text-3xl px-3 py-1 rounded-lg border border-slate-700 outline-none focus:border-amber-500 tracking-tight" disabled>
                         
                         <!-- Дата сбора -->
-                        <input type="date" id="general-call-date" onchange="syncGeneralDate(this)" class="bg-slate-800 text-amber-400 font-bold text-sm sm:text-base px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500 no-print">
+                        <input type="date" id="general-call-date" onchange="syncGeneralDate(this)" class="bg-slate-800 text-amber-400 font-bold text-sm sm:text-base px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500 no-print" disabled>
                         
-                        <span class="text-xs text-slate-400 hidden sm:inline">(Нажмите для изменения)</span>
+                        <span class="text-xs text-slate-400 hidden sm:inline" id="general-call-hint">(Нажмите «Режим правки» для изменения)</span>
                     </div>
-                    <p class="text-xs sm:text-sm text-slate-300 mt-1.5 editable-field" contenteditable="true" id="general-call-desc">Получение раций, инструктаж по ТБ, проверка пропусков на КПП</p>
+                    <p class="text-xs sm:text-sm text-slate-300 mt-1.5 editable-field" contenteditable="false" id="general-call-desc">Получение раций, инструктаж по ТБ, проверка пропусков на КПП</p>
                 </div>
             </div>
 
@@ -443,38 +443,37 @@
                                 <i class="fa-solid fa-sunrise text-amber-400"></i>
                                 <span>Рассвет</span>
                             </div>
-                            <div class="text-sm font-bold text-slate-200 mt-0.5 editable-field" contenteditable="true" id="sun-rise">07:25</div>
+                            <div class="text-sm font-bold text-slate-200 mt-0.5 editable-field" contenteditable="false" id="sun-rise">07:25</div>
                         </div>
                         <div class="bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
                             <div class="text-[10px] text-slate-400 uppercase flex items-center justify-center space-x-1">
                                 <i class="fa-solid fa-sunset text-orange-400"></i>
                                 <span>Закат</span>
                             </div>
-                            <div class="text-sm font-bold text-slate-200 mt-0.5 editable-field" contenteditable="true" id="sun-set">17:01</div>
+                            <div class="text-sm font-bold text-slate-200 mt-0.5 editable-field" contenteditable="false" id="sun-set">17:01</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Location & Logistics with Flexible Address Input -->
+            <!-- Location & Logistics -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between space-y-3" id="location-card">
                 <div>
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-xs uppercase tracking-wider text-slate-400 font-bold"><i class="fa-solid fa-location-dot text-amber-500 mr-1.5"></i> <span id="location-title-label">Локация / Площадка</span></span>
                     </div>
 
-                    <!-- Инпут поиска: можно выбрать из списка или ввести любой адрес с клавиатуры и нажать Enter -->
-                    <div class="mb-2 relative">
+                    <div class="mb-2 relative hidden" id="venue-search-container">
                         <input type="text" id="venue-search-input" placeholder="🔍 Введите любой адрес или найдите площадку..." oninput="filterVenues(this.value)" onkeydown="handleCustomAddressKey(event)" onfocus="showVenueDropdown()" class="w-full bg-slate-950 text-amber-400 text-xs px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500">
                         <div id="venue-dropdown-list" class="hidden absolute z-50 bg-slate-900 border border-slate-700 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-2xl w-full"></div>
                     </div>
 
                     <div onclick="openMapRoute()" class="cursor-pointer group hover:bg-white/5 p-1.5 rounded-lg transition -mx-1.5" title="Нажмите, чтобы открыть маршрут в Яндекс.Картах">
                         <div class="text-base font-bold text-white group-hover:text-amber-400 transition flex items-center justify-between">
-                            <span contenteditable="true" id="location-name" class="editable-field">Киностудия «Амедиа»</span>
+                            <span contenteditable="false" id="location-name" class="editable-field">Офис АНО «АртМастерс»</span>
                             <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-500 group-hover:text-amber-400"></i>
                         </div>
-                        <div class="text-xs text-slate-300 mt-0.5 editable-field" contenteditable="true" id="location-address">Москва, ул. Домостроительная, 1с2</div>
+                        <div class="text-xs text-slate-300 mt-0.5 editable-field" contenteditable="false" id="location-address">Москва, улица Мясницкая, 17 стр. 1</div>
                     </div>
 
                     <div class="mini-map-container my-2" id="miniMap"></div>
@@ -482,18 +481,18 @@
                     <div class="text-xs bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80 space-y-1">
                         <div class="flex items-center space-x-1.5 text-sky-400 font-medium">
                             <i class="fa-solid fa-train-subway"></i>
-                            <span contenteditable="true" id="location-metro" class="editable-field">Метро «Озёрная» / «Говорово» (10 мин. на тр.)</span>
+                            <span contenteditable="false" id="location-metro" class="editable-field">Метро «Лубянка» / «Чистые пруды»</span>
                         </div>
                         <div class="flex items-center space-x-1.5 text-slate-400">
                             <i class="fa-solid fa-bus"></i>
-                            <span contenteditable="true" id="location-bus" class="editable-field">Автобусы: № 610, 630, 785 до ост. «АТС»</span>
+                            <span contenteditable="false" id="location-bus" class="editable-field">Центр города</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="text-xs bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
                     <span class="text-slate-500 block mb-0.5" id="parking-label-title">Парковка / Заезд:</span>
-                    <span class="text-slate-300 font-medium editable-field" contenteditable="true" id="location-parking">Грузовой транспорт через ворота №3 по спискам АНО.</span>
+                    <span class="text-slate-300 font-medium editable-field" contenteditable="false" id="location-parking">Парковка по предварительному заказу пропуска.</span>
                 </div>
             </div>
         </div>
@@ -1133,10 +1132,6 @@
                 }
                 mapInstance.invalidateSize();
             }, 300);
-
-            setTimeout(() => {
-                if (mapInstance) mapInstance.invalidateSize();
-            }, 900);
         }
 
         function openMapRoute() {
@@ -1190,8 +1185,6 @@
                 earthMaterial.map = tex; 
                 earthMaterial.color.setHex(0xffffff);
                 earthMaterial.needsUpdate = true; 
-            }, undefined, (err) => {
-                console.warn('Не удалось загрузить текстуру Земли, используется базовый цвет', err);
             });
             
             textureLoader.load('https://threejs.org/examples/textures/planets/earth_specular_2048.jpg', (tex) => { earthMaterial.roughnessMap = tex; earthMaterial.needsUpdate = true; });
@@ -1315,7 +1308,7 @@
         }
 
         function initApp() {
-            const saved = localStorage.getItem('call_sheet_stage_data_v16');
+            const saved = localStorage.getItem('call_sheet_stage_data_v17');
             const data = saved ? JSON.parse(saved) : defaultData;
             renderData(data);
             init3DWidget();
@@ -1498,7 +1491,7 @@
             
             try {
                 let url = (selectedDate === todayStr) 
-                    ? `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,surface_pressure&timezone=Europe%2FMoscow`
+                    ? `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,surface_pressure&daily=sunrise,sunset&timezone=Europe%2FMoscow`
                     : `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum&start_date=${selectedDate}&end_date=${selectedDate}&timezone=Europe%2FMoscow`;
                 
                 const response = await fetch(url);
@@ -1526,7 +1519,7 @@
                     calculateGoldenHours();
                 }
             } catch (err) {
-                console.error('Ошибка получения погоды:', err);
+                console.error('Не удалось получить данные погоды:', err);
             }
         }
 
@@ -1638,16 +1631,38 @@
             const btnText = document.getElementById('edit-mode-text');
             const btn = document.getElementById('edit-mode-btn');
             
+            // Поля ввода сбора и подсказка
+            const generalCallTime = document.getElementById('general-call-time');
+            const generalCallDate = document.getElementById('general-call-date');
+            const generalCallHint = document.getElementById('general-call-hint');
+            const venueSearchContainer = document.getElementById('venue-search-container');
+
             if (isEditMode) {
                 btnText.innerText = "Готово (Просмотр)";
                 btn.classList.add('bg-amber-500', 'text-slate-950', 'border-amber-400');
                 btn.classList.remove('bg-amber-500/10', 'text-amber-400');
+                
+                // Включаем редактирование полей
+                if (generalCallTime) generalCallTime.removeAttribute('disabled');
+                if (generalCallDate) generalCallDate.removeAttribute('disabled');
+                if (generalCallHint) generalCallHint.style.display = 'none';
+                if (venueSearchContainer) venueSearchContainer.classList.remove('hidden');
+
+                document.querySelectorAll('.editable-field').forEach(el => el.setAttribute('contenteditable', 'true'));
                 document.querySelectorAll('.edit-action-btn').forEach(el => el.classList.remove('hidden'));
             } else {
                 saveChanges();
                 btnText.innerText = "Режим правки";
                 btn.classList.remove('bg-amber-500', 'text-slate-950', 'border-amber-400');
                 btn.classList.add('bg-amber-500/10', 'text-amber-400');
+
+                // Блокируем поля ввода сбора
+                if (generalCallTime) generalCallTime.setAttribute('disabled', 'true');
+                if (generalCallDate) generalCallDate.setAttribute('disabled', 'true');
+                if (generalCallHint) generalCallHint.style.display = 'inline';
+                if (venueSearchContainer) venueSearchContainer.classList.add('hidden');
+
+                document.querySelectorAll('.editable-field').forEach(el => el.setAttribute('contenteditable', 'false'));
                 document.querySelectorAll('.edit-action-btn').forEach(el => el.classList.add('hidden'));
             }
             renderData(collectDataFromDOM());
@@ -1655,14 +1670,14 @@
 
         function saveChanges() {
             const data = collectDataFromDOM();
-            localStorage.setItem('call_sheet_stage_data_v16', JSON.stringify(data));
+            localStorage.setItem('call_sheet_stage_data_v17', JSON.stringify(data));
             calculateGoldenHours();
             updateReadinessProgress();
         }
 
         function resetToDefaults() {
             if (confirm('Сбросить изменения по умолчанию?')) {
-                localStorage.removeItem('call_sheet_stage_data_v16');
+                localStorage.removeItem('call_sheet_stage_data_v17');
                 renderData(defaultData);
             }
         }
