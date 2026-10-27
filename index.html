@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вызывной лист | Call Sheet Manager Pro</title>
+    <title>Вызывной лист / Лист монтировки | Call Sheet & Stage Manager Pro</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -244,7 +244,7 @@
         <div class="bg-gradient-to-r from-amber-500/20 via-slate-900 to-slate-900 border border-amber-500/40 rounded-xl p-4 sm:p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-start space-x-4">
                 <div class="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shrink-0 shadow-md">
-                    <i class="fa-solid fa-bell"></i>
+                    <i class="fa-solid fa-bell" id="general-bell-icon"></i>
                 </div>
                 <div>
                     <div class="text-xs uppercase tracking-wider text-amber-400 font-bold" id="general-call-title-label">Общий сбор группы (General Crew Call)</div>
@@ -256,24 +256,24 @@
                 </div>
             </div>
 
-            <!-- Общая шкала готовности смены -->
+            <!-- Общая шкала готовности смены / монтировки -->
             <div class="flex flex-col items-end justify-center border-t md:border-t-0 md:border-l border-slate-800 pt-3 md:pt-0 md:pl-6 min-w-[200px]">
                 <div class="flex items-center justify-between w-full text-xs text-slate-300 mb-1.5 font-semibold">
-                    <span>Готовность смены:</span>
+                    <span id="readiness-label-title">Готовность смены:</span>
                     <span id="readiness-percent" class="text-amber-400 font-mono font-bold">0%</span>
                 </div>
                 <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700">
                     <div id="readiness-bar" class="bg-gradient-to-r from-amber-600 to-amber-400 h-full transition-all duration-500" style="width: 0%"></div>
                 </div>
-                <div class="text-[10px] text-slate-400 mt-1">Отмечено чек-листов департаментов</div>
+                <div class="text-[10px] text-slate-400 mt-1" id="readiness-subtitle">Отмечено чек-листов департаментов</div>
             </div>
         </div>
 
-        <!-- Grid: Weather & Atmosphere & Location -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Grid: Weather & Atmosphere & Location (Weather hidden in Theater mode) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" id="top-widgets-grid">
             
-            <!-- Интегрированный Кинематографичный виджет погоды V1 с защитным штормовым триггером -->
-            <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500 flex flex-col justify-between" id="main-card">
+            <!-- Интегрированный Кинематографичный виджет погоды V1 -->
+            <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500 flex flex-col justify-between" id="weather-widget-card">
                 
                 <div class="absolute inset-0 overflow-hidden pointer-events-none z-0" id="sky-bg-container">
                     <div class="absolute -top-10 -right-10 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl transition-all duration-500" id="corona-bg"></div>
@@ -331,7 +331,6 @@
                     </div>
                 </div>
 
-                <!-- БЛОК «РЕЖИМНЫЙ СВЕТ / ШТОРМОВОЕ ПРЕДУПРЕЖДЕНИЕ» -->
                 <div class="banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 backdrop-blur-md transition-all duration-500" id="cinematic-banner">
                     
                     <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-90 z-10">
@@ -394,8 +393,8 @@
                 </div>
             </div>
 
-            <!-- 3D Realistic Earth & Space Widget -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden">
+            <!-- 3D Realistic Earth & Space Widget (Hidden in Theater mode) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden" id="space-widget-card">
                 <div>
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs uppercase tracking-wider text-slate-300 font-bold flex items-center space-x-1.5">
@@ -454,14 +453,14 @@
             </div>
 
             <!-- Location & Logistics with Live Search & Venue Input -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between space-y-3">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between space-y-3" id="location-card">
                 <div>
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs uppercase tracking-wider text-slate-400 font-bold"><i class="fa-solid fa-location-dot text-amber-500 mr-1.5"></i> Локация / Площадка</span>
+                        <span class="text-xs uppercase tracking-wider text-slate-400 font-bold"><i class="fa-solid fa-location-dot text-amber-500 mr-1.5"></i> <span id="location-title-label">Локация / Площадка</span></span>
                     </div>
 
                     <div class="mb-2 relative">
-                        <input type="text" id="venue-search-input" placeholder="🔍 Введите или найдите локацию..." oninput="filterVenues(this.value)" onfocus="showVenueDropdown()" class="w-full bg-slate-950 text-amber-400 text-xs px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500">
+                        <input type="text" id="venue-search-input" placeholder="🔍 Введите или найдите театр / площадку..." oninput="filterVenues(this.value)" onfocus="showVenueDropdown()" class="w-full bg-slate-950 text-amber-400 text-xs px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500">
                         <div id="venue-dropdown-list" class="hidden absolute z-50 bg-slate-900 border border-slate-700 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-2xl w-full"></div>
                     </div>
 
@@ -488,33 +487,33 @@
                 </div>
 
                 <div class="text-xs bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
-                    <span class="text-slate-500 block mb-0.5">Парковка / Заезд:</span>
+                    <span class="text-slate-500 block mb-0.5" id="parking-label-title">Парковка / Заезд:</span>
                     <span class="text-slate-300 font-medium editable-field" contenteditable="true" id="location-parking">Грузовой транспорт через ворота №3 по спискам АНО.</span>
                 </div>
             </div>
         </div>
 
-        <!-- NEW: Scenes Breakdown / Stripboard (Сцены смены) -->
+        <!-- Scenes Breakdown / Stripboard (Сцены смены / Акты и картины) -->
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-film text-amber-500"></i>
-                    <h2 class="text-base font-bold text-white uppercase tracking-wider">Пообъектный план смены (Сцены)</h2>
+                    <i class="fa-solid fa-film text-amber-500" id="table-icon-scenes"></i>
+                    <h2 class="text-base font-bold text-white uppercase tracking-wider" id="scenes-section-title">Пообъектный план смены (Сцены)</h2>
                 </div>
                 <button onclick="addSceneRow()" class="hidden edit-action-btn text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg transition items-center space-x-1.5">
-                    <i class="fa-solid fa-plus"></i><span>Добавить сцену</span>
+                    <i class="fa-solid fa-plus"></i><span id="add-scene-btn-text">Добавить сцену</span>
                 </button>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
+                        <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase" id="scenes-table-head">
                             <th class="py-2.5 px-3 font-semibold w-20">Сцена</th>
                             <th class="py-2.5 px-3 font-semibold w-24">И/Э</th>
                             <th class="py-2.5 px-3 font-semibold">Описание / Объект</th>
                             <th class="py-2.5 px-3 font-semibold w-28">Хронометраж</th>
                             <th class="py-2.5 px-3 font-semibold w-32">Персонажи</th>
-                            <th class="py-2.5 px-3 font-semibold text-right w-20 edit-action-btn hidden">Статус / Действие</th>
+                            <th class="py-2.5 px-3 font-semibold text-right w-20 edit-action-btn hidden">Действие</th>
                         </tr>
                     </thead>
                     <tbody id="scenes-tbody" class="divide-y divide-slate-800/60 text-sm"></tbody>
@@ -527,7 +526,7 @@
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-clock text-amber-500"></i>
-                    <h2 class="text-base font-bold text-white uppercase tracking-wider">Общий таймлайн смены</h2>
+                    <h2 class="text-base font-bold text-white uppercase tracking-wider" id="timeline-section-title">Общий таймлайн смены</h2>
                 </div>
                 <button onclick="addTimelineRow()" class="hidden edit-action-btn text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg transition items-center space-x-1.5">
                     <i class="fa-solid fa-plus"></i><span>Добавить веху</span>
@@ -553,7 +552,7 @@
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-users text-amber-500"></i>
-                    <h2 class="text-base font-bold text-white uppercase tracking-wider">Явка департаментов и готовность</h2>
+                    <h2 class="text-base font-bold text-white uppercase tracking-wider" id="departments-section-title">Явка департаментов и готовность</h2>
                 </div>
                 <button onclick="addDepartment()" class="hidden edit-action-btn text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg transition items-center space-x-1.5">
                     <i class="fa-solid fa-plus"></i><span>Добавить департамент</span>
@@ -580,7 +579,7 @@
 
     <!-- Footer Actions -->
     <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 text-center text-xs text-slate-500 no-print flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div>Call Sheet Generator Pro &bull; Московская область</div>
+        <div>Call Sheet & Stage Manager Pro &bull; Московская область</div>
         <div class="flex items-center space-x-4">
             <button onclick="resetToDefaults()" class="hover:text-red-400 transition">Сбросить по умолчанию</button>
             <button onclick="saveChanges()" class="bg-amber-500 text-slate-950 font-semibold px-4 py-2 rounded-lg hover:bg-amber-400 transition shadow">Сохранить изменения</button>
@@ -591,12 +590,9 @@
     <script>
         const venuesDatabase = [
             { id: "amedia", name: "Киностудия «Амедиа»", address: "Москва, ул. Домостроительная, 1с2", metro: "Метро «Озёрная» / «Говорово»", bus: "Автобусы: № 610, 630, 785", lat: 55.6795, lon: 37.4392 },
-            { id: "glavcinema", name: "Главкино", address: "Московская область, Красногорский район, п. Ильинское-Усово", metro: "Метро «Тушинская» / «Мякинино»", bus: "Маршрутки от ст. м. Тушинская", lat: 55.7891, lon: 37.2584 },
-            { id: "mosfilm", name: "Киноконцерн «Мосфильм»", address: "Москва, ул. Мосфильмовская, 1", metro: "Метро «Ломоносовский проспект»", bus: "Автобусы до ост. «Мосфильм»", lat: 55.7179, lon: 37.5273 },
-            { id: "gorkyfilm", name: "Киностудия им. Горького", address: "Москва, ул. Сергея Эйзенштейна, 8", metro: "Метро «ВДНХ» / «Ботанический сад»", bus: "Трамваи № 11, 25", lat: 55.8331, lon: 37.6439 },
-            { id: "livearena", name: "Live Arena", address: "Московская область, Одинцовский городской округ, Новоивановское", metro: "МЦД «Сколково»", bus: "Автобусы от ст. м. Славянский бульвар", lat: 55.7002, lon: 37.3705 },
             { id: "electrotheatre", name: "Электротеатр Станиславский", address: "Москва, Тверская ул., 23", metro: "Метро «Пушкинская» / «Тверская»", bus: "В центре города", lat: 55.7664, lon: 37.6033 },
-            { id: "helikon", name: "Геликон-опера", address: "Москва, Большая Никитская ул., 19/16", metro: "Метро «Охотный Ряд»", bus: "Центральные маршруты", lat: 55.7571, lon: 37.6072 }
+            { id: "helikon", name: "Геликон-опера", address: "Москва, Большая Никитская ул., 19/16", metro: "Метро «Охотный Ряд»", bus: "Центральные маршруты", lat: 55.7571, lon: 37.6072 },
+            { id: "maska", name: "Театр «Маска» (МДМ)", address: "Москва, Комсомольский пр-кт, 28", metro: "Метро «Фрунзенская»", bus: "Троллейбусы, автобусы", lat: 55.7262, lon: 37.5768 }
         ];
 
         const defaultData = {
@@ -625,12 +621,23 @@
                 { num: "14", ie: "ИНТ.", desc: "Кабинет главного инженера. Спор героев о запуске реактора.", time: "1/8", cast: "№1, №3" },
                 { num: "15", ie: "ЭКСТ.", desc: "Проходная завода. Прибытие кортежа.", time: "3/8", cast: "№2, №5, Массовка" }
             ],
+            theaterScenes: [
+                { act: "Акт I", scene: "Картина 1", desc: "Явление первое. Завязка диалога на авансцене.", time: "15 мин", cast: "Герой 1, Герой 2" },
+                { act: "Акт I", scene: "Картина 2", desc: "Массовая сцена с перестановкой мягких декораций.", time: "25 мин", cast: "Хор, Кордебалет" }
+            ],
             timeline: [
                 { time: "07:00", event: "Заезд техслужб, охраны и кейтеринга", responsible: "А. Белоусов" },
                 { time: "07:30", event: "Общий сбор группы, получение раций", responsible: "О. Зломанов" },
                 { time: "09:00", event: "Мотор! Съемка сцены №14, 15", responsible: "Съемочная группа" },
                 { time: "14:00", event: "Обеденный перерыв", responsible: "Кейтеринг" },
                 { time: "19:00", event: "Смена окончена, Wrap", responsible: "Все департаменты" }
+            ],
+            theaterTimeline: [
+                { time: "10:00", event: "Монтировка декораций на главной сцене", responsible: "Завпост / Монтировщики" },
+                { time: "12:00", event: "Световая репетиция (сухой прогон)", responsible: "Художник по свету" },
+                { time: "15:00", event: "Репетиция с оркестром", responsible: "Дирижер / Звукорежиссер" },
+                { time: "18:00", event: "Общий сбор артистов, грим", responsible: "Помощник режиссера (ПР)" },
+                { time: "19:00", event: "Начало спектакля / Генерального прогона", responsible: "Режиссер спектакля" }
             ],
             departments: [
                 {
@@ -649,6 +656,26 @@
                     crew: [
                         { role: "Технический директор", name: "Олег Зломанов", phone: "+7 (999) 777-88-99" },
                         { role: "Инженер Плейбека", name: "Артем Сидоренко", phone: "+7 (999) 888-99-00" }
+                    ]
+                }
+            ],
+            theaterDepartments: [
+                {
+                    name: "Постановочная часть (Цех)",
+                    time: "10:00",
+                    ready: true,
+                    crew: [
+                        { role: "Заведующий постановчной частью", name: "Олег Зломанов", phone: "+7 (999) 777-88-99" },
+                        { role: "Начальник монтировочного цеха", name: "Артем Сидоренко", phone: "+7 (999) 888-99-00" }
+                    ]
+                },
+                {
+                    name: "Свет и Звук",
+                    time: "11:00",
+                    ready: true,
+                    crew: [
+                        { role: "Художник по свету", name: "Арсентий Райков", phone: "+7 (999) 111-22-33" },
+                        { role: "Звукорежиссер пульта", name: "Борислав Володин", phone: "+7 (999) 222-33-44" }
                     ]
                 }
             ],
@@ -671,7 +698,7 @@
             const year = dateObj.getFullYear();
             const month = dateObj.getMonth() + 1;
             const day = dateObj.getDate();
-            let c = 0, e = 0;
+            let c = 0;
             let y = year;
             let m = month;
             if (m < 3) { y--; m += 12; }
@@ -887,6 +914,20 @@
             const metaDayEl = document.getElementById('meta-day');
             const filmBtn = document.getElementById('type-film-btn');
             const theaterBtn = document.getElementById('type-theater-btn');
+            const weatherWidgetCard = document.getElementById('weather-widget-card');
+            const spaceWidgetCard = document.getElementById('space-widget-card');
+            const generalBellIcon = document.getElementById('general-bell-icon');
+            const generalCallTitleLabel = document.getElementById('general-call-title-label');
+            const readinessLabelTitle = document.getElementById('readiness-label-title');
+            const readinessSubtitle = document.getElementById('readiness-subtitle');
+            const locationTitleLabel = document.getElementById('location-title-label');
+            const parkingLabelTitle = document.getElementById('parking-label-title');
+            const tableIconScenes = document.getElementById('table-icon-scenes');
+            const scenesSectionTitle = document.getElementById('scenes-section-title');
+            const addSceneBtnText = document.getElementById('add-scene-btn-text');
+            const scenesTableHead = document.getElementById('scenes-table-head');
+            const timelineSectionTitle = document.getElementById('timeline-section-title');
+            const departmentsSectionTitle = document.getElementById('departments-section-title');
 
             if (type === 'theater') {
                 iconEl.className = "fa-solid fa-masks-theater";
@@ -895,6 +936,31 @@
                 }
                 theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
                 filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
+
+                // Скрываем погодные и астрономические виджеты для театра (в помещении)
+                if (weatherWidgetCard) weatherWidgetCard.style.display = 'none';
+                if (spaceWidgetCard) spaceWidgetCard.style.display = 'none';
+
+                generalBellIcon.className = "fa-solid fa-theater-masks";
+                generalCallTitleLabel.innerText = "Общий сбор труппы и цехов (Theatre Call)";
+                readinessLabelTitle.innerText = "Готовность к монтировке:";
+                readinessSubtitle.innerText = "Монтировка сцены и цехов";
+                locationTitleLabel.innerText = "Театральная площадка / Сцена";
+                parkingLabelTitle.innerText = "Погрузка / Разгрузка декораций:";
+
+                tableIconScenes.className = "fa-solid fa-masks-theater text-amber-500";
+                scenesSectionTitle.innerText = "План монтировки и картины спектакля";
+                addSceneBtnText.innerText = "Добавить картину";
+                scenesTableHead.innerHTML = `
+                    <th class="py-2.5 px-3 font-semibold w-24">Акт</th>
+                    <th class="py-2.5 px-3 font-semibold w-28">Картина</th>
+                    <th class="py-2.5 px-3 font-semibold">Описание / Сценическая задача</th>
+                    <th class="py-2.5 px-3 font-semibold w-28">Хронометраж</th>
+                    <th class="py-2.5 px-3 font-semibold w-32">Участники</th>
+                    <th class="py-2.5 px-3 font-semibold text-right w-20 edit-action-btn hidden">Действие</th>
+                `;
+                timelineSectionTitle.innerText = "Таймлайн монтировки и репетиции";
+                departmentsSectionTitle.innerText = "Явка цехов и постановочной части";
             } else {
                 iconEl.className = "fa-solid fa-clapperboard";
                 if (metaDayEl.innerText.includes("РЕПЕТИЦИОННЫЙ ДЕНЬ")) {
@@ -902,8 +968,33 @@
                 }
                 filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
                 theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
+
+                if (weatherWidgetCard) weatherWidgetCard.style.display = 'flex';
+                if (spaceWidgetCard) spaceWidgetCard.style.display = 'flex';
+
+                generalBellIcon.className = "fa-solid fa-bell";
+                generalCallTitleLabel.innerText = "Общий сбор группы (General Crew Call)";
+                readinessLabelTitle.innerText = "Готовность смены:";
+                readinessSubtitle.innerText = "Отмечено чек-листов департаментов";
+                locationTitleLabel.innerText = "Локация / Площадка";
+                parkingLabelTitle.innerText = "Парковка / Заезд:";
+
+                tableIconScenes.className = "fa-solid fa-film text-amber-500";
+                scenesSectionTitle.innerText = "Пообъектный план смены (Сцены)";
+                addSceneBtnText.innerText = "Добавить сцену";
+                scenesTableHead.innerHTML = `
+                    <th class="py-2.5 px-3 font-semibold w-20">Сцена</th>
+                    <th class="py-2.5 px-3 font-semibold w-24">И/Э</th>
+                    <th class="py-2.5 px-3 font-semibold">Описание / Объект</th>
+                    <th class="py-2.5 px-3 font-semibold w-28">Хронометраж</th>
+                    <th class="py-2.5 px-3 font-semibold w-32">Персонажи</th>
+                    <th class="py-2.5 px-3 font-semibold text-right w-20 edit-action-btn hidden">Действие</th>
+                `;
+                timelineSectionTitle.innerText = "Общий таймлайн смены";
+                departmentsSectionTitle.innerText = "Явка департаментов и готовность";
             }
             saveChanges();
+            renderData(collectDataFromDOM());
         }
 
         function calculateGoldenHours() {
@@ -1163,7 +1254,7 @@
         }
 
         function initApp() {
-            const saved = localStorage.getItem('call_sheet_data_v11');
+            const saved = localStorage.getItem('call_sheet_stage_data_v12');
             const data = saved ? JSON.parse(saved) : defaultData;
             renderData(data);
             init3DWidget();
@@ -1203,11 +1294,29 @@
             currentLon = data.lon || 37.4392;
             initMiniMap(currentLat, currentLon);
 
-            // Scenes Table
+            // Scenes / Theater Scenes Table
             const scenesTbody = document.getElementById('scenes-tbody');
             scenesTbody.innerHTML = '';
-            if (data.scenes && data.scenes.length > 0) {
-                data.scenes.forEach((scene, index) => {
+            
+            if (currentProductionType === 'theater') {
+                const activeTheaterScenes = data.theaterScenes || defaultData.theaterScenes;
+                activeTheaterScenes.forEach((scene, index) => {
+                    scenesTbody.innerHTML += `
+                        <tr class="hover:bg-slate-800/40 transition">
+                            <td class="py-2.5 px-3 font-mono font-bold text-amber-400" contenteditable="${isEditMode}" data-tscene-act="${index}">${scene.act}</td>
+                            <td class="py-2.5 px-3 text-slate-300 font-semibold" contenteditable="${isEditMode}" data-tscene-scene="${index}">${scene.scene}</td>
+                            <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-tscene-desc="${index}">${scene.desc}</td>
+                            <td class="py-2.5 px-3 text-slate-400 font-mono" contenteditable="${isEditMode}" data-tscene-time="${index}">${scene.time}</td>
+                            <td class="py-2.5 px-3 text-sky-400 font-medium" contenteditable="${isEditMode}" data-tscene-cast="${index}">${scene.cast}</td>
+                            <td class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
+                                <button onclick="removeSceneRow(${index})" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } else {
+                const activeScenes = data.scenes || defaultData.scenes;
+                activeScenes.forEach((scene, index) => {
                     scenesTbody.innerHTML += `
                         <tr class="hover:bg-slate-800/40 transition">
                             <td class="py-2.5 px-3 font-mono font-bold text-amber-400" contenteditable="${isEditMode}" data-scene-num="${index}">${scene.num}</td>
@@ -1223,10 +1332,12 @@
                 });
             }
 
-            // Timeline
+            // Timeline / Theater Timeline
             const timelineTbody = document.getElementById('timeline-tbody');
             timelineTbody.innerHTML = '';
-            data.timeline.forEach((item, index) => {
+            const activeTimeline = (currentProductionType === 'theater') ? (data.theaterTimeline || defaultData.theaterTimeline) : (data.timeline || defaultData.timeline);
+            
+            activeTimeline.forEach((item, index) => {
                 let timeCellContent = isEditMode 
                     ? `<input type="time" value="${item.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-2 py-1 rounded border border-slate-700 text-sm outline-none" data-timeline-time="${index}">`
                     : `<span class="font-mono font-bold text-amber-400 text-base" data-timeline-time="${index}" data-time-val="${item.time}">${item.time}</span>`;
@@ -1243,10 +1354,12 @@
                 `;
             });
 
-            // Departments
+            // Departments / Theater Departments
             const deptContainer = document.getElementById('departments-container');
             deptContainer.innerHTML = '';
-            data.departments.forEach((dept, dIndex) => {
+            const activeDepts = (currentProductionType === 'theater') ? (data.theaterDepartments || defaultData.theaterDepartments) : (data.departments || defaultData.departments);
+
+            activeDepts.forEach((dept, dIndex) => {
                 let crewRows = '';
                 dept.crew.forEach((c, cIndex) => {
                     crewRows += `
@@ -1315,11 +1428,12 @@
 
         function updateDateFromPicker(input) {
             saveChanges();
-            fetchOnlineWeather();
+            if (currentProductionType === 'film') fetchOnlineWeather();
             updateSunLightPosition();
         }
 
         async function fetchOnlineWeather() {
+            if (currentProductionType === 'theater') return;
             const selectedDate = document.getElementById('meta-date-picker').value || new Date().toISOString().split('T')[0];
             const todayStr = new Date().toISOString().split('T')[0];
             
@@ -1381,25 +1495,43 @@
                 lat: currentLat,
                 lon: currentLon,
                 scenes: [],
+                theaterScenes: [],
                 timeline: [],
+                theaterTimeline: [],
                 departments: [],
+                theaterDepartments: [],
                 contacts: []
             };
 
-            document.querySelectorAll('[data-scene-num]').forEach((el, index) => {
-                const num = el.innerText;
-                const ie = document.querySelector(`[data-scene-ie="${index}"]`).innerText;
-                const desc = document.querySelector(`[data-scene-desc="${index}"]`).innerText;
-                const time = document.querySelector(`[data-scene-time="${index}"]`).innerText;
-                const cast = document.querySelector(`[data-scene-cast="${index}"]`).innerText;
-                data.scenes.push({ num, ie, desc, time, cast });
-            });
+            if (currentProductionType === 'theater') {
+                document.querySelectorAll('[data-tscene-act]').forEach((el, index) => {
+                    const act = el.innerText;
+                    const scene = document.querySelector(`[data-tscene-scene="${index}"]`).innerText;
+                    const desc = document.querySelector(`[data-tscene-desc="${index}"]`).innerText;
+                    const time = document.querySelector(`[data-tscene-time="${index}"]`).innerText;
+                    const cast = document.querySelector(`[data-tscene-cast="${index}"]`).innerText;
+                    data.theaterScenes.push({ act, scene, desc, time, cast });
+                });
+            } else {
+                document.querySelectorAll('[data-scene-num]').forEach((el, index) => {
+                    const num = el.innerText;
+                    const ie = document.querySelector(`[data-scene-ie="${index}"]`).innerText;
+                    const desc = document.querySelector(`[data-scene-desc="${index}"]`).innerText;
+                    const time = document.querySelector(`[data-scene-time="${index}"]`).innerText;
+                    const cast = document.querySelector(`[data-scene-cast="${index}"]`).innerText;
+                    data.scenes.push({ num, ie, desc, time, cast });
+                });
+            }
 
             document.querySelectorAll('[data-timeline-time]').forEach((el, index) => {
                 let rawTime = isEditMode ? (el.value || "00:00") : (el.getAttribute('data-time-val') || "00:00");
                 const event = document.querySelector(`[data-timeline-event="${index}"]`).innerText;
                 const responsible = document.querySelector(`[data-timeline-resp="${index}"]`).innerText;
-                data.timeline.push({ time: rawTime, event, responsible });
+                if (currentProductionType === 'theater') {
+                    data.theaterTimeline.push({ time: rawTime, event, responsible });
+                } else {
+                    data.timeline.push({ time: rawTime, event, responsible });
+                }
             });
 
             let deptIndices = new Set();
@@ -1423,7 +1555,12 @@
                     const phone = document.querySelector(`[data-dept-phone="${dIdx}-${cIdx}"]`).innerText;
                     crew.push({ role, name, phone });
                 });
-                data.departments.push({ name, time: deptTime, ready: isReady, crew });
+
+                if (currentProductionType === 'theater') {
+                    data.theaterDepartments.push({ name, time: deptTime, ready: isReady, crew });
+                } else {
+                    data.departments.push({ name, time: deptTime, ready: isReady, crew });
+                }
             });
 
             document.querySelectorAll('[data-contact-role]').forEach((el, index) => {
@@ -1458,28 +1595,103 @@
 
         function saveChanges() {
             const data = collectDataFromDOM();
-            localStorage.setItem('call_sheet_data_v11', JSON.stringify(data));
+            localStorage.setItem('call_sheet_stage_data_v12', JSON.stringify(data));
             calculateGoldenHours();
             updateReadinessProgress();
         }
 
         function resetToDefaults() {
             if (confirm('Сбросить изменения по умолчанию?')) {
-                localStorage.removeItem('call_sheet_data_v11');
+                localStorage.removeItem('call_sheet_stage_data_v12');
                 renderData(defaultData);
             }
         }
 
-        function addSceneRow() { let d = collectDataFromDOM(); d.scenes.push({ num: "16", ie: "ИНТ.", desc: "Новая сцена", time: "1/8", cast: "—" }); renderData(d); }
-        function removeSceneRow(i) { let d = collectDataFromDOM(); d.scenes.splice(i, 1); renderData(d); }
-        function addTimelineRow() { let d = collectDataFromDOM(); d.timeline.push({ time: "12:00", event: "Новое событие", responsible: "Ответственный" }); renderData(d); }
-        function removeTimelineRow(i) { let d = collectDataFromDOM(); d.timeline.splice(i, 1); renderData(d); }
-        function addDepartment() { let d = collectDataFromDOM(); d.departments.push({ name: "Новый отдел", time: "08:00", ready: false, crew: [{ role: "Сотрудник", name: "Имя", phone: "+7..." }] }); renderData(d); }
-        function removeDepartment(i) { let d = collectDataFromDOM(); d.departments.splice(i, 1); renderData(d); }
-        function addCrewMember(dIdx) { let d = collectDataFromDOM(); d.departments[dIdx].crew.push({ role: "Должность", name: "Имя", phone: "+7..." }); renderData(d); }
-        function removeCrewMember(dIdx, cIdx) { let d = collectDataFromDOM(); d.departments[dIdx].crew.splice(cIdx, 1); renderData(d); }
-        function addContact() { let d = collectDataFromDOM(); d.contacts.push({ role: "Должность", name: "Имя", phone: "+7..." }); renderData(d); }
-        function removeContact(i) { let d = collectDataFromDOM(); d.contacts.splice(i, 1); renderData(d); }
+        function addSceneRow() {
+            let d = collectDataFromDOM();
+            if (currentProductionType === 'theater') {
+                d.theaterScenes.push({ act: "Акт II", scene: "Картина 1", desc: "Новая картина", time: "15 мин", cast: "Артисты" });
+            } else {
+                d.scenes.push({ num: "16", ie: "ИНТ.", desc: "Новая сцена", time: "1/8", cast: "—" });
+            }
+            renderData(d);
+        }
+
+        function removeSceneRow(i) {
+            let d = collectDataFromDOM();
+            if (currentProductionType === 'theater') {
+                d.theaterScenes.splice(i, 1);
+            } else {
+                d.scenes.splice(i, 1);
+            }
+            renderData(d);
+        }
+
+        function addTimelineRow() {
+            let d = collectDataFromDOM();
+            if (currentProductionType === 'theater') {
+                d.theaterTimeline.push({ time: "15:00", event: "Новая репетиция", responsible: "Помощник режиссера" });
+            } else {
+                d.timeline.push({ time: "12:00", event: "Новое событие", responsible: "Ответственный" });
+            }
+            renderData(d);
+        }
+
+        function removeTimelineRow(i) {
+            let d = collectDataFromDOM();
+            if (currentProductionType === 'theater') {
+                d.theaterTimeline.splice(i, 1);
+            } else {
+                d.timeline.splice(i, 1);
+            }
+            renderData(d);
+        }
+
+        function addDepartment() {
+            let d = collectDataFromDOM();
+            if (currentProductionType === 'theater') {
+                d.theaterDepartments.push({ name: "Новый цех", time: "10:00", ready: false, crew: [{ role: "Мастер", name: "Имя", phone: "+7..." }] });
+            } else {
+                d.departments.push({ name: "Новый отдел", time: "08:00", ready: false, crew: [{ role: "Сотрудник", name: "Имя", phone: "+7..." }] });
+            }
+            renderData(d);
+        }
+
+        function removeDepartment(i) {
+            let d = collectDataFromDOM();
+            if (currentProductionType === 'theater') {
+                d.theaterDepartments.splice(i, 1);
+            } else {
+                d.departments.splice(i, 1);
+            }
+            renderData(d);
+        }
+
+        function addCrewMember(dIdx) {
+            let d = collectDataFromDOM();
+            const targetDepts = (currentProductionType === 'theater') ? d.theaterDepartments : d.departments;
+            targetDepts[dIdx].crew.push({ role: "Должность", name: "Имя", phone: "+7..." });
+            renderData(d);
+        }
+
+        function removeCrewMember(dIdx, cIdx) {
+            let d = collectDataFromDOM();
+            const targetDepts = (currentProductionType === 'theater') ? d.theaterDepartments : d.departments;
+            targetDepts[dIdx].crew.splice(cIdx, 1);
+            renderData(d);
+        }
+
+        function addContact() {
+            let d = collectDataFromDOM();
+            d.contacts.push({ role: "Должность", name: "Имя", phone: "+7..." });
+            renderData(d);
+        }
+
+        function removeContact(i) {
+            let d = collectDataFromDOM();
+            d.contacts.splice(i, 1);
+            renderData(d);
+        }
 
         function exportJSON() {
             const data = collectDataFromDOM();
@@ -1487,7 +1699,7 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `call_sheet_${data.metaDate}.json`;
+            a.download = `stage_sheet_${data.metaDate}.json`;
             a.click();
         }
 
