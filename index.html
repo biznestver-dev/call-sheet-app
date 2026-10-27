@@ -384,15 +384,16 @@
                         <span>Почасовой трек смены</span>
                         <span class="text-amber-400 font-normal">UTC+3</span>
                     </div>
-                    <div class="grid grid-cols-8 gap-1 bg-slate-950/80 p-2 rounded-2xl border border-white/5 text-[9px] text-slate-300 text-center backdrop-blur-sm shadow-inner">
-                        <div class="flex flex-col items-center opacity-70"><span>06:00</span><i class="fa-solid fa-cloud-sun text-[10px] my-0.5 text-sky-400"></i><span class="font-bold">+3°</span></div>
-                        <div class="flex flex-col items-center opacity-70"><span>09:00</span><i class="fa-solid fa-cloud text-[10px] my-0.5 text-slate-300"></i><span class="font-bold">+5°</span></div>
-                        <div class="flex flex-col items-center font-bold text-slate-950 bg-amber-400 rounded-lg py-0.5 shadow-md scale-105" id="hourly-active-box"><span>12:00</span><i class="fa-solid fa-cloud-sun text-slate-950 text-[10px] my-0.5"></i><span class="font-bold">+7°</span></div>
-                        <div class="flex flex-col items-center opacity-70"><span>15:00</span><i class="fa-solid fa-cloud-rain text-[10px] my-0.5 text-sky-400"></i><span class="font-bold">+6°</span></div>
-                        <div class="flex flex-col items-center opacity-70"><span>18:00</span><i class="fa-solid fa-cloud text-[10px] my-0.5 text-slate-400"></i><span class="font-bold">+4°</span></div>
-                        <div class="flex flex-col items-center opacity-70"><span>21:00</span><i class="fa-solid fa-moon text-[10px] my-0.5 text-indigo-300"></i><span class="font-bold">+2°</span></div>
-                        <div class="flex flex-col items-center opacity-70"><span>00:00</span><i class="fa-solid fa-moon text-[10px] my-0.5 text-indigo-300"></i><span class="font-bold">+1°</span></div>
-                        <div class="flex flex-col items-center opacity-70"><span>03:00</span><i class="fa-solid fa-moon text-[10px] my-0.5 text-indigo-300"></i><span class="font-bold">0°</span></div>
+                    <!-- Динамический почасовой трек погоды -->
+                    <div class="grid grid-cols-8 gap-1 bg-slate-950/80 p-2 rounded-2xl border border-white/5 text-[9px] text-slate-300 text-center backdrop-blur-sm shadow-inner" id="hourly-forecast-grid">
+                        <div class="flex flex-col items-center opacity-70" data-hour="6"><span>06:00</span><i class="fa-solid fa-cloud-sun text-[10px] my-0.5 text-sky-400"></i><span class="font-bold">+3°</span></div>
+                        <div class="flex flex-col items-center opacity-70" data-hour="9"><span>09:00</span><i class="fa-solid fa-cloud text-[10px] my-0.5 text-slate-300"></i><span class="font-bold">+5°</span></div>
+                        <div class="flex flex-col items-center opacity-70" data-hour="12"><span>12:00</span><i class="fa-solid fa-cloud-sun text-[10px] my-0.5 text-sky-400"></i><span class="font-bold">+7°</span></div>
+                        <div class="flex flex-col items-center opacity-70" data-hour="15"><span>15:00</span><i class="fa-solid fa-cloud-rain text-[10px] my-0.5 text-sky-400"></i><span class="font-bold">+6°</span></div>
+                        <div class="flex flex-col items-center opacity-70" data-hour="18"><span>18:00</span><i class="fa-solid fa-cloud text-[10px] my-0.5 text-slate-400"></i><span class="font-bold">+4°</span></div>
+                        <div class="flex flex-col items-center opacity-70" data-hour="21"><span>21:00</span><i class="fa-solid fa-moon text-[10px] my-0.5 text-indigo-300"></i><span class="font-bold">+2°</span></div>
+                        <div class="flex flex-col items-center opacity-70" data-hour="0"><span>00:00</span><i class="fa-solid fa-moon text-[10px] my-0.5 text-indigo-300"></i><span class="font-bold">+1°</span></div>
+                        <div class="flex flex-col items-center opacity-70" data-hour="3"><span>03:00</span><i class="fa-solid fa-moon text-[10px] my-0.5 text-indigo-300"></i><span class="font-bold">0°</span></div>
                     </div>
                 </div>
             </div>
@@ -457,7 +458,7 @@
             </div>
 
             <!-- Location & Logistics -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between space-y-3" id="location-card">
+            <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500 flex flex-col justify-between space-y-3" id="location-card">
                 <div>
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-xs uppercase tracking-wider text-slate-400 font-bold"><i class="fa-solid fa-location-dot text-amber-500 mr-1.5"></i> <span id="location-title-label">Локация / Площадка</span></span>
@@ -498,7 +499,7 @@
         </div>
 
         <!-- Scenes Breakdown -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+        <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-film text-amber-500" id="table-icon-scenes"></i>
@@ -526,7 +527,7 @@
         </div>
 
         <!-- General Timeline -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+        <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-clock text-amber-500"></i>
@@ -566,7 +567,7 @@
         </div>
 
         <!-- Key Contacts -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
+        <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-address-book text-amber-500"></i>
@@ -1238,6 +1239,9 @@
             const timeDisplay = document.getElementById('currentTimeDisplay');
             if (timeDisplay) timeDisplay.textContent = timeStr;
 
+            // Динамическая подсветка часа в погоде на основе слайдера
+            highlightHourlyForecast(hours);
+
             const dayProgress = minutesOfDay / 1440;
             const angle = dayProgress * Math.PI * 2;
 
@@ -1262,6 +1266,25 @@
                 const moonY = Math.sin(moonAngle) * sunDistance;
                 moonMeshGlobe.position.set(moonX, moonY, -0.5);
             }
+        }
+
+        function highlightHourlyForecast(currentHour) {
+            const grid = document.getElementById('hourly-forecast-grid');
+            if (!grid) return;
+            const items = grid.querySelectorAll('[data-hour]');
+            
+            // Находим ближайший слот из [6, 9, 12, 15, 18, 21, 0, 3]
+            const slots = [6, 9, 12, 15, 18, 21, 0, 3];
+            let closestSlot = slots.reduce((prev, curr) => Math.abs(curr - currentHour) < Math.abs(prev - currentHour) ? curr : prev);
+
+            items.forEach(item => {
+                const h = parseInt(item.getAttribute('data-hour'), 10);
+                if (h === closestSlot) {
+                    item.className = "flex flex-col items-center font-bold text-slate-950 bg-amber-400 rounded-lg py-0.5 shadow-md scale-105 transition-all";
+                } else {
+                    item.className = "flex flex-col items-center opacity-70 transition-all";
+                }
+            });
         }
 
         async function fetchWeatherData() {
@@ -1319,7 +1342,7 @@
         }
 
         function initApp() {
-            const saved = localStorage.getItem('call_sheet_stage_data_v17');
+            const saved = localStorage.getItem('call_sheet_stage_data_v18');
             const data = saved ? JSON.parse(saved) : defaultData;
             renderData(data);
             init3DWidget();
@@ -1682,14 +1705,14 @@
 
         function saveChanges() {
             const data = collectDataFromDOM();
-            localStorage.setItem('call_sheet_stage_data_v17', JSON.stringify(data));
+            localStorage.setItem('call_sheet_stage_data_v18', JSON.stringify(data));
             calculateGoldenHours();
             updateReadinessProgress();
         }
 
         function resetToDefaults() {
             if (confirm('Сбросить изменения по умолчанию?')) {
-                localStorage.removeItem('call_sheet_stage_data_v17');
+                localStorage.removeItem('call_sheet_stage_data_v18');
                 renderData(defaultData);
             }
         }
