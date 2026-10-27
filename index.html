@@ -939,43 +939,45 @@
             const departmentsSectionTitle = document.getElementById('departments-section-title');
 
             if (type === 'theater') {
-                iconEl.className = "fa-solid fa-masks-theater";
-                if (metaDayEl.innerText.includes("СЪЕМОЧНЫЙ ДЕНЬ")) {
+                if (iconEl) iconEl.className = "fa-solid fa-masks-theater";
+                if (metaDayEl && metaDayEl.innerText.includes("СЪЕМОЧНЫЙ ДЕНЬ")) {
                     metaDayEl.innerText = metaDayEl.innerText.replace("СЪЕМОЧНЫЙ ДЕНЬ", "РЕПЕТИЦИОННЫЙ ДЕНЬ");
                 }
-                theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
-                filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
+                if (theaterBtn) theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
+                if (filmBtn) filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
 
                 if (weatherWidgetCard) weatherWidgetCard.style.display = 'none';
                 if (spaceWidgetCard) spaceWidgetCard.style.display = 'none';
 
-                generalBellIcon.className = "fa-solid fa-theater-masks";
-                generalCallTitleLabel.innerText = "Общий сбор труппы и цехов (Theatre Call)";
-                readinessLabelTitle.innerText = "Готовность к монтировке:";
-                readinessSubtitle.innerText = "Монтировка сцены и цехов";
-                locationTitleLabel.innerText = "Театральная площадка / Сцена";
-                parkingLabelTitle.innerText = "Погрузка / Разгрузка декораций:";
+                if (generalBellIcon) generalBellIcon.className = "fa-solid fa-theater-masks";
+                if (generalCallTitleLabel) generalCallTitleLabel.innerText = "Общий сбор труппы и цехов (Theatre Call)";
+                if (readinessLabelTitle) readinessLabelTitle.innerText = "Готовность к монтировке:";
+                if (readinessSubtitle) readinessSubtitle.innerText = "Монтировка сцены и цехов";
+                if (locationTitleLabel) locationTitleLabel.innerText = "Театральная площадка / Сцена";
+                if (parkingLabelTitle) parkingLabelTitle.innerText = "Погрузка / Разгрузка декораций:";
 
-                tableIconScenes.className = "fa-solid fa-masks-theater text-amber-500";
-                scenesSectionTitle.innerText = "План монтировки и картины спектакля";
-                addSceneBtnText.innerText = "Добавить картину";
-                scenesTableHead.innerHTML = `
-                    <th class="py-2.5 px-3 font-semibold w-24">Акт</th>
-                    <th class="py-2.5 px-3 font-semibold w-28">Картина</th>
-                    <th class="py-2.5 px-3 font-semibold">Описание / Сценическая задача</th>
-                    <th class="py-2.5 px-3 font-semibold w-28">Хронометраж</th>
-                    <th class="py-2.5 px-3 font-semibold w-32">Участники</th>
-                    <th class="py-2.5 px-3 font-semibold text-right w-20 edit-action-btn hidden">Действие</th>
-                `;
-                timelineSectionTitle.innerText = "Таймлайн монтировки и репетиции";
-                departmentsSectionTitle.innerText = "Явка цехов и постановочной части";
+                if (tableIconScenes) tableIconScenes.className = "fa-solid fa-masks-theater text-amber-500";
+                if (scenesSectionTitle) scenesSectionTitle.innerText = "План монтировки и картины спектакля";
+                if (addSceneBtnText) addSceneBtnText.innerText = "Добавить картину";
+                if (scenesTableHead) {
+                    scenesTableHead.innerHTML = `
+                        <th class="py-2.5 px-3 font-semibold w-24">Акт</th>
+                        <th class="py-2.5 px-3 font-semibold w-28">Картина</th>
+                        <th class="py-2.5 px-3 font-semibold">Описание / Сценическая задача</th>
+                        <th class="py-2.5 px-3 font-semibold w-28">Хронометраж</th>
+                        <th class="py-2.5 px-3 font-semibold w-32">Участники</th>
+                        <th class="py-2.5 px-3 font-semibold text-right w-20 edit-action-btn hidden">Действие</th>
+                    `;
+                }
+                if (timelineSectionTitle) timelineSectionTitle.innerText = "Таймлайн монтировки и репетиции";
+                if (departmentsSectionTitle) departmentsSectionTitle.innerText = "Явка цехов и постановочной части";
             } else {
-                iconEl.className = "fa-solid fa-clapperboard";
-                if (metaDayEl.innerText.includes("РЕПЕТИЦИОННЫЙ ДЕНЬ")) {
+                if (iconEl) iconEl.className = "fa-solid fa-clapperboard";
+                if (metaDayEl && metaDayEl.innerText.includes("РЕПЕТИЦИОННЫЙ ДЕНЬ")) {
                     metaDayEl.innerText = metaDayEl.innerText.replace("РЕПЕТИЦИОННЫЙ ДЕНЬ", "СЪЕМОЧНЫЙ ДЕНЬ");
                 }
-                filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
-                theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
+                if (filmBtn) filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
+                if (theaterBtn) theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
 
                 if (weatherWidgetCard) weatherWidgetCard.style.display = 'flex';
                 if (spaceWidgetCard) {
@@ -991,35 +993,34 @@
                     }, 50);
                 }
 
-                generalBellIcon.className = "fa-solid fa-bell";
-                generalCallTitleLabel.innerText = "Общий сбор группы (General Crew Call)";
-                readinessLabelTitle.innerText = "Готовность смены:";
-                readinessSubtitle.innerText = "Отмечено чек-листов департаментов";
-                locationTitleLabel.innerText = "Локация / Площадка";
-                parkingLabelTitle.innerText = "Парковка / Заезд:";
+                if (generalBellIcon) generalBellIcon.className = "fa-solid fa-bell";
+                if (generalCallTitleLabel) generalCallTitleLabel.innerText = "Общий сбор группы (General Crew Call)";
+                if (readinessLabelTitle) readinessLabelTitle.innerText = "Готовность смены:";
+                if (readinessSubtitle) readinessSubtitle.innerText = "Отмечено чек-листов департаментов";
+                if (locationTitleLabel) locationTitleLabel.innerText = "Локация / Площадка";
+                if (parkingLabelTitle) parkingLabelTitle.innerText = "Парковка / Заезд:";
 
-                tableIconScenes.className = "fa-solid fa-film text-amber-500";
-                scenesSectionTitle.innerText = "Пообъектный план смены (Сцены)";
-                addSceneBtnText.innerText = "Добавить сцену";
-                scenesTableHead.innerHTML = `
-                    <th class="py-2.5 px-3 font-semibold w-20">Сцена</th>
-                    <th class="py-2.5 px-3 font-semibold w-24">И/Э</th>
-                    <th class="py-2.5 px-3 font-semibold">Описание / Объект</th>
-                    <th class="py-2.5 px-3 font-semibold w-28">Хронометраж</th>
-                    <th class="py-2.5 px-3 font-semibold w-32">Персонажи</th>
-                    <th class="py-2.5 px-3 font-semibold text-right w-20 edit-action-btn hidden">Действие</th>
-                `;
-                timelineSectionTitle.innerText = "Общий таймлайн смены";
-                departmentsSectionTitle.innerText = "Явка департаментов и готовность";
+                if (tableIconScenes) tableIconScenes.className = "fa-solid fa-film text-amber-500";
+                if (scenesSectionTitle) scenesSectionTitle.innerText = "Пообъектный план смены (Сцены)";
+                if (addSceneBtnText) addSceneBtnText.innerText = "Добавить сцену";
+                if (scenesTableHead) {
+                    scenesTableHead.innerHTML = `
+                        <th class="py-2.5 px-3 font-semibold w-20">Сцена</th>
+                        <th class="py-2.5 px-3 font-semibold w-24">И/Э</th>
+                        <th class="py-2.5 px-3 font-semibold">Описание / Объект</th>
+                        <th class="py-2.5 px-3 font-semibold w-28">Хронометраж</th>
+                        <th class="py-2.5 px-3 font-semibold w-32">Персонажи</th>
+                        <th class="py-2.5 px-3 font-semibold text-right w-20 edit-action-btn hidden">Действие</th>
+                    `;
+                }
+                if (timelineSectionTitle) timelineSectionTitle.innerText = "Общий таймлайн смены";
+                if (departmentsSectionTitle) departmentsSectionTitle.innerText = "Явка департаментов и готовность";
             }
-            saveChanges();
-            renderData(collectDataFromDOM());
-            setTimeout(() => { if (mapInstance) mapInstance.invalidateSize(); }, 200);
         }
 
         function calculateGoldenHours() {
-            const riseStr = document.getElementById('sun-rise').innerText.trim();
-            const setStr = document.getElementById('sun-set').innerText.trim();
+            const riseStr = document.getElementById('sun-rise')?.innerText.trim() || "07:25";
+            const setStr = document.getElementById('sun-set')?.innerText.trim() || "17:01";
 
             function timeToMinutes(tStr) {
                 const parts = tStr.split(':');
@@ -1051,18 +1052,19 @@
 
         function showVenueDropdown() {
             renderVenueDropdown(venuesDatabase);
-            document.getElementById('venue-dropdown-list').classList.remove('hidden');
+            document.getElementById('venue-dropdown-list')?.classList.remove('hidden');
         }
 
         function filterVenues(query) {
             const q = query.toLowerCase();
             const filtered = venuesDatabase.filter(v => v.name.toLowerCase().includes(q) || v.address.toLowerCase().includes(q));
             renderVenueDropdown(filtered);
-            document.getElementById('venue-dropdown-list').classList.remove('hidden');
+            document.getElementById('venue-dropdown-list')?.classList.remove('hidden');
         }
 
         function renderVenueDropdown(list) {
             const dropdown = document.getElementById('venue-dropdown-list');
+            if (!dropdown) return;
             dropdown.innerHTML = '';
             if (list.length === 0) {
                 dropdown.innerHTML = '<div class="p-2 text-xs text-slate-400">Нет в базе. Нажмите Enter для ввода своего адреса</div>';
@@ -1085,8 +1087,9 @@
             currentLat = v.lat;
             currentLon = v.lon;
             initMiniMap(currentLat, currentLon);
-            document.getElementById('venue-dropdown-list').classList.add('hidden');
-            document.getElementById('venue-search-input').value = '';
+            document.getElementById('venue-dropdown-list')?.classList.add('hidden');
+            const searchInput = document.getElementById('venue-search-input');
+            if (searchInput) searchInput.value = '';
             saveChanges();
         }
 
@@ -1098,7 +1101,7 @@
                     document.getElementById('location-address').innerText = customText;
                     document.getElementById('location-metro').innerText = "Произвольный адрес / Площадка";
                     document.getElementById('location-bus').innerText = "Маршрут уточняется у координатора";
-                    document.getElementById('venue-dropdown-list').classList.add('hidden');
+                    document.getElementById('venue-dropdown-list')?.classList.add('hidden');
                     event.target.value = '';
                     initMiniMap(currentLat, currentLon);
                     saveChanges();
@@ -1135,8 +1138,8 @@
         }
 
         function openMapRoute() {
-            const address = document.getElementById('location-address').innerText;
-            const name = document.getElementById('location-name').innerText;
+            const address = document.getElementById('location-address')?.innerText || '';
+            const name = document.getElementById('location-name')?.innerText || '';
             const query = encodeURIComponent(`${name}, ${address}`);
             window.open(`https://yandex.ru/maps/?text=${query}`, '_blank');
         }
@@ -1274,11 +1277,17 @@
                     const humidity = data.current.relative_humidity_2m || 40;
                     const pressure = data.current.surface_pressure ? Math.round(data.current.surface_pressure * 0.75006) : 761;
 
-                    document.getElementById('temp-main').innerText = `+${temp}°C`;
-                    document.getElementById('temp-feel').innerText = `Ощущается как +${appTemp}°`;
-                    document.getElementById('wind-val').innerText = `${wind} м/с`;
-                    document.getElementById('humidity-val').innerText = `${humidity}%`;
-                    document.getElementById('pressure-val').innerText = `${pressure} мм`;
+                    const tempMain = document.getElementById('temp-main');
+                    const tempFeel = document.getElementById('temp-feel');
+                    const windVal = document.getElementById('wind-val');
+                    const humidityVal = document.getElementById('humidity-val');
+                    const pressureVal = document.getElementById('pressure-val');
+
+                    if (tempMain) tempMain.innerText = `+${temp}°C`;
+                    if (tempFeel) tempFeel.innerText = `Ощущается как +${appTemp}°`;
+                    if (windVal) windVal.innerText = `${wind} м/с`;
+                    if (humidityVal) humidityVal.innerText = `${humidity}%`;
+                    if (pressureVal) pressureVal.innerText = `${pressure} мм`;
 
                     checkStormAlert(wind);
                 }
@@ -1295,8 +1304,10 @@
                 if (cb.checked) checkedCount++;
             });
             const percent = Math.round((checkedCount / checkboxes.length) * 100);
-            document.getElementById('readiness-percent').innerText = `${percent}%`;
-            document.getElementById('readiness-bar').style.width = `${percent}%`;
+            const pEl = document.getElementById('readiness-percent');
+            const bEl = document.getElementById('readiness-bar');
+            if (pEl) pEl.innerText = `${percent}%`;
+            if (bEl) bEl.style.width = `${percent}%`;
         }
 
         function syncGeneralDate(input) {
@@ -1319,157 +1330,196 @@
 
         function renderData(data) {
             currentProductionType = data.productionType || "film";
-            setProductionType(currentProductionType);
+            
+            const filmBtn = document.getElementById('type-film-btn');
+            const theaterBtn = document.getElementById('type-theater-btn');
+            const iconEl = document.getElementById('project-icon');
+            const metaDayEl = document.getElementById('meta-day');
+            const weatherWidgetCard = document.getElementById('weather-widget-card');
+            const spaceWidgetCard = document.getElementById('space-widget-card');
 
-            document.getElementById('meta-day').innerText = data.metaDay;
-            document.getElementById('meta-project').innerText = data.metaProject;
-            document.getElementById('meta-version').innerText = data.metaVersion;
+            if (currentProductionType === 'theater') {
+                if (iconEl) iconEl.className = "fa-solid fa-masks-theater";
+                if (theaterBtn) theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
+                if (filmBtn) filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
+                if (weatherWidgetCard) weatherWidgetCard.style.display = 'none';
+                if (spaceWidgetCard) spaceWidgetCard.style.display = 'none';
+            } else {
+                if (iconEl) iconEl.className = "fa-solid fa-clapperboard";
+                if (filmBtn) filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
+                if (theaterBtn) theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
+                if (weatherWidgetCard) weatherWidgetCard.style.display = 'flex';
+                if (spaceWidgetCard) spaceWidgetCard.style.display = 'flex';
+            }
+
+            const metaDay = document.getElementById('meta-day');
+            const metaProject = document.getElementById('meta-project');
+            const metaVersion = document.getElementById('meta-version');
+            if (metaDay) metaDay.innerText = data.metaDay;
+            if (metaProject) metaProject.innerText = data.metaProject;
+            if (metaVersion) metaVersion.innerText = data.metaVersion;
             
             const dateInput = document.getElementById('meta-date-picker');
             const generalDateInput = document.getElementById('general-call-date');
-            
             const targetDate = data.metaDate || data.generalCallDate || new Date().toISOString().split('T')[0];
-            dateInput.value = targetDate;
+            if (dateInput) dateInput.value = targetDate;
             if (generalDateInput) generalDateInput.value = targetDate;
 
-            document.getElementById('general-call-time').value = data.generalCallTime || "07:30";
-            document.getElementById('general-call-desc').innerText = data.generalCallDesc;
+            const generalTime = document.getElementById('general-call-time');
+            const generalDesc = document.getElementById('general-call-desc');
+            if (generalTime) generalTime.value = data.generalCallTime || "07:30";
+            if (generalDesc) generalDesc.innerText = data.generalCallDesc;
             
-            document.getElementById('sun-rise').innerText = data.sunRise;
-            document.getElementById('sun-set').innerText = data.sunSet;
+            const sunRise = document.getElementById('sun-rise');
+            const sunSet = document.getElementById('sun-set');
+            if (sunRise) sunRise.innerText = data.sunRise;
+            if (sunSet) sunSet.innerText = data.sunSet;
 
-            document.getElementById('location-name').innerText = data.locationName;
-            document.getElementById('location-address').innerText = data.locationAddress;
-            document.getElementById('location-metro').innerText = data.locationMetro || "Метро поблизости";
-            document.getElementById('location-bus').innerText = data.locationBus || "Наземный транспорт";
-            document.getElementById('location-parking').innerText = data.locationParking;
+            const locName = document.getElementById('location-name');
+            const locAddr = document.getElementById('location-address');
+            const locMetro = document.getElementById('location-metro');
+            const locBus = document.getElementById('location-bus');
+            const locParking = document.getElementById('location-parking');
+
+            if (locName) locName.innerText = data.locationName;
+            if (locAddr) locAddr.innerText = data.locationAddress;
+            if (locMetro) locMetro.innerText = data.locationMetro || "Метро поблизости";
+            if (locBus) locBus.innerText = data.locationBus || "Наземный транспорт";
+            if (locParking) locParking.innerText = data.locationParking;
 
             currentLat = data.lat || 55.7618;
             currentLon = data.lon || 37.6338;
             initMiniMap(currentLat, currentLon);
 
             const scenesTbody = document.getElementById('scenes-tbody');
-            scenesTbody.innerHTML = '';
-            
-            if (currentProductionType === 'theater') {
-                const activeTheaterScenes = data.theaterScenes || defaultData.theaterScenes;
-                activeTheaterScenes.forEach((scene, index) => {
-                    scenesTbody.innerHTML += `
+            if (scenesTbody) {
+                scenesTbody.innerHTML = '';
+                if (currentProductionType === 'theater') {
+                    const activeTheaterScenes = data.theaterScenes || defaultData.theaterScenes;
+                    activeTheaterScenes.forEach((scene, index) => {
+                        scenesTbody.innerHTML += `
+                            <tr class="hover:bg-slate-800/40 transition">
+                                <td class="py-2.5 px-3 font-mono font-bold text-amber-400" contenteditable="${isEditMode}" data-tscene-act="${index}">${scene.act}</td>
+                                <td class="py-2.5 px-3 text-slate-300 font-semibold" contenteditable="${isEditMode}" data-tscene-scene="${index}">${scene.scene}</td>
+                                <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-tscene-desc="${index}">${scene.desc}</td>
+                                <td class="py-2.5 px-3 text-slate-400 font-mono" contenteditable="${isEditMode}" data-tscene-time="${index}">${scene.time}</td>
+                                <td class="py-2.5 px-3 text-sky-400 font-medium" contenteditable="${isEditMode}" data-tscene-cast="${index}">${scene.cast}</td>
+                                <td class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
+                                    <button onclick="removeSceneRow(${index})" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    const activeScenes = data.scenes || defaultData.scenes;
+                    activeScenes.forEach((scene, index) => {
+                        scenesTbody.innerHTML += `
+                            <tr class="hover:bg-slate-800/40 transition">
+                                <td class="py-2.5 px-3 font-mono font-bold text-amber-400" contenteditable="${isEditMode}" data-scene-num="${index}">${scene.num}</td>
+                                <td class="py-2.5 px-3 text-slate-300 font-semibold" contenteditable="${isEditMode}" data-scene-ie="${index}">${scene.ie}</td>
+                                <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-scene-desc="${index}">${scene.desc}</td>
+                                <td class="py-2.5 px-3 text-slate-400 font-mono" contenteditable="${isEditMode}" data-scene-time="${index}">${scene.time}</td>
+                                <td class="py-2.5 px-3 text-sky-400 font-medium" contenteditable="${isEditMode}" data-scene-cast="${index}">${scene.cast}</td>
+                                <td class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
+                                    <button onclick="removeSceneRow(${index})" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            }
+
+            const timelineTbody = document.getElementById('timeline-tbody');
+            if (timelineTbody) {
+                timelineTbody.innerHTML = '';
+                const activeTimeline = (currentProductionType === 'theater') ? (data.theaterTimeline || defaultData.theaterTimeline) : (data.timeline || defaultData.timeline);
+                
+                activeTimeline.forEach((item, index) => {
+                    let timeCellContent = isEditMode 
+                        ? `<input type="time" value="${item.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-2 py-1 rounded border border-slate-700 text-sm outline-none" data-timeline-time="${index}">`
+                        : `<span class="font-mono font-bold text-amber-400 text-base" data-timeline-time="${index}" data-time-val="${item.time}">${item.time}</span>`;
+
+                    timelineTbody.innerHTML += `
                         <tr class="hover:bg-slate-800/40 transition">
-                            <td class="py-2.5 px-3 font-mono font-bold text-amber-400" contenteditable="${isEditMode}" data-tscene-act="${index}">${scene.act}</td>
-                            <td class="py-2.5 px-3 text-slate-300 font-semibold" contenteditable="${isEditMode}" data-tscene-scene="${index}">${scene.scene}</td>
-                            <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-tscene-desc="${index}">${scene.desc}</td>
-                            <td class="py-2.5 px-3 text-slate-400 font-mono" contenteditable="${isEditMode}" data-tscene-time="${index}">${scene.time}</td>
-                            <td class="py-2.5 px-3 text-sky-400 font-medium" contenteditable="${isEditMode}" data-tscene-cast="${index}">${scene.cast}</td>
+                            <td class="py-2.5 px-3">${timeCellContent}</td>
+                            <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-timeline-event="${index}">${item.event}</td>
+                            <td class="py-2.5 px-3 text-slate-400 editable-field" contenteditable="${isEditMode}" data-timeline-resp="${index}">${item.responsible}</td>
                             <td class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
-                                <button onclick="removeSceneRow(${index})" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            } else {
-                const activeScenes = data.scenes || defaultData.scenes;
-                activeScenes.forEach((scene, index) => {
-                    scenesTbody.innerHTML += `
-                        <tr class="hover:bg-slate-800/40 transition">
-                            <td class="py-2.5 px-3 font-mono font-bold text-amber-400" contenteditable="${isEditMode}" data-scene-num="${index}">${scene.num}</td>
-                            <td class="py-2.5 px-3 text-slate-300 font-semibold" contenteditable="${isEditMode}" data-scene-ie="${index}">${scene.ie}</td>
-                            <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-scene-desc="${index}">${scene.desc}</td>
-                            <td class="py-2.5 px-3 text-slate-400 font-mono" contenteditable="${isEditMode}" data-scene-time="${index}">${scene.time}</td>
-                            <td class="py-2.5 px-3 text-sky-400 font-medium" contenteditable="${isEditMode}" data-scene-cast="${index}">${scene.cast}</td>
-                            <td class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
-                                <button onclick="removeSceneRow(${index})" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                                <button onclick="removeTimelineRow(${index})" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
                             </td>
                         </tr>
                     `;
                 });
             }
 
-            const timelineTbody = document.getElementById('timeline-tbody');
-            timelineTbody.innerHTML = '';
-            const activeTimeline = (currentProductionType === 'theater') ? (data.theaterTimeline || defaultData.theaterTimeline) : (data.timeline || defaultData.timeline);
-            
-            activeTimeline.forEach((item, index) => {
-                let timeCellContent = isEditMode 
-                    ? `<input type="time" value="${item.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-2 py-1 rounded border border-slate-700 text-sm outline-none" data-timeline-time="${index}">`
-                    : `<span class="font-mono font-bold text-amber-400 text-base" data-timeline-time="${index}" data-time-val="${item.time}">${item.time}</span>`;
-
-                timelineTbody.innerHTML += `
-                    <tr class="hover:bg-slate-800/40 transition">
-                        <td class="py-2.5 px-3">${timeCellContent}</td>
-                        <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-timeline-event="${index}">${item.event}</td>
-                        <td class="py-2.5 px-3 text-slate-400 editable-field" contenteditable="${isEditMode}" data-timeline-resp="${index}">${item.responsible}</td>
-                        <td class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
-                            <button onclick="removeTimelineRow(${index})" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `;
-            });
-
             const deptContainer = document.getElementById('departments-container');
-            deptContainer.innerHTML = '';
-            const activeDepts = (currentProductionType === 'theater') ? (data.theaterDepartments || defaultData.theaterDepartments) : (data.departments || defaultData.departments);
+            if (deptContainer) {
+                deptContainer.innerHTML = '';
+                const activeDepts = (currentProductionType === 'theater') ? (data.theaterDepartments || defaultData.theaterDepartments) : (data.departments || defaultData.departments);
 
-            activeDepts.forEach((dept, dIndex) => {
-                let crewRows = '';
-                dept.crew.forEach((c, cIndex) => {
-                    crewRows += `
-                        <div class="flex items-center justify-between py-2 border-b border-slate-800/60 last:border-0 text-sm">
-                            <div>
-                                <div class="text-xs text-slate-400 editable-field" contenteditable="${isEditMode}" data-dept-role="${dIndex}-${cIndex}">${c.role}</div>
-                                <div class="font-semibold text-white editable-field" contenteditable="${isEditMode}" data-dept-name="${dIndex}-${cIndex}">${c.name}</div>
+                activeDepts.forEach((dept, dIndex) => {
+                    let crewRows = '';
+                    dept.crew.forEach((c, cIndex) => {
+                        crewRows += `
+                            <div class="flex items-center justify-between py-2 border-b border-slate-800/60 last:border-0 text-sm">
+                                <div>
+                                    <div class="text-xs text-slate-400 editable-field" contenteditable="${isEditMode}" data-dept-role="${dIndex}-${cIndex}">${c.role}</div>
+                                    <div class="font-semibold text-white editable-field" contenteditable="${isEditMode}" data-dept-name="${dIndex}-${cIndex}">${c.name}</div>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <a href="tel:${c.phone}" class="text-xs text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1 rounded-md transition editable-field" contenteditable="${isEditMode}" data-dept-phone="${dIndex}-${cIndex}">${c.phone}</a>
+                                    ${isEditMode ? `<button onclick="removeCrewMember(${dIndex}, ${cIndex})" class="text-red-400 hover:text-red-300 text-xs px-1"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                                </div>
                             </div>
-                            <div class="flex items-center space-x-2">
-                                <a href="tel:${c.phone}" class="text-xs text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1 rounded-md transition editable-field" contenteditable="${isEditMode}" data-dept-phone="${dIndex}-${cIndex}">${c.phone}</a>
-                                ${isEditMode ? `<button onclick="removeCrewMember(${dIndex}, ${cIndex})" class="text-red-400 hover:text-red-300 text-xs px-1"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                        `;
+                    });
+
+                    let deptCallTimeContent = isEditMode
+                        ? `<input type="time" value="${dept.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-1.5 py-0.5 rounded border border-slate-700 text-xs outline-none inline-block" data-dept-calltime="${dIndex}">`
+                        : `<strong class="text-amber-400 font-mono" data-dept-calltime="${dIndex}" data-time-val="${dept.time}">${dept.time}</strong>`;
+
+                    deptContainer.innerHTML += `
+                        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-800">
+                                    <div>
+                                        <h3 class="font-bold text-white uppercase tracking-wider text-sm editable-field" contenteditable="${isEditMode}" data-dept-title="${dIndex}">${dept.name}</h3>
+                                        <span class="text-xs text-slate-400">Сбор: ${deptCallTimeContent}</span>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <label class="flex items-center space-x-1 cursor-pointer text-xs bg-slate-950 px-2 py-1 rounded border border-slate-800" title="Отметить готовность департамента">
+                                            <input type="checkbox" class="department-ready-checkbox accent-amber-500 cursor-pointer" ${dept.ready ? 'checked' : ''} onchange="updateReadinessProgress()">
+                                            <span class="text-slate-300">Готов</span>
+                                        </label>
+                                        ${isEditMode ? `<button onclick="removeDepartment(${dIndex})" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
+                                    </div>
+                                </div>
+                                <div class="space-y-1">${crewRows}</div>
+                            </div>
+                            ${isEditMode ? `<div class="mt-4 pt-2 border-t border-slate-800"><button onclick="addCrewMember(${dIndex})" class="w-full py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition">+ Сотрудник</button></div>` : ''}
+                        </div>
+                    `;
+                });
+            }
+
+            const contactsGrid = document.getElementById('contacts-grid');
+            if (contactsGrid) {
+                contactsGrid.innerHTML = '';
+                data.contacts.forEach((contact, index) => {
+                    contactsGrid.innerHTML += `
+                        <div class="bg-slate-950/50 p-3.5 rounded-lg border border-slate-800 flex flex-col justify-between">
+                            <div>
+                                <div class="text-xs text-slate-400 editable-field" contenteditable="${isEditMode}" data-contact-role="${index}">${contact.role}</div>
+                                <div class="font-bold text-white text-sm editable-field" contenteditable="${isEditMode}" data-contact-name="${index}">${contact.name}</div>
+                            </div>
+                            <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                                <a href="tel:${contact.phone}" class="text-xs text-amber-400 font-semibold hover:underline editable-field" contenteditable="${isEditMode}" data-contact-phone="${index}">${contact.phone}</a>
+                                ${isEditMode ? `<button onclick="removeContact(${index})" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
                             </div>
                         </div>
                     `;
                 });
-
-                let deptCallTimeContent = isEditMode
-                    ? `<input type="time" value="${dept.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-1.5 py-0.5 rounded border border-slate-700 text-xs outline-none inline-block" data-dept-calltime="${dIndex}">`
-                    : `<strong class="text-amber-400 font-mono" data-dept-calltime="${dIndex}" data-time-val="${dept.time}">${dept.time}</strong>`;
-
-                deptContainer.innerHTML += `
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-800">
-                                <div>
-                                    <h3 class="font-bold text-white uppercase tracking-wider text-sm editable-field" contenteditable="${isEditMode}" data-dept-title="${dIndex}">${dept.name}</h3>
-                                    <span class="text-xs text-slate-400">Сбор: ${deptCallTimeContent}</span>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <label class="flex items-center space-x-1 cursor-pointer text-xs bg-slate-950 px-2 py-1 rounded border border-slate-800" title="Отметить готовность департамента">
-                                        <input type="checkbox" class="department-ready-checkbox accent-amber-500 cursor-pointer" ${dept.ready ? 'checked' : ''} onchange="updateReadinessProgress()">
-                                        <span class="text-slate-300">Готов</span>
-                                    </label>
-                                    ${isEditMode ? `<button onclick="removeDepartment(${dIndex})" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-                                </div>
-                            </div>
-                            <div class="space-y-1">${crewRows}</div>
-                        </div>
-                        ${isEditMode ? `<div class="mt-4 pt-2 border-t border-slate-800"><button onclick="addCrewMember(${dIndex})" class="w-full py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition">+ Сотрудник</button></div>` : ''}
-                    </div>
-                `;
-            });
-
-            const contactsGrid = document.getElementById('contacts-grid');
-            contactsGrid.innerHTML = '';
-            data.contacts.forEach((contact, index) => {
-                contactsGrid.innerHTML += `
-                    <div class="bg-slate-950/50 p-3.5 rounded-lg border border-slate-800 flex flex-col justify-between">
-                        <div>
-                            <div class="text-xs text-slate-400 editable-field" contenteditable="${isEditMode}" data-contact-role="${index}">${contact.role}</div>
-                            <div class="font-bold text-white text-sm editable-field" contenteditable="${isEditMode}" data-contact-name="${index}">${contact.name}</div>
-                        </div>
-                        <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between">
-                            <a href="tel:${contact.phone}" class="text-xs text-amber-400 font-semibold hover:underline editable-field" contenteditable="${isEditMode}" data-contact-phone="${index}">${contact.phone}</a>
-                            ${isEditMode ? `<button onclick="removeContact(${index})" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-                        </div>
-                    </div>
-                `;
-            });
+            }
 
             calculateGoldenHours();
             updateSunLightPosition();
@@ -1482,45 +1532,6 @@
             saveChanges();
             if (currentProductionType === 'film') fetchOnlineWeather();
             updateSunLightPosition();
-        }
-
-        async function fetchOnlineWeather() {
-            if (currentProductionType === 'theater') return;
-            const selectedDate = document.getElementById('meta-date-picker').value || new Date().toISOString().split('T')[0];
-            const todayStr = new Date().toISOString().split('T')[0];
-            
-            try {
-                let url = (selectedDate === todayStr) 
-                    ? `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,surface_pressure&timezone=Europe%2FMoscow`
-                    : `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum&start_date=${selectedDate}&end_date=${selectedDate}&timezone=Europe%2FMoscow`;
-                
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (selectedDate === todayStr && data && data.current) {
-                    const wind = data.current.wind_speed_10m || 3;
-                    document.getElementById('temp-main').innerText = `+${Math.round(data.current.temperature_2m)}°C`;
-                    document.getElementById('wind-val').innerText = `${wind} м/с`;
-                    document.getElementById('humidity-val').innerText = `${data.current.relative_humidity_2m}%`;
-                    if(data.current.surface_pressure) {
-                        document.getElementById('pressure-val').innerText = `${Math.round(data.current.surface_pressure * 0.75006)} мм`;
-                    }
-                    document.getElementById('condition-main').innerText = "Солнечно с плывущими объемными облаками";
-                    checkStormAlert(wind);
-                } else if (data && data.daily) {
-                    const maxT = data.daily.temperature_2m_max ? Math.round(data.daily.temperature_2m_max[0]) : '--';
-                    const minT = data.daily.temperature_2m_min ? Math.round(data.daily.temperature_2m_min[0]) : '--';
-                    document.getElementById('temp-main').innerText = `от ${minT}° до ${maxT}°C`;
-                }
-
-                if (data && data.daily && data.daily.sunrise && data.daily.sunrise.length > 0) {
-                    document.getElementById('sun-rise').innerText = data.daily.sunrise[0].split('T')[1].substring(0, 5);
-                    document.getElementById('sun-set').innerText = data.daily.sunset[0].split('T')[1].substring(0, 5);
-                    calculateGoldenHours();
-                }
-            } catch (err) {
-                console.error('Не удалось получить данные погоды:', err);
-            }
         }
 
         function collectDataFromDOM() {
@@ -1637,9 +1648,11 @@
             const venueSearchContainer = document.getElementById('venue-search-container');
 
             if (isEditMode) {
-                btnText.innerText = "Готово (Просмотр)";
-                btn.classList.add('bg-amber-500', 'text-slate-950', 'border-amber-400');
-                btn.classList.remove('bg-amber-500/10', 'text-amber-400');
+                if (btnText) btnText.innerText = "Готово (Просмотр)";
+                if (btn) {
+                    btn.classList.add('bg-amber-500', 'text-slate-950', 'border-amber-400');
+                    btn.classList.remove('bg-amber-500/10', 'text-amber-400');
+                }
                 
                 if (generalCallTime) generalCallTime.removeAttribute('disabled');
                 if (generalCallDate) generalCallDate.removeAttribute('disabled');
@@ -1650,9 +1663,11 @@
                 document.querySelectorAll('.edit-action-btn').forEach(el => el.classList.remove('hidden'));
             } else {
                 saveChanges();
-                btnText.innerText = "Режим правки";
-                btn.classList.remove('bg-amber-500', 'text-slate-950', 'border-amber-400');
-                btn.classList.add('bg-amber-500/10', 'text-amber-400');
+                if (btnText) btnText.innerText = "Режим правки";
+                if (btn) {
+                    btn.classList.remove('bg-amber-500', 'text-slate-950', 'border-amber-400');
+                    btn.classList.add('bg-amber-500/10', 'text-amber-400');
+                }
 
                 if (generalCallTime) generalCallTime.setAttribute('disabled', 'true');
                 if (generalCallDate) generalCallDate.setAttribute('disabled', 'true');
