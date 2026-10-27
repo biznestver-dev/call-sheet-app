@@ -240,7 +240,7 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
 
-        <!-- Top Alert / General Call Banner & Readiness Progress -->
+        <!-- Top Alert / General Call Banner with Date & Readiness Progress -->
         <div class="bg-gradient-to-r from-amber-500/20 via-slate-900 to-slate-900 border border-amber-500/40 rounded-xl p-4 sm:p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-start space-x-4">
                 <div class="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shrink-0 shadow-md">
@@ -248,8 +248,13 @@
                 </div>
                 <div>
                     <div class="text-xs uppercase tracking-wider text-amber-400 font-bold" id="general-call-title-label">Общий сбор группы (General Crew Call)</div>
-                    <div class="flex items-center space-x-2 mt-1">
+                    <div class="flex items-center space-x-3 mt-1 flex-wrap gap-y-2">
+                        <!-- Время сбора -->
                         <input type="time" id="general-call-time" onchange="saveChanges()" class="bg-slate-800/80 text-white font-black text-2xl sm:text-3xl px-3 py-1 rounded-lg border border-slate-700 outline-none focus:border-amber-500 tracking-tight">
+                        
+                        <!-- Дата сбора -->
+                        <input type="date" id="general-call-date" onchange="syncGeneralDate(this)" class="bg-slate-800 text-amber-400 font-bold text-sm sm:text-base px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500 no-print">
+                        
                         <span class="text-xs text-slate-400 hidden sm:inline">(Нажмите для изменения)</span>
                     </div>
                     <p class="text-xs sm:text-sm text-slate-300 mt-1.5 editable-field" contenteditable="true" id="general-call-desc">Получение раций, инструктаж по ТБ, проверка пропусков на КПП</p>
@@ -257,6 +262,9 @@
             </div>
 
             <div class="flex flex-col items-end justify-center border-t md:border-t-0 md:border-l border-slate-800 pt-3 md:pt-0 md:pl-6 min-w-[200px]">
+                <div class="hidden">
+                    <input type="date" id="meta-date-picker" onchange="updateDateFromPicker(this)">
+                </div>
                 <div class="flex items-center justify-between w-full text-xs text-slate-300 mb-1.5 font-semibold">
                     <span id="readiness-label-title">Готовность смены:</span>
                     <span id="readiness-percent" class="text-amber-400 font-mono font-bold">0%</span>
@@ -598,6 +606,7 @@
             metaDate: "2026-10-27",
             metaVersion: "Rev. 2.4",
             generalCallTime: "07:30",
+            generalCallDate: "2026-10-27",
             generalCallDesc: "Получение раций, инструктаж по ТБ, проверка пропусков на КПП",
             weatherTemp: "+7°C",
             weatherCondition: "Онлайн (сегодня)",
@@ -969,13 +978,12 @@
                 if (weatherWidgetCard) weatherWidgetCard.style.display = 'flex';
                 if (spaceWidgetCard) {
                     spaceWidgetCard.style.display = 'flex';
-                    // Переинициализируем 3D сцену при возвращении видимости, чтобы размеры не были 0х0
                     setTimeout(() => {
                         if (!rendererGlobe) init3DWidget();
                         else {
                             const container = document.getElementById('globeContainer');
                             if (container && rendererGlobe) {
-                                rendererGlobe.setSize(container.clientWidth || 300, container.clientHeight || 160);
+                                rendererGlobe.setSize(container.clientWidth || 320, container.clientHeight || 160);
                             }
                         }
                     }, 50);
@@ -1272,6 +1280,14 @@
             document.getElementById('readiness-bar').style.width = `${percent}%`;
         }
 
+        function syncGeneralDate(input) {
+            const mainDatePicker = document.getElementById('meta-date-picker');
+            if (mainDatePicker) {
+                mainDatePicker.value = input.value;
+                updateDateFromPicker(mainDatePicker);
+            }
+        }
+
         function initApp() {
             const saved = localStorage.getItem('call_sheet_stage_data_v13');
             const data = saved ? JSON.parse(saved) : defaultData;
@@ -1291,11 +1307,11 @@
             document.getElementById('meta-version').innerText = data.metaVersion;
             
             const dateInput = document.getElementById('meta-date-picker');
-            if (data.metaDate) {
-                dateInput.value = data.metaDate;
-            } else {
-                dateInput.value = new Date().toISOString().split('T')[0];
-            }
+            const generalDateInput = document.getElementById('general-call-date');
+            
+            const targetDate = data.metaDate || data.generalCallDate || new Date().toISOString().split('T')[0];
+            dateInput.value = targetDate;
+            if (generalDateInput) generalDateInput.value = targetDate;
 
             document.getElementById('general-call-time').value = data.generalCallTime || "07:30";
             document.getElementById('general-call-desc').innerText = data.generalCallDesc;
@@ -1442,6 +1458,8 @@
         }
 
         function updateDateFromPicker(input) {
+            const generalDateInput = document.getElementById('general-call-date');
+            if (generalDateInput) generalDateInput.value = input.value;
             saveChanges();
             if (currentProductionType === 'film') fetchOnlineWeather();
             updateSunLightPosition();
@@ -1494,6 +1512,7 @@
                 metaDate: document.getElementById('meta-date-picker').value,
                 metaVersion: document.getElementById('meta-version').innerText,
                 generalCallTime: document.getElementById('general-call-time').value,
+                generalCallDate: document.getElementById('general-call-date') ? document.getElementById('general-call-date').value : '',
                 generalCallDesc: document.getElementById('general-call-desc').innerText,
                 weatherTemp: document.getElementById('temp-main').innerText,
                 weatherCondition: document.getElementById('condition-main').innerText,
