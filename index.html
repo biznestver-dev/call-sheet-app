@@ -256,7 +256,6 @@
                 </div>
             </div>
 
-            <!-- Общая шкала готовности смены / монтировки -->
             <div class="flex flex-col items-end justify-center border-t md:border-t-0 md:border-l border-slate-800 pt-3 md:pt-0 md:pl-6 min-w-[200px]">
                 <div class="flex items-center justify-between w-full text-xs text-slate-300 mb-1.5 font-semibold">
                     <span id="readiness-label-title">Готовность смены:</span>
@@ -269,12 +268,10 @@
             </div>
         </div>
 
-        <!-- Grid: Weather & Atmosphere & Location (Weather hidden in Theater mode) -->
+        <!-- Grid: Weather & Atmosphere & Location -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" id="top-widgets-grid">
             
-            <!-- Интегрированный Кинематографичный виджет погоды V1 -->
             <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500 flex flex-col justify-between" id="weather-widget-card">
-                
                 <div class="absolute inset-0 overflow-hidden pointer-events-none z-0" id="sky-bg-container">
                     <div class="absolute -top-10 -right-10 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl transition-all duration-500" id="corona-bg"></div>
                     <div class="cloud-layer-1"></div>
@@ -332,7 +329,6 @@
                 </div>
 
                 <div class="banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 backdrop-blur-md transition-all duration-500" id="cinematic-banner">
-                    
                     <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-90 z-10">
                         <div class="wind-line top-2.5 w-32" style="animation-delay: 0s;"></div>
                         <div class="wind-line top-8 w-44" style="animation-delay: 0.4s;"></div>
@@ -393,7 +389,7 @@
                 </div>
             </div>
 
-            <!-- 3D Realistic Earth & Space Widget (Hidden in Theater mode) -->
+            <!-- 3D Realistic Earth & Space Widget -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden" id="space-widget-card">
                 <div>
                     <div class="flex items-center justify-between mb-3">
@@ -452,7 +448,7 @@
                 </div>
             </div>
 
-            <!-- Location & Logistics with Live Search & Venue Input -->
+            <!-- Location & Logistics -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between space-y-3" id="location-card">
                 <div>
                     <div class="flex items-center justify-between mb-2">
@@ -493,7 +489,7 @@
             </div>
         </div>
 
-        <!-- Scenes Breakdown / Stripboard (Сцены смены / Акты и картины) -->
+        <!-- Scenes Breakdown -->
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
@@ -521,7 +517,7 @@
             </div>
         </div>
 
-        <!-- General Timeline / Schedule -->
+        <!-- General Timeline -->
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
@@ -547,7 +543,7 @@
             </div>
         </div>
 
-        <!-- Departments & Crew Call Times with Interactive Checklists -->
+        <!-- Departments & Crew Call Times -->
         <div>
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
@@ -665,7 +661,7 @@
                     time: "10:00",
                     ready: true,
                     crew: [
-                        { role: "Заведующий постановчной частью", name: "Олег Зломанов", phone: "+7 (999) 777-88-99" },
+                        { role: "Заведующий постановочной частью", name: "Олег Зломанов", phone: "+7 (999) 777-88-99" },
                         { role: "Начальник монтировочного цеха", name: "Артем Сидоренко", phone: "+7 (999) 888-99-00" }
                     ]
                 },
@@ -731,11 +727,13 @@
             containerElement.innerHTML = '';
 
             const sceneMoon = new THREE.Scene();
-            const cameraMoon = new THREE.PerspectiveCamera(50, containerElement.clientWidth / containerElement.clientHeight, 0.1, 3000);
+            const width = containerElement.clientWidth || 55;
+            const height = containerElement.clientHeight || 55;
+            const cameraMoon = new THREE.PerspectiveCamera(50, width / height, 0.1, 3000);
             cameraMoon.position.set(0, 0, 2.4);
 
             const rendererMoon = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-            rendererMoon.setSize(containerElement.clientWidth, containerElement.clientHeight);
+            rendererMoon.setSize(width, height);
             rendererMoon.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             containerElement.appendChild(rendererMoon.domElement);
 
@@ -778,7 +776,7 @@
             sceneMoon.add(new THREE.Points(starsGeo, starsMat));
 
             const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
-            const moonMat = new THREE.MeshStandardMaterial({ roughness: 0.85, metalness: 0.05 });
+            const moonMat = new THREE.MeshStandardMaterial({ roughness: 0.85, metalness: 0.05, color: 0x888888 });
             const moonMesh = new THREE.Mesh(sphereGeo, moonMat);
             moonMesh.rotation.z = THREE.MathUtils.degToRad(1.54);
             sceneMoon.add(moonMesh);
@@ -937,7 +935,6 @@
                 theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
                 filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
 
-                // Скрываем погодные и астрономические виджеты для театра (в помещении)
                 if (weatherWidgetCard) weatherWidgetCard.style.display = 'none';
                 if (spaceWidgetCard) spaceWidgetCard.style.display = 'none';
 
@@ -970,7 +967,19 @@
                 theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
 
                 if (weatherWidgetCard) weatherWidgetCard.style.display = 'flex';
-                if (spaceWidgetCard) spaceWidgetCard.style.display = 'flex';
+                if (spaceWidgetCard) {
+                    spaceWidgetCard.style.display = 'flex';
+                    // Переинициализируем 3D сцену при возвращении видимости, чтобы размеры не были 0х0
+                    setTimeout(() => {
+                        if (!rendererGlobe) init3DWidget();
+                        else {
+                            const container = document.getElementById('globeContainer');
+                            if (container && rendererGlobe) {
+                                rendererGlobe.setSize(container.clientWidth || 300, container.clientHeight || 160);
+                            }
+                        }
+                    }, 50);
+                }
 
                 generalBellIcon.className = "fa-solid fa-bell";
                 generalCallTitleLabel.innerText = "Общий сбор группы (General Crew Call)";
@@ -1109,12 +1118,15 @@
             const container = document.getElementById('globeContainer');
             if (!container) return;
 
+            const width = container.clientWidth || 320;
+            const height = container.clientHeight || 160;
+
             sceneGlobe = new THREE.Scene();
-            cameraGlobe = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            cameraGlobe = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
             cameraGlobe.position.set(0, 0, 4.6);
 
             rendererGlobe = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            rendererGlobe.setSize(container.clientWidth, container.clientHeight);
+            rendererGlobe.setSize(width, height);
             rendererGlobe.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             rendererGlobe.toneMapping = THREE.ACESFilmicToneMapping;
             rendererGlobe.toneMappingExposure = 1.2;
@@ -1138,9 +1150,16 @@
             const textureLoader = new THREE.TextureLoader();
             const earthRadius = 1.1;
             const earthGeometry = new THREE.SphereGeometry(earthRadius, 64, 64);
-            const earthMaterial = new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.1 });
+            const earthMaterial = new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.1, color: 0x1d4ed8 });
 
-            textureLoader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg', (tex) => { earthMaterial.map = tex; earthMaterial.needsUpdate = true; });
+            textureLoader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg', (tex) => { 
+                earthMaterial.map = tex; 
+                earthMaterial.color.setHex(0xffffff);
+                earthMaterial.needsUpdate = true; 
+            }, undefined, (err) => {
+                console.warn('Не удалось загрузить текстуру Земли, используется базовый цвет', err);
+            });
+            
             textureLoader.load('https://threejs.org/examples/textures/planets/earth_specular_2048.jpg', (tex) => { earthMaterial.roughnessMap = tex; earthMaterial.needsUpdate = true; });
 
             earthGroup.add(new THREE.Mesh(earthGeometry, earthMaterial));
@@ -1254,7 +1273,7 @@
         }
 
         function initApp() {
-            const saved = localStorage.getItem('call_sheet_stage_data_v12');
+            const saved = localStorage.getItem('call_sheet_stage_data_v13');
             const data = saved ? JSON.parse(saved) : defaultData;
             renderData(data);
             init3DWidget();
@@ -1294,7 +1313,6 @@
             currentLon = data.lon || 37.4392;
             initMiniMap(currentLat, currentLon);
 
-            // Scenes / Theater Scenes Table
             const scenesTbody = document.getElementById('scenes-tbody');
             scenesTbody.innerHTML = '';
             
@@ -1332,7 +1350,6 @@
                 });
             }
 
-            // Timeline / Theater Timeline
             const timelineTbody = document.getElementById('timeline-tbody');
             timelineTbody.innerHTML = '';
             const activeTimeline = (currentProductionType === 'theater') ? (data.theaterTimeline || defaultData.theaterTimeline) : (data.timeline || defaultData.timeline);
@@ -1354,7 +1371,6 @@
                 `;
             });
 
-            // Departments / Theater Departments
             const deptContainer = document.getElementById('departments-container');
             deptContainer.innerHTML = '';
             const activeDepts = (currentProductionType === 'theater') ? (data.theaterDepartments || defaultData.theaterDepartments) : (data.departments || defaultData.departments);
@@ -1403,7 +1419,6 @@
                 `;
             });
 
-            // Contacts
             const contactsGrid = document.getElementById('contacts-grid');
             contactsGrid.innerHTML = '';
             data.contacts.forEach((contact, index) => {
@@ -1595,14 +1610,14 @@
 
         function saveChanges() {
             const data = collectDataFromDOM();
-            localStorage.setItem('call_sheet_stage_data_v12', JSON.stringify(data));
+            localStorage.setItem('call_sheet_stage_data_v13', JSON.stringify(data));
             calculateGoldenHours();
             updateReadinessProgress();
         }
 
         function resetToDefaults() {
             if (confirm('Сбросить изменения по умолчанию?')) {
-                localStorage.removeItem('call_sheet_stage_data_v12');
+                localStorage.removeItem('call_sheet_stage_data_v13');
                 renderData(defaultData);
             }
         }
