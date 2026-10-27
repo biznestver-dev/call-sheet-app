@@ -1340,7 +1340,7 @@
 
         async function fetchWeatherData() {
             try {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,surface_pressure&timezone=Europe%2FMoscow`;
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,surface_pressure,precipitation,weather_code&timezone=Europe%2FMoscow`;
                 const response = await fetch(url);
                 const data = await response.json();
                 
@@ -1350,12 +1350,15 @@
                     const wind = data.current.wind_speed_10m || 6.9;
                     const humidity = data.current.relative_humidity_2m || 40;
                     const pressure = data.current.surface_pressure ? Math.round(data.current.surface_pressure * 0.75006) : 761;
+                    const precipitation = data.current.precipitation || 0;
+                    const weatherCode = data.current.weather_code || 0;
 
                     const tempMain = document.getElementById('temp-main');
                     const tempFeel = document.getElementById('temp-feel');
                     const windVal = document.getElementById('wind-val');
                     const humidityVal = document.getElementById('humidity-val');
                     const pressureVal = document.getElementById('pressure-val');
+                    const conditionMain = document.getElementById('condition-main');
 
                     if (tempMain) tempMain.innerText = `+${temp}°C`;
                     if (tempFeel) tempFeel.innerText = `Ощущается как +${appTemp}°`;
@@ -1363,8 +1366,34 @@
                     if (humidityVal) humidityVal.innerText = `${humidity}%`;
                     if (pressureVal) pressureVal.innerText = `${pressure} мм`;
 
+                    let conditionText = "Ясно и солнечно";
+                    let isRainingOrSnowing = false;
+
+                    if (weatherCode >= 50 && weatherCode <= 67) {
+                        conditionText = "Идет дождь";
+                        isRainingOrSnowing = true;
+                    } else if (weatherCode >= 70 && weatherCode <= 77) {
+                        conditionText = "Идет снег";
+                        isRainingOrSnowing = true;
+                    } else if (weatherCode >= 1 && weatherCode <= 3) {
+                        conditionText = "Облачно с прояснениями";
+                    } else if (precipitation > 0) {
+                        conditionText = "Осадки";
+                        isRainingOrSnowing = true;
+                    }
+
+                    if (conditionMain) conditionMain.innerText = conditionText;
+
+                    const precipContainer = document.getElementById('precipitation-container');
+                    if (precipContainer) {
+                        if (isRainingOrSnowing) {
+                            initPrecipitationEffect(temp <= 0 ? 'snow' : 'rain');
+                        } else {
+                            precipContainer.innerHTML = '';
+                        }
+                    }
+
                     checkStormAlert(wind);
-                    initPrecipitationEffect(temp <= 0 ? 'snow' : 'rain');
                 }
             } catch (err) {
                 console.error('Ошибка получения погоды:', err);
@@ -1401,7 +1430,6 @@
             initMiniMap(data.lat, data.lon);
             calculateGoldenHours();
             updateSunLightPosition();
-            initPrecipitationEffect('rain');
         }
 
         function renderData(data) {
