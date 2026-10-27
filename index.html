@@ -43,7 +43,7 @@
         }
         .globe-container {
             width: 100%;
-            height: 180px;
+            height: 160px;
             border-radius: 16px;
             overflow: hidden;
             position: relative;
@@ -86,7 +86,6 @@
             background: linear-gradient(to bottom, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0.8));
             animation: fallRain 0.6s linear infinite;
         }
-        /* Медленное, плавное и хаотичное мерцание звезд */
         @keyframes twinkleStarSlow {
             0%, 100% { opacity: 0.05; transform: scale(0.6); }
             50% { opacity: 0.95; transform: scale(1.3); }
@@ -181,7 +180,7 @@
                 </div>
                 <div>
                     <div class="text-xs text-slate-400 mb-1">Версия</div>
-                    <div class="text-sm sm:text-base font-bold text-amber-400 editable-field" contenteditable="true" id="meta-version">Rev. 2.2</div>
+                    <div class="text-sm sm:text-base font-bold text-amber-400 editable-field" contenteditable="true" id="meta-version">Rev. 2.4</div>
                 </div>
             </div>
         </div>
@@ -202,8 +201,8 @@
                     </div>
                     <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5 my-1.5">
                         <div class="temp-block">
-                            <h1 class="text-3xl font-extrabold text-white editable-field" contenteditable="true" id="weather-temp">+12°C</h1>
-                            <p class="text-xs text-amber-400 font-medium editable-field mt-0.5" contenteditable="true" id="weather-condition">Переменная облачность</p>
+                            <h1 class="text-3xl font-extrabold text-white editable-field" contenteditable="true" id="weather-temp">+7°C</h1>
+                            <p class="text-xs text-amber-400 font-medium editable-field mt-0.5" contenteditable="true" id="weather-condition">Онлайн (сегодня)</p>
                         </div>
                         <div class="text-3xl text-sky-400 drop-shadow-[0_0_12px_rgba(56,189,248,0.5)]" id="weatherIconLg">
                             <i class="fa-solid fa-cloud-sun"></i>
@@ -216,17 +215,17 @@
                         <div class="bg-slate-950/40 p-1.5 rounded-lg border border-slate-800/80">
                             <i class="fa-solid fa-wind text-sky-400 text-[10px] mb-0.5"></i>
                             <div class="text-[9px] text-slate-500 uppercase">Ветер</div>
-                            <div class="text-xs font-semibold text-slate-300 editable-field" contenteditable="true" id="weather-wind">4 м/с</div>
+                            <div class="text-xs font-semibold text-slate-300 editable-field" contenteditable="true" id="weather-wind">6.9 м/с</div>
                         </div>
                         <div class="bg-slate-950/40 p-1.5 rounded-lg border border-slate-800/80">
                             <i class="fa-solid fa-droplet text-sky-400 text-[10px] mb-0.5"></i>
                             <div class="text-[9px] text-slate-500 uppercase">Влажность</div>
-                            <div class="text-xs font-semibold text-slate-300 editable-field" contenteditable="true" id="weather-humidity">65%</div>
+                            <div class="text-xs font-semibold text-slate-300 editable-field" contenteditable="true" id="weather-humidity">40%</div>
                         </div>
                         <div class="bg-slate-950/40 p-1.5 rounded-lg border border-slate-800/80">
                             <i class="fa-solid fa-gauge-high text-sky-400 text-[10px] mb-0.5"></i>
                             <div class="text-[9px] text-slate-500 uppercase">Давление</div>
-                            <div class="text-xs font-semibold text-slate-300 editable-field" contenteditable="true" id="weather-pressure">752 мм</div>
+                            <div class="text-xs font-semibold text-slate-300 editable-field" contenteditable="true" id="weather-pressure">761 мм</div>
                         </div>
                     </div>
 
@@ -244,13 +243,13 @@
                 </div>
             </div>
 
-            <!-- 3D Realistic Earth, Sun & Moon Atmosphere Widget -->
+            <!-- 3D Realistic Earth, Sun & Moon Atmosphere Widget with Golden Hour & Sunrise/Sunset -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden">
                 <div>
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs uppercase tracking-wider text-slate-300 font-bold flex items-center space-x-1.5">
                             <i class="fa-solid fa-globe text-sky-400"></i>
-                            <span id="sky-status-title">Космический цикл смены</span>
+                            <span id="sky-status-title">Космический цикл и режимный свет</span>
                         </span>
                         <span class="text-[10px] px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-medium" id="sky-phase-badge">3D Real-Time</span>
                     </div>
@@ -258,27 +257,48 @@
                     <div class="globe-container my-2" id="globeContainer"></div>
                 </div>
 
-                <div>
-                    <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
-                        <span id="sliderTimeLabel">Прокрутка времени суток</span>
-                        <span class="font-mono text-amber-400 font-bold" id="currentTimeDisplay">12:00</span>
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                            <span id="sliderTimeLabel">Прокрутка времени суток</span>
+                            <span class="font-mono text-amber-400 font-bold" id="currentTimeDisplay">11:41</span>
+                        </div>
+                        <input type="range" id="timeSlider" min="0" max="1440" value="701" step="1" class="no-print">
                     </div>
-                    <input type="range" id="timeSlider" min="0" max="1440" value="720" step="1" class="no-print mb-3">
 
-                    <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-800 text-center">
+                    <!-- Автоматический Золотой Час -->
+                    <div class="grid grid-cols-2 gap-2 text-center">
+                        <div class="bg-amber-500/10 border border-amber-500/20 p-2 rounded-lg">
+                            <div class="text-[10px] uppercase font-bold text-amber-400 flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-sun text-amber-400"></i>
+                                <span>Золотой час (утро)</span>
+                            </div>
+                            <div class="text-xs font-mono font-bold text-slate-200 mt-1" id="morning-golden-hour">07:25 - 08:25</div>
+                        </div>
+                        <div class="bg-orange-500/10 border border-orange-500/20 p-2 rounded-lg">
+                            <div class="text-[10px] uppercase font-bold text-orange-400 flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-moon text-orange-400"></i>
+                                <span>Золотой час (вечер)</span>
+                            </div>
+                            <div class="text-xs font-mono font-bold text-slate-200 mt-1" id="evening-golden-hour">16:01 - 17:01</div>
+                        </div>
+                    </div>
+
+                    <!-- Блоки Рассвет и Закат -->
+                    <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800 text-center">
                         <div class="bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
                             <div class="text-[10px] text-slate-400 uppercase flex items-center justify-center space-x-1">
                                 <i class="fa-solid fa-sunrise text-amber-400"></i>
                                 <span>Рассвет</span>
                             </div>
-                            <div class="text-sm font-bold text-slate-200 mt-0.5 editable-field" contenteditable="true" id="sun-rise">06:15</div>
+                            <div class="text-sm font-bold text-slate-200 mt-0.5 editable-field" contenteditable="true" id="sun-rise">07:25</div>
                         </div>
                         <div class="bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
                             <div class="text-[10px] text-slate-400 uppercase flex items-center justify-center space-x-1">
                                 <i class="fa-solid fa-sunset text-orange-400"></i>
                                 <span>Закат</span>
                             </div>
-                            <div class="text-sm font-bold text-slate-200 mt-0.5 editable-field" contenteditable="true" id="sun-set">18:45</div>
+                            <div class="text-sm font-bold text-slate-200 mt-0.5 editable-field" contenteditable="true" id="sun-set">17:01</div>
                         </div>
                     </div>
                 </div>
@@ -412,16 +432,16 @@
             metaDay: "СЪЕМОЧНЫЙ ДЕНЬ #04",
             metaProject: "Проект «Аврора» (Смена 12)",
             metaDate: "2026-10-27",
-            metaVersion: "Rev. 2.2",
+            metaVersion: "Rev. 2.4",
             generalCallTime: "07:30",
             generalCallDesc: "Получение раций, инструктаж по ТБ, проверка пропусков на КПП",
-            weatherTemp: "+12°C",
-            weatherCondition: "Переменная облачность",
-            weatherWind: "4 м/с",
-            weatherHumidity: "65%",
-            weatherPressure: "752 мм",
-            sunRise: "06:15",
-            sunSet: "18:45",
+            weatherTemp: "+7°C",
+            weatherCondition: "Онлайн (сегодня)",
+            weatherWind: "6.9 м/с",
+            weatherHumidity: "40%",
+            weatherPressure: "761 мм",
+            sunRise: "07:25",
+            sunSet: "17:01",
             locationName: "Киностудия «Амедиа»",
             locationAddress: "Москва, ул. Домостроительная, 1с2",
             locationMetro: "Метро «Озёрная» / «Говорово» (10 мин. на тр.)",
@@ -492,7 +512,41 @@
             saveChanges();
         }
 
-        // Поиск по выпадающему списку локаций
+        function calculateGoldenHours() {
+            const riseStr = document.getElementById('sun-rise').innerText.trim();
+            const setStr = document.getElementById('sun-set').innerText.trim();
+
+            function timeToMinutes(tStr) {
+                const parts = tStr.split(':');
+                if (parts.length !== 2) return 0;
+                return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+            }
+
+            function minutesToTime(mins) {
+                mins = (mins + 1440) % 1440;
+                const h = Math.floor(mins / 60);
+                const m = Math.floor(mins % 60);
+                return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+            }
+
+            const riseMins = timeToMinutes(riseStr);
+            const setMins = timeToMinutes(setStr);
+
+            // Утренний золотой час: с рассвета до +1 часа
+            const morningStart = riseMins;
+            const morningEnd = riseMins + 60;
+
+            // Вечерний золотой час: за 1 час до заката и до заката
+            const eveningStart = setMins - 60;
+            const eveningEnd = setMins;
+
+            const morningEl = document.getElementById('morning-golden-hour');
+            const eveningEl = document.getElementById('evening-golden-hour');
+
+            if (morningEl) morningEl.innerText = `${minutesToTime(morningStart)} - ${minutesToTime(morningEnd)}`;
+            if (eveningEl) eveningEl.innerText = `${minutesToTime(eveningStart)} - ${minutesToTime(eveningEnd)}`;
+        }
+
         function showVenueDropdown() {
             renderVenueDropdown(venuesDatabase);
             document.getElementById('venue-dropdown-list').classList.remove('hidden');
@@ -534,7 +588,6 @@
             saveChanges();
         }
 
-        // Клик вне выпадающего списка закрывает его
         window.addEventListener('click', (e) => {
             const input = document.getElementById('venue-search-input');
             const dropdown = document.getElementById('venue-dropdown-list');
@@ -570,8 +623,6 @@
 
         // --- THREE.JS 3D GLOBE ---
         let scene, camera, renderer, earthGroup, cloudsMesh, starField, sunLight, sunMesh, moonMesh;
-        const sunriseMin = 6 * 60 + 15;
-        const sunsetMin = 18 * 60 + 45;
 
         function init3DWidget() {
             const container = document.getElementById('globeContainer');
@@ -765,11 +816,12 @@
         }
 
         function initApp() {
-            const saved = localStorage.getItem('call_sheet_data_v9');
+            const saved = localStorage.getItem('call_sheet_data_v10');
             const data = saved ? JSON.parse(saved) : defaultData;
             renderData(data);
             init3DWidget();
             initMiniMap(data.lat, data.lon);
+            calculateGoldenHours();
         }
 
         function renderData(data) {
@@ -792,7 +844,7 @@
             document.getElementById('weather-condition').innerText = data.weatherCondition;
             document.getElementById('weather-wind').innerText = data.weatherWind;
             document.getElementById('weather-humidity').innerText = data.weatherHumidity;
-            document.getElementById('weather-pressure').innerText = data.weatherPressure || "752 мм";
+            document.getElementById('weather-pressure').innerText = data.weatherPressure || "761 мм";
             document.getElementById('sun-rise').innerText = data.sunRise;
             document.getElementById('sun-set').innerText = data.sunSet;
 
@@ -884,6 +936,8 @@
                     </div>
                 `;
             });
+
+            calculateGoldenHours();
         }
 
         function updateDateFromPicker(input) {
@@ -930,6 +984,7 @@
                     
                     document.getElementById('sun-rise').innerText = sunriseTime;
                     document.getElementById('sun-set').innerText = sunsetTime;
+                    calculateGoldenHours();
                 }
             } catch (err) {
                 console.error('Не удалось получить данные погоды:', err);
@@ -1024,12 +1079,13 @@
 
         function saveChanges() {
             const data = collectDataFromDOM();
-            localStorage.setItem('call_sheet_data_v9', JSON.stringify(data));
+            localStorage.setItem('call_sheet_data_v10', JSON.stringify(data));
+            calculateGoldenHours();
         }
 
         function resetToDefaults() {
             if (confirm('Сбросить изменения?')) {
-                localStorage.removeItem('call_sheet_data_v9');
+                localStorage.removeItem('call_sheet_data_v10');
                 renderData(defaultData);
             }
         }
