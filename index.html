@@ -456,19 +456,20 @@
                 </div>
             </div>
 
-            <!-- Location & Logistics -->
+            <!-- Location & Logistics with Flexible Address Input -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between space-y-3" id="location-card">
                 <div>
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-xs uppercase tracking-wider text-slate-400 font-bold"><i class="fa-solid fa-location-dot text-amber-500 mr-1.5"></i> <span id="location-title-label">Локация / Площадка</span></span>
                     </div>
 
+                    <!-- Инпут поиска: можно выбрать из списка или ввести любой адрес с клавиатуры и нажать Enter -->
                     <div class="mb-2 relative">
-                        <input type="text" id="venue-search-input" placeholder="🔍 Введите или найдите театр / площадку..." oninput="filterVenues(this.value)" onfocus="showVenueDropdown()" class="w-full bg-slate-950 text-amber-400 text-xs px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500">
+                        <input type="text" id="venue-search-input" placeholder="🔍 Введите любой адрес или найдите площадку..." oninput="filterVenues(this.value)" onkeydown="handleCustomAddressKey(event)" onfocus="showVenueDropdown()" class="w-full bg-slate-950 text-amber-400 text-xs px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500">
                         <div id="venue-dropdown-list" class="hidden absolute z-50 bg-slate-900 border border-slate-700 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-2xl w-full"></div>
                     </div>
 
-                    <div onclick="openMapRoute()" class="cursor-pointer group hover:bg-white/5 p-1.5 rounded-lg transition -mx-1.5">
+                    <div onclick="openMapRoute()" class="cursor-pointer group hover:bg-white/5 p-1.5 rounded-lg transition -mx-1.5" title="Нажмите, чтобы открыть маршрут в Яндекс.Картах">
                         <div class="text-base font-bold text-white group-hover:text-amber-400 transition flex items-center justify-between">
                             <span contenteditable="true" id="location-name" class="editable-field">Киностудия «Амедиа»</span>
                             <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-500 group-hover:text-amber-400"></i>
@@ -1012,8 +1013,7 @@
             }
             saveChanges();
             renderData(collectDataFromDOM());
-            // Обновляем карту после переключения типа смены
-            setTimeout(() => { if (mapInstance) mapInstance.invalidateSize(); }, 150);
+            setTimeout(() => { if (mapInstance) mapInstance.invalidateSize(); }, 200);
         }
 
         function calculateGoldenHours() {
@@ -1064,7 +1064,7 @@
             const dropdown = document.getElementById('venue-dropdown-list');
             dropdown.innerHTML = '';
             if (list.length === 0) {
-                dropdown.innerHTML = '<div class="p-2 text-xs text-slate-400">Ничего не найдено</div>';
+                dropdown.innerHTML = '<div class="p-2 text-xs text-slate-400">Нет в базе. Нажмите Enter для ввода своего адреса</div>';
                 return;
             }
             list.forEach(v => {
@@ -1087,6 +1087,23 @@
             document.getElementById('venue-dropdown-list').classList.add('hidden');
             document.getElementById('venue-search-input').value = '';
             saveChanges();
+        }
+
+        // Функция обработки ввода любого произвольного адреса по нажатию Enter
+        function handleCustomAddressKey(event) {
+            if (event.key === 'Enter') {
+                const customText = event.target.value.trim();
+                if (customText) {
+                    document.getElementById('location-name').innerText = customText;
+                    document.getElementById('location-address').innerText = customText;
+                    document.getElementById('location-metro').innerText = "Произвольный адрес / Площадка";
+                    document.getElementById('location-bus').innerText = "Маршрут уточняется у координатора";
+                    document.getElementById('venue-dropdown-list').classList.add('hidden');
+                    event.target.value = '';
+                    initMiniMap(currentLat, currentLon);
+                    saveChanges();
+                }
+            }
         }
 
         window.addEventListener('click', (e) => {
@@ -1112,9 +1129,13 @@
                 } else {
                     mapInstance.setView([currentLat, currentLon], 15);
                     markerInstance.setLatLng([currentLat, currentLon]);
-                    mapInstance.invalidateSize();
                 }
-            }, 150);
+                mapInstance.invalidateSize();
+            }, 300);
+
+            setTimeout(() => {
+                if (mapInstance) mapInstance.invalidateSize();
+            }, 900);
         }
 
         function openMapRoute() {
@@ -1293,7 +1314,7 @@
         }
 
         function initApp() {
-            const saved = localStorage.getItem('call_sheet_stage_data_v14');
+            const saved = localStorage.getItem('call_sheet_stage_data_v15');
             const data = saved ? JSON.parse(saved) : defaultData;
             renderData(data);
             init3DWidget();
@@ -1476,7 +1497,7 @@
             
             try {
                 let url = (selectedDate === todayStr) 
-                    ? `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,surface_pressure&daily=sunrise,sunset&timezone=Europe%2FMoscow`
+                    ? `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,surface_pressure&timezone=Europe%2FMoscow`
                     : `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum&start_date=${selectedDate}&end_date=${selectedDate}&timezone=Europe%2FMoscow`;
                 
                 const response = await fetch(url);
@@ -1633,14 +1654,14 @@
 
         function saveChanges() {
             const data = collectDataFromDOM();
-            localStorage.setItem('call_sheet_stage_data_v14', JSON.stringify(data));
+            localStorage.setItem('call_sheet_stage_data_v15', JSON.stringify(data));
             calculateGoldenHours();
             updateReadinessProgress();
         }
 
         function resetToDefaults() {
             if (confirm('Сбросить изменения по умолчанию?')) {
-                localStorage.removeItem('call_sheet_stage_data_v14');
+                localStorage.removeItem('call_sheet_stage_data_v15');
                 renderData(defaultData);
             }
         }
