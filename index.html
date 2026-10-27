@@ -20,6 +20,11 @@
     </script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Leaflet.js для мини-карты -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Three.js для 3D виджета Земли, Солнца и Луны -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         @media print {
             .no-print { display: none !important; }
@@ -36,29 +41,82 @@
             border-radius: 4px;
             background: rgba(15, 23, 42, 0.6);
         }
-        /* Реалистичная анимация капель дождя */
-        @keyframes realisticRain {
-            0% { transform: translateY(-10px) scaleX(0.8); opacity: 0; }
-            30% { opacity: 0.8; }
-            100% { transform: translateY(70px) scaleX(0.8); opacity: 0; }
+        .globe-container {
+            width: 100%;
+            height: 180px;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            background: radial-gradient(circle at center, #090d16 0%, #030712 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
         }
-        .realistic-rain-drop {
+        .mini-map-container {
+            width: 100%;
+            height: 110px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            z-index: 2;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .leaflet-layer, .leaflet-control-zoom-in, .leaflet-control-zoom-out {
+            filter: brightness(0.7) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3);
+        }
+        .weather-effects-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1;
+            border-radius: 0.75rem;
+        }
+        @keyframes fallRain {
+            0% { transform: translateY(-10px); opacity: 0; }
+            30% { opacity: 0.8; }
+            100% { transform: translateY(220px); opacity: 0; }
+        }
+        .rain-drop {
             position: absolute;
             width: 1.5px;
-            height: 14px;
-            background: linear-gradient(to bottom, rgba(147, 197, 253, 0.1), rgba(147, 197, 253, 0.8));
-            animation: realisticRain 0.7s linear infinite;
+            height: 16px;
+            background: linear-gradient(to bottom, rgba(56, 189, 248, 0.1), rgba(56, 189, 248, 0.8));
+            animation: fallRain 0.6s linear infinite;
         }
-        /* Мерцание звезд */
-        @keyframes starGlow {
-            0%, 100% { opacity: 0.2; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.2); }
+        /* Медленное, плавное и хаотичное мерцание звезд */
+        @keyframes twinkleStarSlow {
+            0%, 100% { opacity: 0.05; transform: scale(0.6); }
+            50% { opacity: 0.95; transform: scale(1.3); }
         }
-        .realistic-star {
+        .star-particle {
             position: absolute;
             background: #ffffff;
             border-radius: 50%;
-            animation: starGlow 2.5s infinite ease-in-out;
+            animation: twinkleStarSlow 4s infinite ease-in-out;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+            transition: transform 0.1s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
         }
     </style>
 </head>
@@ -68,8 +126,8 @@
     <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500">
-                    <i class="fa-solid fa-clapperboard"></i>
+                <div id="project-icon-box" class="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 text-lg">
+                    <i class="fa-solid fa-clapperboard" id="project-icon"></i>
                 </div>
                 <div>
                     <span class="text-xs uppercase tracking-widest text-amber-500 font-semibold block" contenteditable="true" id="meta-day">СЪЕМОЧНЫЙ ДЕНЬ #04</span>
@@ -78,6 +136,11 @@
             </div>
 
             <div class="flex items-center space-x-2 sm:space-x-3">
+                <div class="bg-slate-800 border border-slate-700 rounded-lg p-0.5 flex items-center text-xs">
+                    <button onclick="setProductionType('film')" id="type-film-btn" class="px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950">Кино</button>
+                    <button onclick="setProductionType('theater')" id="type-theater-btn" class="px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white">Театр</button>
+                </div>
+
                 <button onclick="toggleEditMode()" id="edit-mode-btn" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs sm:text-sm font-medium transition flex items-center space-x-2">
                     <i class="fa-solid fa-pen-to-square"></i>
                     <span id="edit-mode-text">Режим правки</span>
@@ -103,7 +166,7 @@
                     <i class="fa-solid fa-bell"></i>
                 </div>
                 <div>
-                    <div class="text-xs uppercase tracking-wider text-amber-400 font-bold">Общий сбор группы (General Crew Call)</div>
+                    <div class="text-xs uppercase tracking-wider text-amber-400 font-bold" id="general-call-title-label">Общий сбор группы (General Crew Call)</div>
                     <div class="flex items-center space-x-2 mt-1">
                         <input type="time" id="general-call-time" onchange="saveChanges()" class="bg-slate-800/80 text-white font-black text-2xl sm:text-3xl px-3 py-1 rounded-lg border border-slate-700 outline-none focus:border-amber-500 tracking-tight">
                         <span class="text-xs text-slate-400 hidden sm:inline">(Нажмите для изменения)</span>
@@ -123,101 +186,146 @@
             </div>
         </div>
 
-        <!-- Grid: Weather & Realistic Atmosphere Widget -->
+        <!-- Grid: Weather & Atmosphere & Location -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Weather Widget with Online Fetch Option -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xs uppercase tracking-wider text-slate-400 font-bold"><i class="fa-solid fa-cloud-sun text-amber-500 mr-1.5"></i> Погода на площадке</span>
+            <!-- Weather Widget with 8 hourly forecast slots -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between" id="weatherCard">
+                <div class="weather-effects-container" id="weatherEffects"></div>
+                
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs uppercase tracking-wider text-slate-300 font-bold"><i class="fa-solid fa-cloud-sun text-amber-500 mr-1.5"></i> Погода на площадке</span>
                         <button onclick="fetchOnlineWeather()" class="no-print text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded transition flex items-center space-x-1">
                             <i class="fa-solid fa-arrows-rotate"></i>
-                            <span>Онлайн запрос</span>
+                            <span>Онлайн</span>
                         </button>
                     </div>
-                    <div class="flex items-baseline space-x-3 my-2">
-                        <span class="text-4xl font-extrabold text-white editable-field" contenteditable="true" id="weather-temp">+12°C</span>
-                        <span class="text-sm text-amber-400 font-medium editable-field" contenteditable="true" id="weather-condition">Переменная облачность</span>
-                    </div>
-                    <p class="text-xs text-slate-400 editable-field" contenteditable="true" id="weather-desc">Утром возможна легкая дымка. Днем без осадков.</p>
-                </div>
-                <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-800 text-center">
-                    <div>
-                        <div class="text-[10px] text-slate-500 uppercase">Ветер</div>
-                        <div class="text-xs font-semibold text-slate-300 editable-field" contenteditable="true" id="weather-wind">3 м/с, С-З</div>
-                    </div>
-                    <div>
-                        <div class="text-[10px] text-slate-500 uppercase">Осадки</div>
-                        <div class="text-xs font-semibold text-slate-300 editable-field" contenteditable="true" id="weather-rain">0%</div>
-                    </div>
-                    <div>
-                        <div class="text-[10px] text-slate-500 uppercase">Влажность</div>
-                        <div class="text-xs font-semibold text-slate-300 editable-field" contenteditable="true" id="weather-humidity">65%</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Realistic Atmosphere & Time-of-Day Widget -->
-            <div id="sky-widget-container" class="bg-gradient-to-br from-blue-900/80 via-slate-900 to-slate-950 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700">
-                <div id="sky-effects" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
-
-                <div>
-                    <div class="flex items-center justify-between mb-3 relative z-10">
-                        <span class="text-xs uppercase tracking-wider text-slate-200 font-bold flex items-center space-x-1.5">
-                            <span id="sky-icon-indicator"><i class="fa-solid fa-sun text-amber-400"></i></span>
-                            <span id="sky-status-title">Дневной свет</span>
-                        </span>
-                        <span class="text-[10px] px-2 py-0.5 rounded bg-black/40 text-amber-300 border border-amber-500/30 font-medium backdrop-blur-md" id="sky-phase-badge">Real-Time Atmosphere</span>
-                    </div>
-
-                    <div class="relative h-20 bg-slate-950/70 backdrop-blur-md rounded-lg border border-slate-800/80 flex items-center justify-between px-5 overflow-hidden my-3 z-10 shadow-inner">
-                        <div class="flex items-center space-x-3.5">
-                            <div id="sky-main-icon" class="w-11 h-11 rounded-xl bg-amber-500/25 border border-amber-500/50 flex items-center justify-center text-amber-400 text-xl shadow-lg">
-                                <i class="fa-solid fa-sun"></i>
-                            </div>
-                            <div>
-                                <div class="text-[11px] text-slate-400 font-medium" id="sky-subtitle">Текущая фаза смены</div>
-                                <div class="text-sm font-extrabold text-white tracking-wide" id="sky-main-desc">Ясно, съемочный день</div>
-                            </div>
+                    <div class="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5 my-1.5">
+                        <div class="temp-block">
+                            <h1 class="text-3xl font-extrabold text-white editable-field" contenteditable="true" id="weather-temp">+12°C</h1>
+                            <p class="text-xs text-amber-400 font-medium editable-field mt-0.5" contenteditable="true" id="weather-condition">Переменная облачность</p>
                         </div>
-                        <div class="text-right">
-                            <div class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Золотой час</div>
-                            <div class="text-xs font-bold text-slate-200 editable-field" contenteditable="true" id="golden-hour">17:15 — 18:00</div>
+                        <div class="text-3xl text-sky-400 drop-shadow-[0_0_12px_rgba(56,189,248,0.5)]" id="weatherIconLg">
+                            <i class="fa-solid fa-cloud-sun"></i>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 pt-3 border-t border-slate-800/80 text-center relative z-10">
-                    <div class="bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
-                        <div class="text-[10px] text-slate-400 uppercase flex items-center justify-center space-x-1">
-                            <i class="fa-solid fa-sunrise text-amber-400"></i>
-                            <span>Рассвет</span>
+                <div class="relative z-10 space-y-2.5 mt-1">
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-slate-950/40 p-1.5 rounded-lg border border-slate-800/80">
+                            <i class="fa-solid fa-wind text-sky-400 text-[10px] mb-0.5"></i>
+                            <div class="text-[9px] text-slate-500 uppercase">Ветер</div>
+                            <div class="text-xs font-semibold text-slate-300 editable-field" contenteditable="true" id="weather-wind">4 м/с</div>
                         </div>
-                        <div class="text-sm font-bold text-slate-200 mt-1 editable-field" contenteditable="true" id="sun-rise">07:42</div>
+                        <div class="bg-slate-950/40 p-1.5 rounded-lg border border-slate-800/80">
+                            <i class="fa-solid fa-droplet text-sky-400 text-[10px] mb-0.5"></i>
+                            <div class="text-[9px] text-slate-500 uppercase">Влажность</div>
+                            <div class="text-xs font-semibold text-slate-300 editable-field" contenteditable="true" id="weather-humidity">65%</div>
+                        </div>
+                        <div class="bg-slate-950/40 p-1.5 rounded-lg border border-slate-800/80">
+                            <i class="fa-solid fa-gauge-high text-sky-400 text-[10px] mb-0.5"></i>
+                            <div class="text-[9px] text-slate-500 uppercase">Давление</div>
+                            <div class="text-xs font-semibold text-slate-300 editable-field" contenteditable="true" id="weather-pressure">752 мм</div>
+                        </div>
                     </div>
-                    <div class="bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
-                        <div class="text-[10px] text-slate-400 uppercase flex items-center justify-center space-x-1">
-                            <i class="fa-solid fa-sunset text-orange-400"></i>
-                            <span>Закат</span>
-                        </div>
-                        <div class="text-sm font-bold text-slate-200 mt-1 editable-field" contenteditable="true" id="sun-set">18:12</div>
+
+                    <!-- Расширенный почасовой прогноз (8 точек) -->
+                    <div class="grid grid-cols-8 gap-1 bg-black/20 p-2 rounded-lg border border-white/5 text-[10px] text-slate-300 text-center">
+                        <div class="flex flex-col items-center opacity-70"><span>06:00</span><i class="fa-solid fa-cloud-sun text-[11px] my-0.5"></i><span>+8°</span></div>
+                        <div class="flex flex-col items-center opacity-70"><span>09:00</span><i class="fa-solid fa-cloud-sun text-[11px] my-0.5"></i><span>+10°</span></div>
+                        <div class="flex flex-col items-center font-bold text-sky-400 bg-white/5 rounded p-0.5"><span>12:00</span><i class="fa-solid fa-sun text-amber-400 text-[11px] my-0.5"></i><span>+14°</span></div>
+                        <div class="flex flex-col items-center opacity-70"><span>15:00</span><i class="fa-solid fa-cloud-rain text-sky-400 text-[11px] my-0.5"></i><span>+12°</span></div>
+                        <div class="flex flex-col items-center opacity-70"><span>18:00</span><i class="fa-solid fa-cloud text-slate-400 text-[11px] my-0.5"></i><span>+10°</span></div>
+                        <div class="flex flex-col items-center opacity-70"><span>21:00</span><i class="fa-solid fa-moon text-indigo-300 text-[11px] my-0.5"></i><span>+7°</span></div>
+                        <div class="flex flex-col items-center opacity-70"><span>00:00</span><i class="fa-solid fa-moon text-indigo-300 text-[11px] my-0.5"></i><span>+5°</span></div>
+                        <div class="flex flex-col items-center opacity-70"><span>03:00</span><i class="fa-solid fa-moon text-indigo-300 text-[11px] my-0.5"></i><span>+4°</span></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Location & Logistics -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
+            <!-- 3D Realistic Earth, Sun & Moon Atmosphere Widget -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden">
                 <div>
                     <div class="flex items-center justify-between mb-3">
-                        <span class="text-xs uppercase tracking-wider text-slate-400 font-bold"><i class="fa-solid fa-location-dot text-amber-500 mr-1.5"></i> Локация</span>
-                        <span class="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">Павильон №4</span>
+                        <span class="text-xs uppercase tracking-wider text-slate-300 font-bold flex items-center space-x-1.5">
+                            <i class="fa-solid fa-globe text-sky-400"></i>
+                            <span id="sky-status-title">Космический цикл смены</span>
+                        </span>
+                        <span class="text-[10px] px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-medium" id="sky-phase-badge">3D Real-Time</span>
                     </div>
-                    <div class="text-lg font-bold text-white mb-1 editable-field" contenteditable="true" id="location-name">Киностудия «Амедиа»</div>
-                    <div class="text-sm text-slate-300 mb-3 editable-field" contenteditable="true" id="location-address">Москва, ул. Домостроительная, 1с2</div>
-                    <div class="text-xs bg-slate-950/60 p-3 rounded-lg border border-slate-800/80">
-                        <span class="text-slate-500 block mb-0.5">Парковка / Заезд:</span>
-                        <span class="text-slate-300 font-medium editable-field" contenteditable="true" id="location-parking">Грузовой транспорт через ворота №3 по спискам АНО.</span>
+
+                    <div class="globe-container my-2" id="globeContainer"></div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                        <span id="sliderTimeLabel">Прокрутка времени суток</span>
+                        <span class="font-mono text-amber-400 font-bold" id="currentTimeDisplay">12:00</span>
                     </div>
+                    <input type="range" id="timeSlider" min="0" max="1440" value="720" step="1" class="no-print mb-3">
+
+                    <div class="grid grid-cols-2 gap-3 pt-3 border-t border-slate-800 text-center">
+                        <div class="bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
+                            <div class="text-[10px] text-slate-400 uppercase flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-sunrise text-amber-400"></i>
+                                <span>Рассвет</span>
+                            </div>
+                            <div class="text-sm font-bold text-slate-200 mt-0.5 editable-field" contenteditable="true" id="sun-rise">06:15</div>
+                        </div>
+                        <div class="bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
+                            <div class="text-[10px] text-slate-400 uppercase flex items-center justify-center space-x-1">
+                                <i class="fa-solid fa-sunset text-orange-400"></i>
+                                <span>Закат</span>
+                            </div>
+                            <div class="text-sm font-bold text-slate-200 mt-0.5 editable-field" contenteditable="true" id="sun-set">18:45</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location & Logistics with Live Search & Venue Input -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between space-y-3">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs uppercase tracking-wider text-slate-400 font-bold"><i class="fa-solid fa-location-dot text-amber-500 mr-1.5"></i> Локация / Площадка</span>
+                    </div>
+
+                    <!-- Поиск / Инпут для выбора любой локации или площадки -->
+                    <div class="mb-2">
+                        <input type="text" id="venue-search-input" placeholder="🔍 Введите или найдите локацию..." oninput="filterVenues(this.value)" onfocus="showVenueDropdown()" class="w-full bg-slate-950 text-amber-400 text-xs px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500">
+                        <!-- Выпадающий список вариантов поиска -->
+                        <div id="venue-dropdown-list" class="hidden absolute z-50 bg-slate-900 border border-slate-700 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-2xl w-72"></div>
+                    </div>
+
+                    <!-- Кликабельный блок названия и адреса -->
+                    <div onclick="openMapRoute()" class="cursor-pointer group hover:bg-white/5 p-1.5 rounded-lg transition -mx-1.5">
+                        <div class="text-base font-bold text-white group-hover:text-amber-400 transition flex items-center justify-between">
+                            <span contenteditable="true" id="location-name" class="editable-field">Киностудия «Амедиа»</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-500 group-hover:text-amber-400"></i>
+                        </div>
+                        <div class="text-xs text-slate-300 mt-0.5 editable-field" contenteditable="true" id="location-address">Москва, ул. Домостроительная, 1с2</div>
+                    </div>
+
+                    <!-- Мини-карта Leaflet -->
+                    <div class="mini-map-container my-2" id="miniMap"></div>
+
+                    <!-- Ближайшее метро и транспорт -->
+                    <div class="text-xs bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80 space-y-1">
+                        <div class="flex items-center space-x-1.5 text-sky-400 font-medium">
+                            <i class="fa-solid fa-train-subway"></i>
+                            <span contenteditable="true" id="location-metro" class="editable-field">Метро «Озёрная» / «Говорово» (10 мин. на тр.)</span>
+                        </div>
+                        <div class="flex items-center space-x-1.5 text-slate-400">
+                            <i class="fa-solid fa-bus"></i>
+                            <span contenteditable="true" id="location-bus" class="editable-field">Автобусы: № 610, 630, 785 до ост. «АТС»</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-xs bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
+                    <span class="text-slate-500 block mb-0.5">Парковка / Заезд:</span>
+                    <span class="text-slate-300 font-medium editable-field" contenteditable="true" id="location-parking">Грузовой транспорт через ворота №3 по спискам АНО.</span>
                 </div>
             </div>
         </div>
@@ -289,7 +397,18 @@
 
     <!-- JavaScript Application Logic -->
     <script>
+        const venuesDatabase = [
+            { id: "amedia", name: "Киностудия «Амедиа»", address: "Москва, ул. Домостроительная, 1с2", metro: "Метро «Озёрная» / «Говорово»", bus: "Автобусы: № 610, 630, 785", lat: 55.6795, lon: 37.4392 },
+            { id: "glavcinema", name: "Главкино", address: "Московская область, Красногорский район, п. Ильинское-Усово", metro: "Метро «Тушинская» / «Мякинино»", bus: "Маршрутки от ст. м. Тушинская", lat: 55.7891, lon: 37.2584 },
+            { id: "mosfilm", name: "Киноконцерн «Мосфильм»", address: "Москва, ул. Мосфильмовская, 1", metro: "Метро «Ломоносовский проспект»", bus: "Автобусы до ост. «Мосфильм»", lat: 55.7179, lon: 37.5273 },
+            { id: "gorkyfilm", name: "Киностудия им. Горького", address: "Москва, ул. Сергея Эйзенштейна, 8", metro: "Метро «ВДНХ» / «Ботанический сад»", bus: "Трамваи № 11, 25", lat: 55.8331, lon: 37.6439 },
+            { id: "livearena", name: "Live Arena", address: "Московская область, Одинцовский городской округ, Новоивановское", metro: "МЦД «Сколково»", bus: "Автобусы от ст. м. Славянский бульвар", lat: 55.7002, lon: 37.3705 },
+            { id: "electrotheatre", name: "Электротеатр Станиславский", address: "Москва, Тверская ул., 23", metro: "Метро «Пушкинская» / «Тверская»", bus: "В центре города", lat: 55.7664, lon: 37.6033 },
+            { id: "helikon", name: "Геликон-опера", address: "Москва, Большая Никитская ул., 19/16", metro: "Метро «Охотный Ряд»", bus: "Центральные маршруты", lat: 55.7571, lon: 37.6072 }
+        ];
+
         const defaultData = {
+            productionType: "film",
             metaDay: "СЪЕМОЧНЫЙ ДЕНЬ #04",
             metaProject: "Проект «Аврора» (Смена 12)",
             metaDate: "2026-10-27",
@@ -298,16 +417,18 @@
             generalCallDesc: "Получение раций, инструктаж по ТБ, проверка пропусков на КПП",
             weatherTemp: "+12°C",
             weatherCondition: "Переменная облачность",
-            weatherDesc: "Утром возможна легкая дымка. Днем без осадков.",
-            weatherWind: "3 м/с, С-З",
-            weatherRain: "0%",
+            weatherWind: "4 м/с",
             weatherHumidity: "65%",
-            sunRise: "07:42",
-            sunSet: "18:12",
-            goldenHour: "17:15 — 18:00",
-            locationName: "Киностудия «Амедиа» / Пав. №4",
+            weatherPressure: "752 мм",
+            sunRise: "06:15",
+            sunSet: "18:45",
+            locationName: "Киностудия «Амедиа»",
             locationAddress: "Москва, ул. Домостроительная, 1с2",
+            locationMetro: "Метро «Озёрная» / «Говорово» (10 мин. на тр.)",
+            locationBus: "Автобусы: № 610, 630, 785 до ост. «АТС»",
             locationParking: "Грузовой транспорт через ворота №3 по спискам АНО.",
+            lat: 55.6795,
+            lon: 37.4392,
             timeline: [
                 { time: "07:00", event: "Заезд техслужб, охраны и кейтеринга", responsible: "А. Белоусов" },
                 { time: "07:30", event: "Общий сбор группы, получение раций", responsible: "О. Зломанов" },
@@ -340,14 +461,321 @@
         };
 
         let isEditMode = false;
+        let currentProductionType = "film";
+        let mapInstance = null;
+        let markerInstance = null;
+        let currentLat = 55.6795;
+        let currentLon = 37.4392;
+
+        function setProductionType(type) {
+            currentProductionType = type;
+            const iconEl = document.getElementById('project-icon');
+            const metaDayEl = document.getElementById('meta-day');
+            const filmBtn = document.getElementById('type-film-btn');
+            const theaterBtn = document.getElementById('type-theater-btn');
+
+            if (type === 'theater') {
+                iconEl.className = "fa-solid fa-masks-theater";
+                if (metaDayEl.innerText.includes("СЪЕМОЧНЫЙ ДЕНЬ")) {
+                    metaDayEl.innerText = metaDayEl.innerText.replace("СЪЕМОЧНЫЙ ДЕНЬ", "РЕПЕТИЦИОННЫЙ ДЕНЬ");
+                }
+                theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
+                filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
+            } else {
+                iconEl.className = "fa-solid fa-clapperboard";
+                if (metaDayEl.innerText.includes("РЕПЕТИЦИОННЫЙ ДЕНЬ")) {
+                    metaDayEl.innerText = metaDayEl.innerText.replace("РЕПЕТИЦИОННЫЙ ДЕНЬ", "СЪЕМОЧНЫЙ ДЕНЬ");
+                }
+                filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
+                theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
+            }
+            saveChanges();
+        }
+
+        // Поиск по выпадающему списку локаций
+        function showVenueDropdown() {
+            renderVenueDropdown(venuesDatabase);
+            document.getElementById('venue-dropdown-list').classList.remove('hidden');
+        }
+
+        function filterVenues(query) {
+            const q = query.toLowerCase();
+            const filtered = venuesDatabase.filter(v => v.name.toLowerCase().includes(q) || v.address.toLowerCase().includes(q));
+            renderVenueDropdown(filtered);
+            document.getElementById('venue-dropdown-list').classList.remove('hidden');
+        }
+
+        function renderVenueDropdown(list) {
+            const dropdown = document.getElementById('venue-dropdown-list');
+            dropdown.innerHTML = '';
+            if (list.length === 0) {
+                dropdown.innerHTML = '<div class="p-2 text-xs text-slate-400">Ничего не найдено</div>';
+                return;
+            }
+            list.forEach(v => {
+                const item = document.createElement('div');
+                item.className = "p-2 hover:bg-slate-800 cursor-pointer text-xs border-b border-slate-800 last:border-0";
+                item.innerHTML = `<div class="font-bold text-white">${v.name}</div><div class="text-[10px] text-slate-400">${v.address}</div>`;
+                item.onclick = () => selectVenue(v);
+                dropdown.appendChild(item);
+            });
+        }
+
+        function selectVenue(v) {
+            document.getElementById('location-name').innerText = v.name;
+            document.getElementById('location-address').innerText = v.address;
+            document.getElementById('location-metro').innerText = v.metro;
+            document.getElementById('location-bus').innerText = v.bus;
+            currentLat = v.lat;
+            currentLon = v.lon;
+            initMiniMap(currentLat, currentLon);
+            document.getElementById('venue-dropdown-list').classList.add('hidden');
+            document.getElementById('venue-search-input').value = '';
+            saveChanges();
+        }
+
+        // Клик вне выпадающего списка закрывает его
+        window.addEventListener('click', (e) => {
+            const input = document.getElementById('venue-search-input');
+            const dropdown = document.getElementById('venue-dropdown-list');
+            if (input && dropdown && !input.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        function initMiniMap(lat, lon) {
+            currentLat = lat || 55.6795;
+            currentLon = lon || 37.4392;
+
+            const container = document.getElementById('miniMap');
+            if (!container) return;
+
+            if (!mapInstance) {
+                mapInstance = L.map('miniMap', { zoomControl: false, attributionControl: false }).setView([currentLat, currentLon], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
+                markerInstance = L.marker([currentLat, currentLon]).addTo(mapInstance);
+            } else {
+                mapInstance.setView([currentLat, currentLon], 15);
+                markerInstance.setLatLng([currentLat, currentLon]);
+            }
+            setTimeout(() => { mapInstance.invalidateSize(); }, 200);
+        }
+
+        function openMapRoute() {
+            const address = document.getElementById('location-address').innerText;
+            const name = document.getElementById('location-name').innerText;
+            const query = encodeURIComponent(`${name}, ${address}`);
+            window.open(`https://yandex.ru/maps/?text=${query}`, '_blank');
+        }
+
+        // --- THREE.JS 3D GLOBE ---
+        let scene, camera, renderer, earthGroup, cloudsMesh, starField, sunLight, sunMesh, moonMesh;
+        const sunriseMin = 6 * 60 + 15;
+        const sunsetMin = 18 * 60 + 45;
+
+        function init3DWidget() {
+            const container = document.getElementById('globeContainer');
+            if (!container) return;
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 0, 4.6);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            container.appendChild(renderer.domElement);
+
+            const starsGeometry = new THREE.BufferGeometry();
+            const starsCount = 600;
+            const starPositions = new Float32Array(starsCount * 3);
+            for(let i = 0; i < starsCount * 3; i += 3) {
+                starPositions[i] = (Math.random() - 0.5) * 25;
+                starPositions[i+1] = (Math.random() - 0.5) * 25;
+                starPositions[i+2] = (Math.random() - 0.5) * 25;
+            }
+            starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+            const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.05, transparent: true, opacity: 0.7 });
+            starField = new THREE.Points(starsGeometry, starsMaterial);
+            scene.add(starField);
+
+            earthGroup = new THREE.Group();
+            scene.add(earthGroup);
+
+            const textureLoader = new THREE.TextureLoader();
+            const earthRadius = 1.1;
+            const earthGeometry = new THREE.SphereGeometry(earthRadius, 64, 64);
+            const earthMaterial = new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.1 });
+
+            textureLoader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg', (tex) => { earthMaterial.map = tex; earthMaterial.needsUpdate = true; });
+            textureLoader.load('https://threejs.org/examples/textures/planets/earth_specular_2048.jpg', (tex) => { earthMaterial.roughnessMap = tex; earthMaterial.needsUpdate = true; });
+
+            const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+            earthGroup.add(earthMesh);
+
+            const cloudsGeometry = new THREE.SphereGeometry(earthRadius + 0.015, 64, 64);
+            const cloudsMaterial = new THREE.MeshStandardMaterial({ transparent: true, blending: THREE.AdditiveBlending, opacity: 0.35 });
+            textureLoader.load('https://threejs.org/examples/textures/planets/earth_clouds_1024.png', (tex) => { cloudsMaterial.map = tex; cloudsMaterial.needsUpdate = true; });
+            cloudsMesh = new THREE.Mesh(cloudsGeometry, cloudsMaterial);
+            earthGroup.add(cloudsMesh);
+
+            const atmosphereMaterial = new THREE.ShaderMaterial({
+                vertexShader: `
+                    varying vec3 vNormal;
+                    void main() {
+                        vNormal = normalize(normalMatrix * normal);
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    varying vec3 vNormal;
+                    void main() {
+                        float intensity = pow(0.6 - dot(vNormal, vec3(0, 0, 1.0)), 2.5);
+                        gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0) * intensity * 1.5;
+                    }
+                `,
+                blending: THREE.AdditiveBlending,
+                side: THREE.BackSide,
+                transparent: true
+            });
+            const atmosphereMesh = new THREE.Mesh(new THREE.SphereGeometry(earthRadius + 0.07, 64, 64), atmosphereMaterial);
+            earthGroup.add(atmosphereMesh);
+
+            sunLight = new THREE.DirectionalLight(0xfffaed, 2.5);
+            scene.add(sunLight);
+
+            const ambientLight = new THREE.AmbientLight(0x111b33, 0.4);
+            scene.add(ambientLight);
+
+            sunMesh = new THREE.Mesh(new THREE.SphereGeometry(0.22, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffdd44 }));
+            scene.add(sunMesh);
+
+            moonMesh = new THREE.Mesh(new THREE.SphereGeometry(0.25, 32, 32), new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.9 }));
+            scene.add(moonMesh);
+
+            const timeSlider = document.getElementById('timeSlider');
+            timeSlider.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                updateSceneByTime(val);
+                updateWeatherEffectsByTime(val);
+            });
+
+            const now = new Date();
+            const currentMins = now.getHours() * 60 + now.getMinutes();
+            timeSlider.value = currentMins;
+            updateSceneByTime(currentMins);
+            updateWeatherEffectsByTime(currentMins);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                if (starField) starField.rotation.y += 0.0002;
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        function updateSceneByTime(minutesOfDay) {
+            const hours = Math.floor(minutesOfDay / 60);
+            const mins = Math.floor(minutesOfDay % 60);
+            const timeStr = String(hours).padStart(2, '0') + ':' + String(mins).padStart(2, '0');
+            
+            const timeDisplay = document.getElementById('currentTimeDisplay');
+            if (timeDisplay) timeDisplay.textContent = timeStr;
+
+            const dayProgress = minutesOfDay / 1440;
+            const angle = dayProgress * Math.PI * 2;
+
+            if (earthGroup && cloudsMesh) {
+                earthGroup.rotation.y = angle * 2;
+                cloudsMesh.rotation.y = angle * 2.2;
+            }
+
+            const sunDistance = 3.0;
+            const sunAngle = (dayProgress - 0.25) * Math.PI * 2;
+            const sunX = Math.cos(sunAngle) * sunDistance;
+            const sunY = Math.sin(sunAngle) * sunDistance;
+            
+            if (sunMesh && sunLight) {
+                sunMesh.position.set(sunX, sunY, -0.5);
+                sunLight.position.copy(sunMesh.position);
+            }
+
+            if (moonMesh) {
+                const moonAngle = sunAngle + Math.PI;
+                const moonX = Math.cos(moonAngle) * sunDistance;
+                const moonY = Math.sin(moonAngle) * sunDistance;
+                moonMesh.position.set(moonX, moonY, -0.5);
+            }
+        }
+
+        function updateWeatherEffectsByTime(minutesOfDay) {
+            const effectsContainer = document.getElementById('weatherEffects');
+            if (!effectsContainer) return;
+            effectsContainer.innerHTML = '';
+
+            let temp, condition, iconHtml, cardBg;
+
+            if (minutesOfDay < 360 || minutesOfDay > 1260) {
+                temp = "+4°C";
+                condition = "Ясно, звездное небо";
+                iconHtml = '<i class="fa-solid fa-moon"></i>';
+                cardBg = "rgba(10, 14, 30, 0.85)";
+
+                for (let i = 0; i < 20; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star-particle';
+                    star.style.width = `${Math.random() * 3 + 1.5}px`;
+                    star.style.height = star.style.width;
+                    star.style.left = `${Math.random() * 95}%`;
+                    star.style.top = `${Math.random() * 95}%`;
+                    star.style.animationDelay = `${Math.random() * 5}s`;
+                    effectsContainer.appendChild(star);
+                }
+            } else if (minutesOfDay >= 360 && minutesOfDay < 540) {
+                temp = "+8°C";
+                condition = "Утренняя дымка";
+                iconHtml = '<i class="fa-solid fa-cloud-sun"></i>';
+                cardBg = "rgba(35, 20, 45, 0.75)";
+            } else if (minutesOfDay >= 840 && minutesOfDay < 1080) {
+                temp = "+10°C";
+                condition = "Небольшой дождь";
+                iconHtml = '<i class="fa-solid fa-cloud-rain"></i>';
+                cardBg = "rgba(15, 30, 45, 0.8)";
+
+                for (let i = 0; i < 22; i++) {
+                    const drop = document.createElement('div');
+                    drop.className = 'rain-drop';
+                    drop.style.left = `${Math.random() * 100}%`;
+                    drop.style.animationDelay = `${Math.random() * 0.5}s`;
+                    effectsContainer.appendChild(drop);
+                }
+            } else {
+                temp = "+14°C";
+                condition = "Солнечно и ясно";
+                iconHtml = '<i class="fa-solid fa-sun text-amber-400"></i>';
+                cardBg = "rgba(15, 23, 42, 0.7)";
+            }
+
+            document.getElementById('weather-temp').textContent = temp;
+            document.getElementById('weather-condition').textContent = condition;
+            document.getElementById('weatherIconLg').innerHTML = iconHtml;
+            document.getElementById('weatherCard').style.background = cardBg;
+        }
 
         function initApp() {
-            const saved = localStorage.getItem('call_sheet_data_v2');
+            const saved = localStorage.getItem('call_sheet_data_v9');
             const data = saved ? JSON.parse(saved) : defaultData;
             renderData(data);
+            init3DWidget();
+            initMiniMap(data.lat, data.lon);
         }
 
         function renderData(data) {
+            currentProductionType = data.productionType || "film";
+            setProductionType(currentProductionType);
+
             document.getElementById('meta-day').innerText = data.metaDay;
             document.getElementById('meta-project').innerText = data.metaProject;
             document.getElementById('meta-version').innerText = data.metaVersion;
@@ -362,19 +790,23 @@
             
             document.getElementById('weather-temp').innerText = data.weatherTemp;
             document.getElementById('weather-condition').innerText = data.weatherCondition;
-            document.getElementById('weather-desc').innerText = data.weatherDesc;
             document.getElementById('weather-wind').innerText = data.weatherWind;
-            document.getElementById('weather-rain').innerText = data.weatherRain;
             document.getElementById('weather-humidity').innerText = data.weatherHumidity;
+            document.getElementById('weather-pressure').innerText = data.weatherPressure || "752 мм";
             document.getElementById('sun-rise').innerText = data.sunRise;
             document.getElementById('sun-set').innerText = data.sunSet;
-            document.getElementById('golden-hour').innerText = data.goldenHour;
 
             document.getElementById('location-name').innerText = data.locationName;
             document.getElementById('location-address').innerText = data.locationAddress;
+            document.getElementById('location-metro').innerText = data.locationMetro || "Метро поблизости";
+            document.getElementById('location-bus').innerText = data.locationBus || "Наземный транспорт";
             document.getElementById('location-parking').innerText = data.locationParking;
 
-            // Timeline (без миганий)
+            currentLat = data.lat || 55.6795;
+            currentLon = data.lon || 37.4392;
+            initMiniMap(currentLat, currentLon);
+
+            // Timeline
             const timelineTbody = document.getElementById('timeline-tbody');
             timelineTbody.innerHTML = '';
             data.timeline.forEach((item, index) => {
@@ -394,7 +826,7 @@
                 `;
             });
 
-            // Departments (без миганий)
+            // Departments
             const deptContainer = document.getElementById('departments-container');
             deptContainer.innerHTML = '';
             data.departments.forEach((dept, dIndex) => {
@@ -452,95 +884,11 @@
                     </div>
                 `;
             });
-
-            updateRealTimeAtmosphere();
         }
 
         function updateDateFromPicker(input) {
             saveChanges();
             fetchOnlineWeather();
-        }
-
-        function updateRealTimeAtmosphere() {
-            const now = new Date();
-            const currentHour = now.getHours();
-            
-            const sunriseStr = document.getElementById('sun-rise').innerText;
-            const sunsetStr = document.getElementById('sun-set').innerText;
-            
-            const sunriseHour = parseInt(sunriseStr.split(':')[0]) || 7;
-            const sunsetHour = parseInt(sunsetStr.split(':')[0]) || 18;
-
-            const widgetContainer = document.getElementById('sky-widget-container');
-            const iconContainer = document.getElementById('sky-main-icon');
-            const iconIndicator = document.getElementById('sky-icon-indicator');
-            const statusTitle = document.getElementById('sky-status-title');
-            const mainDesc = document.getElementById('sky-main-desc');
-            const effectsContainer = document.getElementById('sky-effects');
-            
-            effectsContainer.innerHTML = '';
-
-            let conditionText = document.getElementById('weather-condition').innerText.toLowerCase();
-            let isRain = conditionText.includes('дождь') || conditionText.includes('осадки') || conditionText.includes('ливень');
-
-            if (currentHour >= sunriseHour && currentHour < sunriseHour + 2) {
-                widgetContainer.className = "bg-gradient-to-br from-amber-900/60 via-amber-950/40 to-slate-950 border border-amber-500/40 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
-                iconContainer.className = "w-11 h-11 rounded-xl bg-amber-500/25 border border-amber-500/60 flex items-center justify-center text-amber-300 text-xl shadow-lg shadow-amber-500/20";
-                iconContainer.innerHTML = '<i class="fa-solid fa-sunrise"></i>';
-                iconIndicator.innerHTML = '<i class="fa-solid fa-sunrise text-amber-400"></i>';
-                statusTitle.innerText = "Утренний рассвет";
-                mainDesc.innerText = "Мягкий режимный свет";
-            } else if (currentHour >= sunsetHour - 1 && currentHour <= sunsetHour + 1) {
-                widgetContainer.className = "bg-gradient-to-br from-orange-950/80 via-red-950/40 to-slate-950 border border-orange-500/50 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
-                iconContainer.className = "w-11 h-11 rounded-xl bg-orange-500/25 border border-orange-500/60 flex items-center justify-center text-orange-400 text-xl shadow-lg shadow-orange-500/20";
-                iconContainer.innerHTML = '<i class="fa-solid fa-sunset"></i>';
-                iconIndicator.innerHTML = '<i class="fa-solid fa-sunset text-orange-400"></i>';
-                statusTitle.innerText = "Закат / Золотой час";
-                mainDesc.innerText = "Лучшее время для драмы в кадре";
-            } else if (currentHour > sunriseHour + 2 && currentHour < sunsetHour - 1) {
-                if (isRain) {
-                    widgetContainer.className = "bg-gradient-to-br from-blue-950/80 via-slate-900 to-slate-950 border border-blue-500/40 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
-                    iconContainer.className = "w-11 h-11 rounded-xl bg-blue-500/25 border border-blue-500/50 flex items-center justify-center text-blue-300 text-xl shadow-lg";
-                    iconContainer.innerHTML = '<i class="fa-solid fa-cloud-rain"></i>';
-                    iconIndicator.innerHTML = '<i class="fa-solid fa-cloud-rain text-blue-400"></i>';
-                    statusTitle.innerText = "Дневной дождь";
-                    mainDesc.innerText = "Осадки на площадке";
-                    
-                    for(let i=0; i<18; i++) {
-                        let drop = document.createElement('div');
-                        drop.className = 'realistic-rain-drop';
-                        drop.style.left = `${Math.random() * 100}%`;
-                        drop.style.animationDelay = `${Math.random() * 0.8}s`;
-                        drop.style.animationDuration = `${0.5 + Math.random() * 0.4}s`;
-                        effectsContainer.appendChild(drop);
-                    }
-                } else {
-                    widgetContainer.className = "bg-gradient-to-br from-blue-900/60 via-slate-900/90 to-slate-950 border border-blue-500/30 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
-                    iconContainer.className = "w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 text-xl shadow-lg";
-                    iconContainer.innerHTML = '<i class="fa-solid fa-sun"></i>';
-                    iconIndicator.innerHTML = '<i class="fa-solid fa-sun text-amber-400"></i>';
-                    statusTitle.innerText = "Ясный день";
-                    mainDesc.innerText = "Активная фаза съемок";
-                }
-            } else {
-                widgetContainer.className = "bg-gradient-to-br from-indigo-950/90 via-slate-950 to-slate-950 border border-indigo-500/40 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden transition-all duration-700";
-                iconContainer.className = "w-11 h-11 rounded-xl bg-indigo-500/25 border border-indigo-500/50 flex items-center justify-center text-indigo-300 text-xl shadow-lg shadow-indigo-500/20";
-                iconContainer.innerHTML = '<i class="fa-solid fa-moon"></i>';
-                iconIndicator.innerHTML = '<i class="fa-solid fa-moon text-indigo-300"></i>';
-                statusTitle.innerText = "Ночная смена";
-                mainDesc.innerText = "Ночной съемочный блок";
-                
-                for(let i=0; i<12; i++) {
-                    let star = document.createElement('div');
-                    star.className = 'realistic-star';
-                    star.style.width = `${Math.random() * 3 + 1.5}px`;
-                    star.style.height = star.style.width;
-                    star.style.left = `${Math.random() * 100}%`;
-                    star.style.top = `${Math.random() * 100}%`;
-                    star.style.animationDelay = `${Math.random() * 3}s`;
-                    effectsContainer.appendChild(star);
-                }
-            }
         }
 
         async function fetchOnlineWeather() {
@@ -550,7 +898,7 @@
             try {
                 let url;
                 if (selectedDate === todayStr) {
-                    url = `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=sunrise,sunset&timezone=Europe%2FMoscow`;
+                    url = `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,surface_pressure&daily=sunrise,sunset&timezone=Europe%2FMoscow`;
                 } else {
                     url = `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum&start_date=${selectedDate}&end_date=${selectedDate}&timezone=Europe%2FMoscow`;
                 }
@@ -560,31 +908,29 @@
                 
                 if (selectedDate === todayStr && data && data.current) {
                     document.getElementById('weather-temp').innerText = `+${Math.round(data.current.temperature_2m)}°C`;
-                    document.getElementById('weather-wind').innerText = `${data.current.wind_speed_10m} м/с`;
-                    document.getElementById('weather-rain').innerText = `${data.current.precipitation} мм`;
+                    document.getElementById('weather-wind').innerText = `${data.current.wind_speed_10m || 3} м/с`;
                     document.getElementById('weather-humidity').innerText = `${data.current.relative_humidity_2m}%`;
+                    if(data.current.surface_pressure) {
+                        document.getElementById('weather-pressure').innerText = `${Math.round(data.current.surface_pressure * 0.75006)} мм`;
+                    }
                     document.getElementById('weather-condition').innerText = "Онлайн (сегодня)";
                 } else if (data && data.daily) {
                     const maxT = data.daily.temperature_2m_max ? Math.round(data.daily.temperature_2m_max[0]) : '--';
                     const minT = data.daily.temperature_2m_min ? Math.round(data.daily.temperature_2m_min[0]) : '--';
-                    const rain = data.daily.precipitation_sum ? data.daily.precipitation_sum[0] : 0;
                     
                     document.getElementById('weather-temp').innerText = `от ${minT}° до ${maxT}°C`;
                     document.getElementById('weather-wind').innerText = `По прогнозу`;
-                    document.getElementById('weather-rain').innerText = `${rain} мм`;
                     document.getElementById('weather-humidity').innerText = `--%`;
                     document.getElementById('weather-condition').innerText = "Прогноз на дату";
                 }
 
                 if (data && data.daily && data.daily.sunrise && data.daily.sunrise.length > 0) {
-                    const sunriseTime = data.daily.sunrise[0].split('T')[1];
-                    const sunsetTime = data.daily.sunset[0].split('T')[1];
+                    const sunriseTime = data.daily.sunrise[0].split('T')[1].substring(0, 5);
+                    const sunsetTime = data.daily.sunset[0].split('T')[1].substring(0, 5);
                     
                     document.getElementById('sun-rise').innerText = sunriseTime;
                     document.getElementById('sun-set').innerText = sunsetTime;
                 }
-
-                updateRealTimeAtmosphere();
             } catch (err) {
                 console.error('Не удалось получить данные погоды:', err);
             }
@@ -592,6 +938,7 @@
 
         function collectDataFromDOM() {
             let data = {
+                productionType: currentProductionType,
                 metaDay: document.getElementById('meta-day').innerText,
                 metaProject: document.getElementById('meta-project').innerText,
                 metaDate: document.getElementById('meta-date-picker').value,
@@ -600,29 +947,25 @@
                 generalCallDesc: document.getElementById('general-call-desc').innerText,
                 weatherTemp: document.getElementById('weather-temp').innerText,
                 weatherCondition: document.getElementById('weather-condition').innerText,
-                weatherDesc: document.getElementById('weather-desc').innerText,
                 weatherWind: document.getElementById('weather-wind').innerText,
-                weatherRain: document.getElementById('weather-rain').innerText,
                 weatherHumidity: document.getElementById('weather-humidity').innerText,
+                weatherPressure: document.getElementById('weather-pressure').innerText,
                 sunRise: document.getElementById('sun-rise').innerText,
                 sunSet: document.getElementById('sun-set').innerText,
-                goldenHour: document.getElementById('golden-hour').innerText,
                 locationName: document.getElementById('location-name').innerText,
                 locationAddress: document.getElementById('location-address').innerText,
+                locationMetro: document.getElementById('location-metro').innerText,
+                locationBus: document.getElementById('location-bus').innerText,
                 locationParking: document.getElementById('location-parking').innerText,
+                lat: currentLat,
+                lon: currentLon,
                 timeline: [],
                 departments: [],
                 contacts: []
             };
 
             document.querySelectorAll('[data-timeline-time]').forEach((el, index) => {
-                let rawTime = "00:00";
-                if (isEditMode) {
-                    rawTime = el.value || "00:00";
-                } else {
-                    rawTime = el.getAttribute('data-time-val') || "00:00";
-                }
-
+                let rawTime = isEditMode ? (el.value || "00:00") : (el.getAttribute('data-time-val') || "00:00");
                 const event = document.querySelector(`[data-timeline-event="${index}"]`).innerText;
                 const responsible = document.querySelector(`[data-timeline-resp="${index}"]`).innerText;
                 data.timeline.push({ time: rawTime, event, responsible });
@@ -633,12 +976,7 @@
             deptIndices.forEach(dIdx => {
                 const name = document.querySelector(`[data-dept-title="${dIdx}"]`).innerText;
                 const timeEl = document.querySelector(`[data-dept-calltime="${dIdx}"]`);
-                let deptTime = "00:00";
-                if (isEditMode) {
-                    deptTime = timeEl.value || "00:00";
-                } else {
-                    deptTime = timeEl.getAttribute('data-time-val') || "00:00";
-                }
+                let deptTime = isEditMode ? (timeEl.value || "00:00") : (timeEl.getAttribute('data-time-val') || "00:00");
 
                 let crew = [];
                 let cIndices = new Set();
@@ -686,12 +1024,12 @@
 
         function saveChanges() {
             const data = collectDataFromDOM();
-            localStorage.setItem('call_sheet_data_v2', JSON.stringify(data));
+            localStorage.setItem('call_sheet_data_v9', JSON.stringify(data));
         }
 
         function resetToDefaults() {
             if (confirm('Сбросить изменения?')) {
-                localStorage.removeItem('call_sheet_data_v2');
+                localStorage.removeItem('call_sheet_data_v9');
                 renderData(defaultData);
             }
         }
