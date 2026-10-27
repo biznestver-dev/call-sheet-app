@@ -1012,6 +1012,8 @@
             }
             saveChanges();
             renderData(collectDataFromDOM());
+            // Обновляем карту после переключения типа смены
+            setTimeout(() => { if (mapInstance) mapInstance.invalidateSize(); }, 150);
         }
 
         function calculateGoldenHours() {
@@ -1102,15 +1104,17 @@
             const container = document.getElementById('miniMap');
             if (!container) return;
 
-            if (!mapInstance) {
-                mapInstance = L.map('miniMap', { zoomControl: false, attributionControl: false }).setView([currentLat, currentLon], 15);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
-                markerInstance = L.marker([currentLat, currentLon]).addTo(mapInstance);
-            } else {
-                mapInstance.setView([currentLat, currentLon], 15);
-                markerInstance.setLatLng([currentLat, currentLon]);
-            }
-            setTimeout(() => { mapInstance.invalidateSize(); }, 200);
+            setTimeout(() => {
+                if (!mapInstance) {
+                    mapInstance = L.map('miniMap', { zoomControl: false, attributionControl: false }).setView([currentLat, currentLon], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
+                    markerInstance = L.marker([currentLat, currentLon]).addTo(mapInstance);
+                } else {
+                    mapInstance.setView([currentLat, currentLon], 15);
+                    markerInstance.setLatLng([currentLat, currentLon]);
+                    mapInstance.invalidateSize();
+                }
+            }, 150);
         }
 
         function openMapRoute() {
@@ -1289,7 +1293,7 @@
         }
 
         function initApp() {
-            const saved = localStorage.getItem('call_sheet_stage_data_v13');
+            const saved = localStorage.getItem('call_sheet_stage_data_v14');
             const data = saved ? JSON.parse(saved) : defaultData;
             renderData(data);
             init3DWidget();
@@ -1629,14 +1633,14 @@
 
         function saveChanges() {
             const data = collectDataFromDOM();
-            localStorage.setItem('call_sheet_stage_data_v13', JSON.stringify(data));
+            localStorage.setItem('call_sheet_stage_data_v14', JSON.stringify(data));
             calculateGoldenHours();
             updateReadinessProgress();
         }
 
         function resetToDefaults() {
             if (confirm('Сбросить изменения по умолчанию?')) {
-                localStorage.removeItem('call_sheet_stage_data_v13');
+                localStorage.removeItem('call_sheet_stage_data_v14');
                 renderData(defaultData);
             }
         }
