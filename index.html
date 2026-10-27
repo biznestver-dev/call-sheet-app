@@ -1526,25 +1526,25 @@
         function collectDataFromDOM() {
             let data = {
                 productionType: currentProductionType,
-                metaDay: document.getElementById('meta-day').innerText,
-                metaProject: document.getElementById('meta-project').innerText,
-                metaDate: document.getElementById('meta-date-picker').value,
-                metaVersion: document.getElementById('meta-version').innerText,
-                generalCallTime: document.getElementById('general-call-time').value,
-                generalCallDate: document.getElementById('general-call-date') ? document.getElementById('general-call-date').value : '',
-                generalCallDesc: document.getElementById('general-call-desc').innerText,
-                weatherTemp: document.getElementById('temp-main').innerText,
-                weatherCondition: document.getElementById('condition-main').innerText,
-                weatherWind: document.getElementById('wind-val').innerText,
-                weatherHumidity: document.getElementById('humidity-val').innerText,
-                weatherPressure: document.getElementById('pressure-val').innerText,
-                sunRise: document.getElementById('sun-rise').innerText,
-                sunSet: document.getElementById('sun-set').innerText,
-                locationName: document.getElementById('location-name').innerText,
-                locationAddress: document.getElementById('location-address').innerText,
-                locationMetro: document.getElementById('location-metro').innerText,
-                locationBus: document.getElementById('location-bus').innerText,
-                locationParking: document.getElementById('location-parking').innerText,
+                metaDay: document.getElementById('meta-day')?.innerText || '',
+                metaProject: document.getElementById('meta-project')?.innerText || '',
+                metaDate: document.getElementById('meta-date-picker')?.value || '',
+                metaVersion: document.getElementById('meta-version')?.innerText || '',
+                generalCallTime: document.getElementById('general-call-time')?.value || '',
+                generalCallDate: document.getElementById('general-call-date')?.value || '',
+                generalCallDesc: document.getElementById('general-call-desc')?.innerText || '',
+                weatherTemp: document.getElementById('temp-main')?.innerText || '',
+                weatherCondition: document.getElementById('condition-main')?.innerText || '',
+                weatherWind: document.getElementById('wind-val')?.innerText || '',
+                weatherHumidity: document.getElementById('humidity-val')?.innerText || '',
+                weatherPressure: document.getElementById('pressure-val')?.innerText || '',
+                sunRise: document.getElementById('sun-rise')?.innerText || '',
+                sunSet: document.getElementById('sun-set')?.innerText || '',
+                locationName: document.getElementById('location-name')?.innerText || '',
+                locationAddress: document.getElementById('location-address')?.innerText || '',
+                locationMetro: document.getElementById('location-metro')?.innerText || '',
+                locationBus: document.getElementById('location-bus')?.innerText || '',
+                locationParking: document.getElementById('location-parking')?.innerText || '',
                 lat: currentLat,
                 lon: currentLon,
                 scenes: [],
@@ -1559,27 +1559,27 @@
             if (currentProductionType === 'theater') {
                 document.querySelectorAll('[data-tscene-act]').forEach((el, index) => {
                     const act = el.innerText;
-                    const scene = document.querySelector(`[data-tscene-scene="${index}"]`).innerText;
-                    const desc = document.querySelector(`[data-tscene-desc="${index}"]`).innerText;
-                    const time = document.querySelector(`[data-tscene-time="${index}"]`).innerText;
-                    const cast = document.querySelector(`[data-tscene-cast="${index}"]`).innerText;
+                    const scene = document.querySelector(`[data-tscene-scene="${index}"]`)?.innerText || '';
+                    const desc = document.querySelector(`[data-tscene-desc="${index}"]`)?.innerText || '';
+                    const time = document.querySelector(`[data-tscene-time="${index}"]`)?.innerText || '';
+                    const cast = document.querySelector(`[data-tscene-cast="${index}"]`)?.innerText || '';
                     data.theaterScenes.push({ act, scene, desc, time, cast });
                 });
             } else {
                 document.querySelectorAll('[data-scene-num]').forEach((el, index) => {
                     const num = el.innerText;
-                    const ie = document.querySelector(`[data-scene-ie="${index}"]`).innerText;
-                    const desc = document.querySelector(`[data-scene-desc="${index}"]`).innerText;
-                    const time = document.querySelector(`[data-scene-time="${index}"]`).innerText;
-                    const cast = document.querySelector(`[data-scene-cast="${index}"]`).innerText;
+                    const ie = document.querySelector(`[data-scene-ie="${index}"]`)?.innerText || '';
+                    const desc = document.querySelector(`[data-scene-desc="${index}"]`)?.innerText || '';
+                    const time = document.querySelector(`[data-scene-time="${index}"]`)?.innerText || '';
+                    const cast = document.querySelector(`[data-scene-cast="${index}"]`)?.innerText || '';
                     data.scenes.push({ num, ie, desc, time, cast });
                 });
             }
 
             document.querySelectorAll('[data-timeline-time]').forEach((el, index) => {
                 let rawTime = isEditMode ? (el.value || "00:00") : (el.getAttribute('data-time-val') || "00:00");
-                const event = document.querySelector(`[data-timeline-event="${index}"]`).innerText;
-                const responsible = document.querySelector(`[data-timeline-resp="${index}"]`).innerText;
+                const event = document.querySelector(`[data-timeline-event="${index}"]`)?.innerText || '';
+                const responsible = document.querySelector(`[data-timeline-resp="${index}"]`)?.innerText || '';
                 if (currentProductionType === 'theater') {
                     data.theaterTimeline.push({ time: rawTime, event, responsible });
                 } else {
@@ -1590,9 +1590,9 @@
             let deptIndices = new Set();
             document.querySelectorAll('[data-dept-title]').forEach(el => deptIndices.add(el.getAttribute('data-dept-title')));
             deptIndices.forEach(dIdx => {
-                const name = document.querySelector(`[data-dept-title="${dIdx}"]`).innerText;
+                const name = document.querySelector(`[data-dept-title="${dIdx}"]`)?.innerText || '';
                 const timeEl = document.querySelector(`[data-dept-calltime="${dIdx}"]`);
-                let deptTime = isEditMode ? (timeEl.value || "00:00") : (timeEl.getAttribute('data-time-val') || "00:00");
+                let deptTime = isEditMode ? (timeEl?.value || "00:00") : (timeEl?.getAttribute('data-time-val') || "00:00");
                 
                 const readyCheckbox = document.querySelectorAll('.department-ready-checkbox')[dIdx];
                 const isReady = readyCheckbox ? readyCheckbox.checked : true;
@@ -1603,9 +1603,9 @@
                     cIndices.add(el.getAttribute('data-dept-role').split('-')[1]);
                 });
                 cIndices.forEach(cIdx => {
-                    const role = document.querySelector(`[data-dept-role="${dIdx}-${cIdx}"]`).innerText;
-                    const name = document.querySelector(`[data-dept-name="${dIdx}-${cIdx}"]`).innerText;
-                    const phone = document.querySelector(`[data-dept-phone="${dIdx}-${cIdx}"]`).innerText;
+                    const role = document.querySelector(`[data-dept-role="${dIdx}-${cIdx}"]`)?.innerText || '';
+                    const name = document.querySelector(`[data-dept-name="${dIdx}-${cIdx}"]`)?.innerText || '';
+                    const phone = document.querySelector(`[data-dept-phone="${dIdx}-${cIdx}"]`)?.innerText || '';
                     crew.push({ role, name, phone });
                 });
 
@@ -1618,8 +1618,8 @@
 
             document.querySelectorAll('[data-contact-role]').forEach((el, index) => {
                 const role = el.innerText;
-                const name = document.querySelector(`[data-contact-name="${index}"]`).innerText;
-                const phone = document.querySelector(`[data-contact-phone="${index}"]`).innerText;
+                const name = document.querySelector(`[data-contact-name="${index}"]`)?.innerText || '';
+                const phone = document.querySelector(`[data-contact-phone="${index}"]`)?.innerText || '';
                 data.contacts.push({ role, name, phone });
             });
 
@@ -1631,7 +1631,6 @@
             const btnText = document.getElementById('edit-mode-text');
             const btn = document.getElementById('edit-mode-btn');
             
-            // Поля ввода сбора и подсказка
             const generalCallTime = document.getElementById('general-call-time');
             const generalCallDate = document.getElementById('general-call-date');
             const generalCallHint = document.getElementById('general-call-hint');
@@ -1642,7 +1641,6 @@
                 btn.classList.add('bg-amber-500', 'text-slate-950', 'border-amber-400');
                 btn.classList.remove('bg-amber-500/10', 'text-amber-400');
                 
-                // Включаем редактирование полей
                 if (generalCallTime) generalCallTime.removeAttribute('disabled');
                 if (generalCallDate) generalCallDate.removeAttribute('disabled');
                 if (generalCallHint) generalCallHint.style.display = 'none';
@@ -1656,7 +1654,6 @@
                 btn.classList.remove('bg-amber-500', 'text-slate-950', 'border-amber-400');
                 btn.classList.add('bg-amber-500/10', 'text-amber-400');
 
-                // Блокируем поля ввода сбора
                 if (generalCallTime) generalCallTime.setAttribute('disabled', 'true');
                 if (generalCallDate) generalCallDate.setAttribute('disabled', 'true');
                 if (generalCallHint) generalCallHint.style.display = 'inline';
