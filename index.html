@@ -1491,7 +1491,7 @@
             
             try {
                 let url = (selectedDate === todayStr) 
-                    ? `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,surface_pressure&daily=sunrise,sunset&timezone=Europe%2FMoscow`
+                    ? `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,surface_pressure&timezone=Europe%2FMoscow`
                     : `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum&start_date=${selectedDate}&end_date=${selectedDate}&timezone=Europe%2FMoscow`;
                 
                 const response = await fetch(url);
