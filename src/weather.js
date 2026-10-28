@@ -36,6 +36,51 @@ export function getMoonPhaseAngle(dateObj) {
     return phaseFraction * 360;
 }
 
+// Автономный астрономический расчет восхода и заката на случай, если дата за пределами 16-дневного прогноза API
+export function computeAstronomicalSunTimes(dateStr, lat = 55.7558, lon = 37.6173) {
+    const d = dateStr ? new Date(dateStr) : new Date();
+    const start = new Date(d.getFullYear(), 0, 0);
+    const diff = (d - start) + ((start.getTimezoneOffset() - d.getTimezoneOffset()) * 60 * 1000);
+    const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    const rad = Math.PI / 180;
+    const deg = 180 / Math.PI;
+
+    // Склонение Солнца
+    const declination = 23.45 * Math.sin(rad * (360 / 365) * (dayOfYear - 81));
+    
+    // Уравнение времени (в минутах)
+    const B = rad * (360 / 365) * (dayOfYear - 81);
+    const eot = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
+
+    // Часовой угол восхода/заката (зенитный угол 90.833 градуса)
+    const cosOmega = (Math.cos(90.833 * rad) - Math.sin(lat * rad) * Math.sin(declination * rad)) / (Math.cos(lat * rad) * Math.cos(declination * rad));
+    
+    // Защита для полярного дня/ночи
+    const clampedCos = Math.max(-1, Math.min(1, cosOmega));
+    const omega = Math.acos(clampedCos) * deg;
+
+    // Истинный солнечный полдень в минутах от полуночи (для UTC+3 Москва: часовой пояс = 3)
+    const timezoneOffset = 3; 
+    const solarNoonMins = 720 - (4 * lon) - eot + (timezoneOffset * 60);
+    const halfDayMins = omega * 4;
+
+    const riseMins = Math.round(solarNoonMins - halfDayMins);
+    const setMins = Math.round(solarNoonMins + halfDayMins);
+
+    function formatMins(m) {
+        m = (m + 1440) % 1440;
+        const h = Math.floor(m / 60);
+        const min = Math.floor(m % 60);
+        return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+    }
+
+    return {
+        sunrise: formatMins(riseMins),
+        sunset: formatMins(setMins)
+    };
+}
+
 function createStarTexture() {
     const canvas = document.createElement('canvas');
     canvas.width = 256;
@@ -71,7 +116,6 @@ export function initWidgetMoon(containerElement) {
     controlsMoon.dampingFactor = 0.04;
     controlsMoon.enableZoom = false;
 
-    // Звездный фон вокруг мини-луны
     const starsCount = 2000;
     const starsGeo = new THREE.BufferGeometry();
     const starsPos = new Float32Array(starsCount * 3);
@@ -106,7 +150,6 @@ export function initWidgetMoon(containerElement) {
     sceneMoon.add(new THREE.Points(starsGeo, starsMat));
 
     const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
-    // Используем MeshStandardMaterial с красивым лунным серо-серебристым цветом на случай долгой загрузки текстуры
     const moonMat = new THREE.MeshStandardMaterial({ 
         roughness: 0.9, 
         metalness: 0.1, 
@@ -116,7 +159,6 @@ export function initWidgetMoon(containerElement) {
     moonMesh.rotation.z = THREE.MathUtils.degToRad(1.54);
     sceneMoon.add(moonMesh);
 
-    // Загрузка текстуры луны с надежного CDN
     const textureLoader = new THREE.TextureLoader();
     textureLoader.setCrossOrigin('anonymous');
     textureLoader.load(
@@ -150,7 +192,7 @@ export function initWidgetMoon(containerElement) {
 }
 
 export function updateSunLightPosition(overrideAngle = null) {
-    const dateInputVal = document.getElementById('meta-date-picker')?.value;
+    const dateInputVal = document.getElementById('general-call-date')?.value || document.getElementById('meta-date-picker')?.value;
     const targetDate = dateInputVal ? new Date(dateInputVal) : new Date();
     let angleDeg = overrideAngle !== null ? overrideAngle : getMoonPhaseAngle(targetDate);
     
@@ -184,7 +226,6 @@ export function updateSunLightPosition(overrideAngle = null) {
     }
 }
 
-// Слушатель событий для интерактивного ползунка фазы луны
 document.addEventListener('input', (e) => {
     if (e.target && e.target.id === 'moon-phase-slider') {
         updateSunLightPosition(parseFloat(e.target.value));
@@ -275,20 +316,53 @@ export function checkStormAlert(windSpeed) {
     }
 }
 
-export async function fetchWeatherData() {
+export async function fetchWeatherData(lat = 55.7558, lon = 37.6173) {
+    const dateInputVal = document.getElementById('general-call-date')?.value || document.getElementById('meta-date-picker')?.value;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const targetDate = dateInputVal || todayStr;
+
+    // 1. Сначала мгновенно обновляем восход, закат и золотые часы по астрономической формуле для выбранной даты
+    const astroTimes = computeAstronomicalSunTimes(targetDate, lat, lon);
+    const sunRiseEl = document.getElementById('sun-rise');
+    const sunSetEl = document.getElementById('sun-set');
+    if (sunRiseEl) sunRiseEl.innerText = astroTimes.sunrise;
+    if (sunSetEl) sunSetEl.innerText = astroTimes.sunset;
+    calculateGoldenHours();
+
+    // 2. Затем делаем запрос к метеосерверу Open-Meteo за точными данными погоды и астрономии
     try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,surface_pressure,precipitation,weather_code&timezone=Europe%2FMoscow`;
+        let url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,surface_pressure,precipitation,weather_code&daily=sunrise,sunset,temperature_2m_max,apparent_temperature_max,wind_speed_10m_max,weather_code&timezone=Europe%2FMoscow`;
+        
+        if (targetDate) {
+            url += `&start_date=${targetDate}&end_date=${targetDate}`;
+        }
+
         const response = await fetch(url);
+        if (!response.ok) return; // Если дата слишком далеко в будущем/прошлом, остаются астрономические расчеты из шага 1
         const data = await response.json();
         
+        if (data && data.daily && data.daily.sunrise && data.daily.sunrise.length > 0) {
+            const riseIso = data.daily.sunrise[0];
+            const setIso = data.daily.sunset[0];
+            if (riseIso && setIso) {
+                const riseTime = riseIso.split('T')[1];
+                const setTime = setIso.split('T')[1];
+                if (sunRiseEl && riseTime) sunRiseEl.innerText = riseTime;
+                if (sunSetEl && setTime) sunSetEl.innerText = setTime;
+                calculateGoldenHours();
+            }
+        }
+
         if (data && data.current) {
-            const temp = Math.round(data.current.temperature_2m);
-            const appTemp = Math.round(data.current.apparent_temperature);
-            const wind = data.current.wind_speed_10m || 6.9;
+            const isToday = (targetDate === todayStr);
+            
+            const temp = isToday ? Math.round(data.current.temperature_2m) : Math.round(data.daily?.temperature_2m_max?.[0] ?? data.current.temperature_2m);
+            const appTemp = isToday ? Math.round(data.current.apparent_temperature) : Math.round(data.daily?.apparent_temperature_max?.[0] ?? data.current.apparent_temperature);
+            const wind = isToday ? (data.current.wind_speed_10m || 6.9) : (data.daily?.wind_speed_10m_max?.[0] || data.current.wind_speed_10m);
             const humidity = data.current.relative_humidity_2m || 40;
             const pressure = data.current.surface_pressure ? Math.round(data.current.surface_pressure * 0.75006) : 761;
             const precipitation = data.current.precipitation || 0;
-            const weatherCode = data.current.weather_code || 0;
+            const weatherCode = isToday ? (data.current.weather_code || 0) : (data.daily?.weather_code?.[0] ?? 0);
 
             const tempMain = document.getElementById('temp-main');
             const tempFeel = document.getElementById('temp-feel');
@@ -297,8 +371,11 @@ export async function fetchWeatherData() {
             const pressureVal = document.getElementById('pressure-val');
             const conditionMain = document.getElementById('condition-main');
 
-            if (tempMain) tempMain.innerText = `+${temp}°C`;
-            if (tempFeel) tempFeel.innerText = `Ощущается как +${appTemp}°`;
+            const sign = temp > 0 ? '+' : '';
+            const feelSign = appTemp > 0 ? '+' : '';
+
+            if (tempMain) tempMain.innerText = `${sign}${temp}°C`;
+            if (tempFeel) tempFeel.innerText = `Ощущается как ${feelSign}${appTemp}°`;
             if (windVal) windVal.innerText = `${wind} м/с`;
             if (humidityVal) humidityVal.innerText = `${humidity}%`;
             if (pressureVal) pressureVal.innerText = `${pressure} мм`;
@@ -314,7 +391,7 @@ export async function fetchWeatherData() {
                 isRainingOrSnowing = true;
             } else if (weatherCode >= 1 && weatherCode <= 3) {
                 conditionText = "Облачно с прояснениями";
-            } else if (precipitation > 0) {
+            } else if (precipitation > 0 && isToday) {
                 conditionText = "Осадки";
                 isRainingOrSnowing = true;
             }
@@ -333,7 +410,7 @@ export async function fetchWeatherData() {
             checkStormAlert(wind);
         }
     } catch (err) {
-        console.error('Ошибка получения погоды:', err);
+        console.warn('Используются автономные астрономические данные для выбранной даты:', err);
     }
 }
 

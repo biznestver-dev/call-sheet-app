@@ -5,7 +5,10 @@ import {
     setTimerPreset, setCustomTimerFromInputs, setTimerPhase, 
     openTimerFullscreen, closeTimerFullscreen 
 } from './timer.js';
-import { fetchWeatherData, calculateGoldenHours, autoUpdateWeatherModeByTime } from './weather.js';
+import { 
+    fetchWeatherData, calculateGoldenHours, 
+    autoUpdateWeatherModeByTime, updateSunLightPosition 
+} from './weather.js';
 import { initMiniMap, openMapRoute, showVenueDropdown, filterVenues, handleCustomAddressKey } from './map.js';
 
 let tg = window.Telegram?.WebApp;
@@ -27,7 +30,7 @@ let currentLon = 37.6338;
 
 let sceneGlobe, cameraGlobe, rendererGlobe, earthGroup, cloudsMesh, starFieldGlobe, sunLightGlobe, sunMeshGlobe, moonMeshGlobe;
 
-// Глобальная привязка функций
+// Глобальная привязка функций к объекту window
 window.startTimer = startTimer;
 window.pauseTimer = pauseTimer;
 window.resetTimer = resetTimer;
@@ -38,13 +41,23 @@ window.openTimerFullscreen = openTimerFullscreen;
 window.closeTimerFullscreen = closeTimerFullscreen;
 window.toggleThemeMode = toggleThemeMode;
 window.exportPDF = exportPDF;
-window.fetchWeatherData = fetchWeatherData;
+window.fetchWeatherData = () => fetchWeatherData(currentLat, currentLon);
 window.setProductionType = setProductionType;
 window.updateDateFromPicker = updateDateFromPicker;
 window.syncGeneralDate = syncGeneralDate;
 window.openMapRoute = openMapRoute;
-window.showVenueDropdown = () => showVenueDropdown();
-window.filterVenues = (q) => filterVenues(q);
+window.showVenueDropdown = () => showVenueDropdown((v) => {
+    currentLat = v.lat;
+    currentLon = v.lon;
+    fetchWeatherData(currentLat, currentLon);
+    saveChanges();
+});
+window.filterVenues = (q) => filterVenues(q, (v) => {
+    currentLat = v.lat;
+    currentLon = v.lon;
+    fetchWeatherData(currentLat, currentLon);
+    saveChanges();
+});
 window.handleCustomAddressKey = handleCustomAddressKey;
 window.addSceneRow = addSceneRow;
 window.removeSceneRow = removeSceneRow;
@@ -68,6 +81,7 @@ function initApp() {
     init3DWidget();
     initMiniMap(currentLat, currentLon);
     calculateGoldenHours();
+    updateSunLightPosition();
     updateTimerDisplay();
 }
 
@@ -77,7 +91,6 @@ function renderData(data) {
     const filmBtn = document.getElementById('type-film-btn');
     const theaterBtn = document.getElementById('type-theater-btn');
     const iconEl = document.getElementById('project-icon');
-    const metaDayEl = document.getElementById('meta-day');
     const weatherWidgetCard = document.getElementById('weather-widget-card');
     const spaceWidgetCard = document.getElementById('space-widget-card');
 
@@ -126,8 +139,8 @@ function renderData(data) {
     
     const sunRise = document.getElementById('sun-rise');
     const sunSet = document.getElementById('sun-set');
-    if (sunRise) sunRise.innerText = data.sunRise;
-    if (sunSet) sunSet.innerText = data.sunSet;
+    if (sunRise && data.sunRise) sunRise.innerText = data.sunRise;
+    if (sunSet && data.sunSet) sunSet.innerText = data.sunSet;
 
     const locName = document.getElementById('location-name');
     const locAddr = document.getElementById('location-address');
@@ -276,16 +289,20 @@ function renderData(data) {
     }
 
     calculateGoldenHours();
+    updateSunLightPosition();
     updateReadinessProgress();
 }
 
-function updateDateFromPicker(input) {
+async function updateDateFromPicker(input) {
     const generalDateInput = document.getElementById('general-call-date');
     if (generalDateInput && generalDateInput.value !== input.value) {
         generalDateInput.value = input.value;
     }
+    if (currentProductionType === 'film') {
+        await fetchWeatherData(currentLat, currentLon);
+    }
+    updateSunLightPosition();
     saveChanges();
-    if (currentProductionType === 'film') fetchWeatherData();
 }
 
 function syncGeneralDate(input) {
@@ -293,6 +310,8 @@ function syncGeneralDate(input) {
     if (mainDatePicker) {
         mainDatePicker.value = input.value;
         updateDateFromPicker(mainDatePicker);
+    } else {
+        updateDateFromPicker(input);
     }
 }
 
@@ -346,6 +365,7 @@ function exportPDF() {
 function init3DWidget() {
     const container = document.getElementById('globeContainer');
     if (!container) return;
+    container.innerHTML = '';
     const width = container.clientWidth || 320;
     const height = container.clientHeight || 160;
 
@@ -376,22 +396,29 @@ function init3DWidget() {
     sceneGlobe.add(earthGroup);
 
     const textureLoader = new THREE.TextureLoader();
+    textureLoader.setCrossOrigin('anonymous');
     const earthRadius = 1.1;
     const earthGeometry = new THREE.SphereGeometry(earthRadius, 64, 64);
     const earthMaterial = new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.1, color: 0x1d4ed8 });
 
-    textureLoader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg', (tex) => { 
+    textureLoader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_atmos_2048.jpg', (tex) => { 
         earthMaterial.map = tex; 
         earthMaterial.color.setHex(0xffffff);
         earthMaterial.needsUpdate = true; 
     });
-    textureLoader.load('https://threejs.org/examples/textures/planets/earth_specular_2048.jpg', (tex) => { earthMaterial.roughnessMap = tex; earthMaterial.needsUpdate = true; });
+    textureLoader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_specular_2048.jpg', (tex) => { 
+        earthMaterial.roughnessMap = tex; 
+        earthMaterial.needsUpdate = true; 
+    });
 
     earthGroup.add(new THREE.Mesh(earthGeometry, earthMaterial));
 
     const cloudsGeometry = new THREE.SphereGeometry(earthRadius + 0.015, 64, 64);
     const cloudsMaterial = new THREE.MeshStandardMaterial({ transparent: true, blending: THREE.AdditiveBlending, opacity: 0.35 });
-    textureLoader.load('https://threejs.org/examples/textures/planets/earth_clouds_1024.png', (tex) => { cloudsMaterial.map = tex; cloudsMaterial.needsUpdate = true; });
+    textureLoader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/earth_clouds_1024.png', (tex) => { 
+        cloudsMaterial.map = tex; 
+        cloudsMaterial.needsUpdate = true; 
+    });
     cloudsMesh = new THREE.Mesh(cloudsGeometry, cloudsMaterial);
     earthGroup.add(cloudsMesh);
 
@@ -624,6 +651,7 @@ function resetToDefaults() {
     if (confirm('Сбросить изменения по умолчанию?')) {
         localStorage.removeItem('call_sheet_stage_data_v18');
         renderData(defaultData);
+        fetchWeatherData(defaultData.lat, defaultData.lon);
     }
 }
 
@@ -703,5 +731,5 @@ function removeContact(i) {
 
 window.addEventListener('DOMContentLoaded', () => {
     initApp();
-    fetchWeatherData();
+    fetchWeatherData(currentLat, currentLon);
 });
