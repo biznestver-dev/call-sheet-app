@@ -28,6 +28,10 @@
     <!-- Three.js и OrbitControls для 3D Луны и Космоса -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- Библиотека html2pdf для экспорта в PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -59,6 +63,44 @@
             border: 1px solid rgba(255, 255, 255, 0.14);
             box-shadow: 0 30px 90px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
+        /* Светлая тема для приложения */
+        html.light body {
+            background-color: #f1f5f9 !important;
+            color: #0f172a !important;
+        }
+        html.light .glass-card {
+            background: rgba(255, 255, 255, 0.92) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08) !important;
+            color: #0f172a !important;
+        }
+        html.light header {
+            background-color: rgba(255, 255, 255, 0.9) !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+        }
+        html.light h1, html.light h2, html.light h3, html.light .font-outfit {
+            color: #0f172a !important;
+        }
+        html.light .text-slate-100, html.light .text-slate-200, html.light .text-slate-300 {
+            color: #1e293b !important;
+        }
+        html.light .text-slate-400, html.light .text-slate-500 {
+            color: #64748b !important;
+        }
+        html.light .bg-slate-900, html.light .bg-slate-950 {
+            background-color: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+        html.light .bg-slate-800 {
+            background-color: #cbd5e1 !important;
+            color: #0f172a !important;
+        }
+        html.light input, html.light select, html.light textarea {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            border-color: #cbd5e1 !important;
+        }
+
         .globe-container {
             width: 100%;
             height: 160px;
@@ -80,6 +122,9 @@
         }
         .leaflet-layer, .leaflet-control-zoom-in, .leaflet-control-zoom-out {
             filter: brightness(0.7) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3);
+        }
+        html.light .leaflet-layer, html.light .leaflet-control-zoom-in, html.light .leaflet-control-zoom-out {
+            filter: none !important;
         }
 
         /* Анимация осадков (дождь/снег) */
@@ -218,9 +263,11 @@
             border-radius: 3px;
             outline: none;
             -webkit-appearance: none;
+            appearance: none;
         }
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
+            appearance: none;
             width: 15px;
             height: 15px;
             border-radius: 50%;
@@ -255,23 +302,98 @@
                     <button onclick="setProductionType('theater')" id="type-theater-btn" class="px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white">Театр</button>
                 </div>
 
+                <!-- Кнопка смены темы (Темная / Светлая) -->
+                <button onclick="toggleThemeMode()" id="theme-mode-btn" class="p-2 rounded-lg bg-slate-800 border border-slate-700 text-amber-400 hover:bg-slate-700 text-sm transition" title="Переключить тему">
+                    <i class="fa-solid fa-sun" id="theme-icon"></i>
+                </button>
+
                 <button onclick="toggleEditMode()" id="edit-mode-btn" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs sm:text-sm font-medium transition flex items-center space-x-2">
                     <i class="fa-solid fa-pen-to-square"></i>
                     <span id="edit-mode-text">Режим правки</span>
                 </button>
-                <button onclick="exportJSON()" class="hidden sm:flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 text-xs sm:text-sm font-medium transition">
-                    <i class="fa-solid fa-download"></i>
-                    <span>JSON</span>
+                <button onclick="exportPDF()" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-500 text-xs sm:text-sm transition flex items-center space-x-2 shadow-lg shadow-emerald-600/20" title="Скачать PDF документ смены">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span class="hidden sm:inline">Скачать PDF</span>
                 </button>
                 <button onclick="window.print()" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-amber-500 text-slate-950 font-semibold hover:bg-amber-400 text-xs sm:text-sm transition flex items-center space-x-2 shadow-lg shadow-amber-500/20">
                     <i class="fa-solid fa-print"></i>
-                    <span class="hidden sm:inline">Печать / PDF</span>
+                    <span class="hidden sm:inline">Печать</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6" id="pdf-export-container">
+
+        <!-- Топ-панель: Интерактивный таймер смены с фазами -->
+        <div class="bg-gradient-to-r from-sky-600/20 via-slate-900 to-slate-900 border border-sky-500/40 rounded-xl p-4 sm:p-5 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="flex items-start space-x-4">
+                <div class="w-12 h-12 rounded-xl bg-sky-500 text-slate-950 flex items-center justify-center font-black text-xl shrink-0 shadow-md">
+                    <i class="fa-solid fa-stopwatch"></i>
+                </div>
+                <div>
+                    <div class="text-xs uppercase tracking-wider text-sky-400 font-bold flex items-center space-x-2">
+                        <span id="timer-status-title">Таймер смены / Фазы</span>
+                        <span id="timer-active-badge" class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 text-[10px] font-mono hidden">АКТИВЕН</span>
+                    </div>
+                    <div class="flex items-center space-x-3 mt-1 flex-wrap gap-y-2">
+                        <!-- Цифровое табло таймера -->
+                        <div id="timer-display" class="bg-slate-950 text-sky-400 font-mono font-black text-3xl sm:text-4xl px-4 py-1.5 rounded-lg border border-sky-500/30 tracking-wider shadow-inner">
+                            00:25:00
+                        </div>
+                        
+                        <!-- Кнопки управления таймером -->
+                        <div class="flex items-center space-x-1.5 no-print">
+                            <button onclick="startTimer()" id="timer-start-btn" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center space-x-1 shadow">
+                                <i class="fa-solid fa-play"></i><span>Старт</span>
+                            </button>
+                            <button onclick="pauseTimer()" class="px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition flex items-center space-x-1 shadow">
+                                <i class="fa-solid fa-pause"></i><span>Пауза</span>
+                            </button>
+                            <button onclick="resetTimer()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center space-x-1 border border-slate-700">
+                                <i class="fa-solid fa-rotate-right"></i><span>Сброс</span>
+                            </button>
+                            <button onclick="openTimerFullscreen()" class="px-3 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition flex items-center space-x-1 shadow" title="На весь экран">
+                                <i class="fa-solid fa-expand"></i><span>Экран</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Переключатель фаз таймера -->
+                    <div class="flex items-center space-x-1.5 mt-2.5 flex-wrap gap-y-1.5 no-print" id="timer-phases-container">
+                        <span class="text-[10px] uppercase font-bold text-slate-400">Фаза:</span>
+                        <button onclick="setTimerPhase('prep')" id="phase-prep-btn" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition">Подготовка (5 мин)</button>
+                        <button onclick="setTimerPhase('work')" id="phase-work-btn" class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-600 text-white transition shadow">Мотор / Съемка (25 мин)</button>
+                        <button onclick="setTimerPhase('break')" id="phase-break-btn" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition">Перерыв (5 мин)</button>
+                    </div>
+
+                    <p class="text-xs text-slate-300 mt-1.5" id="timer-mode-desc">Фаза: Мотор / Рабочий дубль</p>
+                </div>
+            </div>
+
+            <!-- Настройка таймера (Интервалы и кастомное время) -->
+            <div class="flex flex-col justify-center border-t lg:border-t-0 lg:border-l border-slate-800 pt-3 lg:pt-0 lg:pl-6 no-print space-y-2.5">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs text-slate-400 font-semibold">Установка времени:</span>
+                    <div class="flex items-center space-x-1 text-xs">
+                        <input type="number" id="input-hours" min="0" max="23" value="00" class="w-12 bg-slate-800 text-center text-white font-mono font-bold py-1 rounded border border-slate-700 outline-none focus:border-sky-500" placeholder="Ч">
+                        <span class="text-slate-500">:</span>
+                        <input type="number" id="input-mins" min="0" max="59" value="25" class="w-12 bg-slate-800 text-center text-white font-mono font-bold py-1 rounded border border-slate-700 outline-none focus:border-sky-500" placeholder="М">
+                        <span class="text-slate-500">:</span>
+                        <input type="number" id="input-secs" min="0" max="59" value="00" class="w-12 bg-slate-800 text-center text-white font-mono font-bold py-1 rounded border border-slate-700 outline-none focus:border-sky-500" placeholder="С">
+                        <button onclick="setCustomTimerFromInputs()" class="px-2.5 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded font-bold transition ml-1">Задать</button>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-1.5 flex-wrap gap-y-1.5">
+                    <span class="text-[10px] uppercase font-bold text-slate-400">Быстро:</span>
+                    <button onclick="setTimerPreset(1, 0)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 rounded text-[11px] font-mono transition">1 мин</button>
+                    <button onclick="setTimerPreset(5, 0)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 rounded text-[11px] font-mono transition">5 мин</button>
+                    <button onclick="setTimerPreset(15, 0)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 rounded text-[11px] font-mono transition">15 мин</button>
+                    <button onclick="setTimerPreset(30, 0)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 rounded text-[11px] font-mono transition">30 мин</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Top Alert / General Call Banner with Date & Readiness Progress -->
         <div class="bg-gradient-to-r from-amber-500/20 via-slate-900 to-slate-900 border border-amber-500/40 rounded-xl p-4 sm:p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -285,10 +407,10 @@
                         <!-- Время сбора -->
                         <input type="time" id="general-call-time" onchange="saveChanges()" class="bg-slate-800/80 text-white font-black text-2xl sm:text-3xl px-3 py-1 rounded-lg border border-slate-700 outline-none focus:border-amber-500 tracking-tight" disabled>
                         
-                        <!-- Дата сбора -->
-                        <input type="date" id="general-call-date" onchange="syncGeneralDate(this)" class="bg-slate-800 text-amber-400 font-bold text-sm sm:text-base px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500 no-print" disabled>
+                        <!-- Дата сбора на главной странице (прямая синхронизация всех виджетов) -->
+                        <input type="date" id="general-call-date" onchange="syncGeneralDate(this)" class="bg-slate-800 text-amber-400 font-bold text-sm sm:text-base px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500 cursor-pointer shadow-sm hover:border-amber-500 transition">
                         
-                        <span class="text-xs text-slate-400 hidden sm:inline" id="general-call-hint">(Нажмите «Режим правки» для изменения)</span>
+                        <span class="text-xs text-slate-400 hidden sm:inline" id="general-call-hint">(Измените дату для актуализации погоды и астрономии)</span>
                     </div>
                     <p class="text-xs sm:text-sm text-slate-300 mt-1.5 editable-field" contenteditable="false" id="general-call-desc">Получение раций, инструктаж по ТБ, проверка пропусков на КПП</p>
                 </div>
@@ -384,15 +506,6 @@
                                 <i class="fa-solid fa-triangle-exclamation text-[10px] animate-bounce" id="banner-alert-icon"></i>
                             </div>
                             <span class="text-[10px] uppercase font-black tracking-wider text-amber-100 drop-shadow-sm" id="banner-title-text">Режимный свет / Золотой час</span>
-                        </div>
-
-                        <div class="flex bg-black/40 p-1 rounded-xl border border-white/20 shadow-inner">
-                            <button onclick="setWeatherMode('day')" id="btn-day" class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-400 text-slate-950 transition shadow">
-                                <i class="fa-solid fa-sun mr-1"></i>День
-                            </button>
-                            <button onclick="setWeatherMode('night')" id="btn-night" class="px-2 py-0.5 rounded-lg text-[10px] font-bold text-slate-300 transition hover:text-white">
-                                <i class="fa-solid fa-moon mr-1"></i>Ночь
-                            </button>
                         </div>
                     </div>
 
@@ -617,6 +730,34 @@
 
     </main>
 
+    <!-- Модальное окно таймера на весь экран -->
+    <div id="timer-fullscreen-modal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl hidden flex flex-col items-center justify-center p-6 select-none">
+        <div class="absolute top-6 right-6 flex items-center space-x-3">
+            <button onclick="closeTimerFullscreen()" class="w-12 h-12 rounded-full bg-slate-900 border border-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-xl transition shadow-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="text-center space-y-4 max-w-4xl w-full">
+            <div class="text-sm uppercase tracking-widest text-sky-400 font-bold" id="fs-timer-label">Таймер смены / Фазы</div>
+            <div id="fs-timer-display" class="font-mono font-black text-7xl sm:text-9xl text-white tracking-wider drop-shadow-[0_0_50px_rgba(56,189,248,0.4)]">
+                00:25:00
+            </div>
+            <div class="text-lg text-amber-400 font-bold mt-2" id="fs-timer-phase-desc">Фаза: Мотор / Рабочий дубль</div>
+            <div class="flex items-center justify-center space-x-4 pt-6">
+                <button onclick="startTimer()" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-lg transition flex items-center space-x-2 shadow-lg shadow-emerald-600/30">
+                    <i class="fa-solid fa-play"></i><span>Старт</span>
+                </button>
+                <button onclick="pauseTimer()" class="px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-lg transition flex items-center space-x-2 shadow-lg shadow-amber-600/30">
+                    <i class="fa-solid fa-pause"></i><span>Пауза</span>
+                </button>
+                <button onclick="resetTimer()" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-lg transition flex items-center space-x-2 border border-slate-700 shadow-lg">
+                    <i class="fa-solid fa-rotate-right"></i><span>Сброс</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer Actions -->
     <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 text-center text-xs text-slate-500 no-print flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>Call Sheet & Stage Manager Pro &bull; Московская область</div>
@@ -628,6 +769,18 @@
 
     <!-- JavaScript Application Logic -->
     <script>
+        let tg = window.Telegram?.WebApp;
+        if (tg && tg.initData) {
+            tg.ready();
+            tg.expand();
+            if (tg.colorScheme === 'light') {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+                const themeIcon = document.getElementById('theme-icon');
+                if (themeIcon) themeIcon.className = "fa-solid fa-moon";
+            }
+        }
+
         const venuesDatabase = [
             { id: "artmasters-office", name: "Офис АНО «АртМастерс»", address: "Москва, улица Мясницкая, 17 стр. 1", metro: "Метро «Лубянка» / «Чистые пруды»", bus: "Центр города", lat: 55.7618, lon: 37.6338 },
             { id: "artmasters-warehouse", name: "Склад АНО «АртМастерс»", address: "Москва, Автомобильный проезд, 10 с. 5", metro: "МЦК «Угрешская» / Метро «Волгоградский проспект»", bus: "Автобусы по ЮВАО", lat: 55.7171, lon: 37.6912 },
@@ -642,7 +795,7 @@
             metaDay: "СЪЕМОЧНЫЙ ДЕНЬ #04",
             metaProject: "Проект «Аврора» (Смена 12)",
             metaDate: "2026-10-27",
-            metaVersion: "Rev. 2.4",
+            metaVersion: "Rev. 2.7",
             generalCallTime: "07:30",
             generalCallDate: "2026-10-27",
             generalCallDesc: "Получение раций, инструктаж по ТБ, проверка пропусков на КПП",
@@ -734,10 +887,160 @@
         let markerInstance = null;
         let currentLat = 55.7618;
         let currentLon = 37.6338;
-        let currentWeatherMode = 'day';
         let widgetSunLights = [];
 
-        // Функция генерации анимации осадков (дождь/снег)
+        // Логика таймера
+        let timerTotalSeconds = 1500; // 25 минут по умолчанию (Мотор)
+        let timerRemainingSeconds = 1500;
+        let timerInterval = null;
+        let isTimerRunning = false;
+        let currentPhaseName = "Фаза: Мотор / Рабочий дубль";
+
+        function updateTimerDisplay() {
+            const h = Math.floor(timerRemainingSeconds / 3600);
+            const m = Math.floor((timerRemainingSeconds % 3600) / 60);
+            const s = timerRemainingSeconds % 60;
+            const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            
+            const display = document.getElementById('timer-display');
+            const fsDisplay = document.getElementById('fs-timer-display');
+            if (display) display.innerText = timeStr;
+            if (fsDisplay) fsDisplay.innerText = timeStr;
+        }
+
+        function startTimer() {
+            if (isTimerRunning) return;
+            if (timerRemainingSeconds <= 0) timerRemainingSeconds = timerTotalSeconds;
+            isTimerRunning = true;
+            document.getElementById('timer-active-badge')?.classList.remove('hidden');
+
+            timerInterval = setInterval(() => {
+                if (timerRemainingSeconds > 0) {
+                    timerRemainingSeconds--;
+                    updateTimerDisplay();
+                } else {
+                    pauseTimer();
+                    alert('⏰ Время таймера смены истекло!');
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isTimerRunning = false;
+            clearInterval(timerInterval);
+            document.getElementById('timer-active-badge')?.classList.add('hidden');
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timerRemainingSeconds = timerTotalSeconds;
+            updateTimerDisplay();
+        }
+
+        function setTimerPreset(mins, secs = 0) {
+            pauseTimer();
+            timerTotalSeconds = (mins * 60) + secs;
+            timerRemainingSeconds = timerTotalSeconds;
+            
+            document.getElementById('input-hours').value = String(Math.floor(mins / 60)).padStart(2, '0');
+            document.getElementById('input-mins').value = String(mins % 60).padStart(2, '0');
+            document.getElementById('input-secs').value = String(secs).padStart(2, '0');
+            
+            updateTimerDisplay();
+        }
+
+        function setCustomTimerFromInputs() {
+            const h = parseInt(document.getElementById('input-hours').value) || 0;
+            const m = parseInt(document.getElementById('input-mins').value) || 0;
+            const s = parseInt(document.getElementById('input-secs').value) || 0;
+            
+            pauseTimer();
+            timerTotalSeconds = (h * 3600) + (m * 60) + s;
+            timerRemainingSeconds = timerTotalSeconds;
+            updateTimerDisplay();
+        }
+
+        // Управление фазами таймера
+        function setTimerPhase(phaseType) {
+            pauseTimer();
+            
+            const prepBtn = document.getElementById('phase-prep-btn');
+            const workBtn = document.getElementById('phase-work-btn');
+            const breakBtn = document.getElementById('phase-break-btn');
+            
+            if (prepBtn) prepBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition";
+            if (workBtn) workBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition";
+            if (breakBtn) breakBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition";
+
+            let mins = 25;
+            if (phaseType === 'prep') {
+                mins = 5;
+                currentPhaseName = "Фаза: Подготовка / Расстановка света";
+                if (prepBtn) prepBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-slate-950 transition shadow";
+            } else if (phaseType === 'work') {
+                mins = 25;
+                currentPhaseName = "Фаза: Мотор / Рабочий дубль";
+                if (workBtn) workBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-sky-600 text-white transition shadow";
+            } else if (phaseType === 'break') {
+                mins = 5;
+                currentPhaseName = "Фаза: Технический перерыв / Переход";
+                if (breakBtn) breakBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white transition shadow";
+            }
+
+            setTimerPreset(mins, 0);
+            
+            const modeDesc = document.getElementById('timer-mode-desc');
+            const fsDesc = document.getElementById('fs-timer-phase-desc');
+            if (modeDesc) modeDesc.innerText = currentPhaseName;
+            if (fsDesc) fsDesc.innerText = currentPhaseName;
+        }
+
+        function openTimerFullscreen() {
+            document.getElementById('timer-fullscreen-modal')?.classList.remove('hidden');
+        }
+
+        function closeTimerFullscreen() {
+            document.getElementById('timer-fullscreen-modal')?.classList.add('hidden');
+        }
+
+        function toggleThemeMode() {
+            const htmlEl = document.documentElement;
+            const themeIcon = document.getElementById('theme-icon');
+            if (htmlEl.classList.contains('dark')) {
+                htmlEl.classList.remove('dark');
+                htmlEl.classList.add('light');
+                if (themeIcon) themeIcon.className = "fa-solid fa-moon";
+            } else {
+                htmlEl.classList.remove('light');
+                htmlEl.classList.add('dark');
+                if (themeIcon) themeIcon.className = "fa-solid fa-sun";
+            }
+        }
+
+        function exportPDF() {
+            const element = document.getElementById('pdf-export-container');
+            const opt = {
+                margin:       10,
+                filename:     `Call_Sheet_${document.getElementById('meta-date-picker')?.value || 'shift'}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            const wasDark = document.documentElement.classList.contains('dark');
+            if (wasDark) {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+            }
+
+            html2pdf().from(element).set(opt).save().then(() => {
+                if (wasDark) {
+                    document.documentElement.classList.remove('light');
+                    document.documentElement.classList.add('dark');
+                }
+            });
+        }
+
         function initPrecipitationEffect(type = 'rain') {
             const container = document.getElementById('precipitation-container');
             if (!container) return;
@@ -908,11 +1211,21 @@
             }
         });
 
-        function setWeatherMode(mode) {
-            currentWeatherMode = mode;
+        // Автоматическое определение режима погоды по текущему часу (День / Вечер / Ночь)
+        function autoUpdateWeatherModeByTime(currentHour) {
+            let targetMode = 'day';
+            if (currentHour >= 18 && currentHour < 21) {
+                targetMode = 'evening'; // Золотой час / сумерки
+            } else if (currentHour >= 21 || currentHour < 6) {
+                targetMode = 'night'; // Ночь
+            } else {
+                targetMode = 'day'; // День
+            }
+            applyWeatherThemeVisuals(targetMode);
+        }
+
+        function applyWeatherThemeVisuals(mode) {
             const banner = document.getElementById('cinematic-banner');
-            const btnDay = document.getElementById('btn-day');
-            const btnNight = document.getElementById('btn-night');
             const headerCelestial = document.getElementById('header-celestial-container');
             const bannerCelestial = document.getElementById('banner-celestial-container');
             const coronaBg = document.getElementById('corona-bg');
@@ -922,32 +1235,43 @@
             const conditionMain = document.getElementById('condition-main');
             const moonControlsPanel = document.getElementById('moon-controls-panel');
 
+            if (!banner) return;
+
             if (mode === 'day') {
                 banner.className = "banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 backdrop-blur-md transition-all duration-500";
-                btnDay.className = "px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-400 text-slate-950 transition shadow";
-                btnNight.className = "px-2 py-0.5 rounded-lg text-[10px] font-bold text-slate-300 transition hover:text-white";
-                coronaBg.className = "absolute -top-10 -right-10 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl transition-all duration-500";
-                headerIconBox.className = "w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-400 text-sm shadow-inner transition-all duration-500";
-                headerMainIcon.className = "fa-solid fa-cloud-sun";
-                bannerTitleText.innerText = "Режимный свет / Золотой час";
-                conditionMain.innerText = "Солнечно с плывущими объемными облаками";
-                moonControlsPanel.classList.add('hidden');
+                if (coronaBg) coronaBg.className = "absolute -top-10 -right-10 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl transition-all duration-500";
+                if (headerIconBox) headerIconBox.className = "w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-400 text-sm shadow-inner transition-all duration-500";
+                if (headerMainIcon) headerMainIcon.className = "fa-solid fa-cloud-sun";
+                if (bannerTitleText) bannerTitleText.innerText = "Режимный свет / Золотой час";
+                if (conditionMain) conditionMain.innerText = "Солнечно с плывущими объемными облаками";
+                if (moonControlsPanel) moonControlsPanel.classList.add('hidden');
 
-                headerCelestial.innerHTML = '<div class="photorealistic-sun"></div>';
-                bannerCelestial.innerHTML = '<div class="photorealistic-sun"></div>';
+                if (headerCelestial) headerCelestial.innerHTML = '<div class="photorealistic-sun"></div>';
+                if (bannerCelestial) bannerCelestial.innerHTML = '<div class="photorealistic-sun"></div>';
+
+            } else if (mode === 'evening') {
+                banner.className = "banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 backdrop-blur-md transition-all duration-500";
+                if (coronaBg) coronaBg.className = "absolute -top-10 -right-10 w-48 h-48 bg-orange-500/25 rounded-full blur-3xl transition-all duration-500";
+                if (headerIconBox) headerIconBox.className = "w-9 h-9 rounded-xl bg-orange-500/15 border border-orange-500/40 flex items-center justify-center text-orange-400 text-sm shadow-inner transition-all duration-500";
+                if (headerMainIcon) headerMainIcon.className = "fa-solid fa-sunset";
+                if (bannerTitleText) bannerTitleText.innerText = "Вечерний золотой час / Закат";
+                if (conditionMain) conditionMain.innerText = "Режимное вечернее освещение, закат";
+                if (moonControlsPanel) moonControlsPanel.classList.add('hidden');
+
+                if (headerCelestial) headerCelestial.innerHTML = '<div class="photorealistic-sun" style="background: radial-gradient(circle, #f97316 0%, #c2410c 70%);"></div>';
+                if (bannerCelestial) bannerCelestial.innerHTML = '<div class="photorealistic-sun" style="background: radial-gradient(circle, #f97316 0%, #c2410c 70%);"></div>';
+
             } else {
                 banner.className = "banner-night p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 backdrop-blur-md transition-all duration-500";
-                btnDay.className = "px-2 py-0.5 rounded-lg text-[10px] font-bold text-slate-300 transition hover:text-white";
-                btnNight.className = "px-2 py-0.5 rounded-lg text-[10px] font-bold bg-indigo-500 text-white transition shadow";
-                coronaBg.className = "absolute -top-10 -right-10 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl transition-all duration-500";
-                headerIconBox.className = "w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/40 flex items-center justify-center text-indigo-300 text-sm shadow-inner transition-all duration-500";
-                headerMainIcon.className = "fa-solid fa-cloud-moon";
-                bannerTitleText.innerText = "Ночная смена / Натура";
-                conditionMain.innerText = "Ясная ночь, лунное освещение";
-                moonControlsPanel.classList.remove('hidden');
+                if (coronaBg) coronaBg.className = "absolute -top-10 -right-10 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl transition-all duration-500";
+                if (headerIconBox) headerIconBox.className = "w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/40 flex items-center justify-center text-indigo-300 text-sm shadow-inner transition-all duration-500";
+                if (headerMainIcon) headerMainIcon.className = "fa-solid fa-cloud-moon";
+                if (bannerTitleText) bannerTitleText.innerText = "Ночная смена / Натура";
+                if (conditionMain) conditionMain.innerText = "Ясная ночь, лунное освещение";
+                if (moonControlsPanel) moonControlsPanel.classList.remove('hidden');
 
-                headerCelestial.innerHTML = '<div class="moon-canvas-container" id="moon-header-3d"></div>';
-                bannerCelestial.innerHTML = '<div class="moon-canvas-container" id="moon-banner-3d"></div>';
+                if (headerCelestial) headerCelestial.innerHTML = '<div class="moon-canvas-container" id="moon-header-3d"></div>';
+                if (bannerCelestial) bannerCelestial.innerHTML = '<div class="moon-canvas-container" id="moon-banner-3d"></div>';
 
                 widgetSunLights = [];
                 setTimeout(() => {
@@ -1072,9 +1396,56 @@
             }
         }
 
+        // Астрономический расчет рассвета, заката и светового дня по координатам и дате
+        function calculateSunTimesForDate(dateObj, lat, lon) {
+            const doy = (Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()) - Date.UTC(dateObj.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1000;
+            const rad = Math.PI / 180;
+            const decl = 23.44 * Math.sin(rad * (360 * (doy - 81) / 365));
+            const latRad = lat * rad;
+            const declRad = decl * rad;
+            const cosH = -Math.tan(latRad) * Math.tan(declRad);
+            
+            let H = 6;
+            if (cosH >= -1 && cosH <= 1) {
+                H = Math.acos(cosH) / (rad * 15);
+            } else if (cosH > 1) {
+                H = 0; // Полярная ночь
+            } else {
+                H = 12; // Полярный день
+            }
+
+            const tzOffset = 3; // UTC+3 (Москва)
+            const solarTransit = 12 - (lon / 15) + tzOffset;
+            
+            let riseDecimal = solarTransit - H;
+            let setDecimal = solarTransit + H;
+
+            function decimalToTime(dec) {
+                let norm = (dec + 24) % 24;
+                let h = Math.floor(norm);
+                let m = Math.floor((norm - h) * 60);
+                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            }
+
+            return {
+                rise: decimalToTime(riseDecimal),
+                set: decimalToTime(setDecimal)
+            };
+        }
+
         function calculateGoldenHours() {
-            const riseStr = document.getElementById('sun-rise')?.innerText.trim() || "07:25";
-            const setStr = document.getElementById('sun-set')?.innerText.trim() || "17:01";
+            const dateInputVal = document.getElementById('meta-date-picker')?.value;
+            const targetDate = dateInputVal ? new Date(dateInputVal) : new Date();
+            
+            const sunTimes = calculateSunTimesForDate(targetDate, currentLat, currentLon);
+            const sunRiseEl = document.getElementById('sun-rise');
+            const sunSetEl = document.getElementById('sun-set');
+
+            if (sunRiseEl) sunRiseEl.innerText = sunTimes.rise;
+            if (sunSetEl) sunSetEl.innerText = sunTimes.set;
+
+            const riseStr = sunTimes.rise;
+            const setStr = sunTimes.set;
 
             function timeToMinutes(tStr) {
                 const parts = tStr.split(':');
@@ -1113,7 +1484,7 @@
             const q = query.toLowerCase();
             const filtered = venuesDatabase.filter(v => v.name.toLowerCase().includes(q) || v.address.toLowerCase().includes(q));
             renderVenueDropdown(filtered);
-            document.getElementById('venue-dropdown-list')?.classList.remove('hidden');
+            document.getElementById('venue-dropdown-list')?.classList.add('hidden');
         }
 
         function renderVenueDropdown(list) {
@@ -1144,6 +1515,7 @@
             document.getElementById('venue-dropdown-list')?.classList.add('hidden');
             const searchInput = document.getElementById('venue-search-input');
             if (searchInput) searchInput.value = '';
+            calculateGoldenHours();
             saveChanges();
         }
 
@@ -1158,6 +1530,7 @@
                     document.getElementById('venue-dropdown-list')?.classList.add('hidden');
                     event.target.value = '';
                     initMiniMap(currentLat, currentLon);
+                    calculateGoldenHours();
                     saveChanges();
                 }
             }
@@ -1292,6 +1665,7 @@
             const timeDisplay = document.getElementById('currentTimeDisplay');
             if (timeDisplay) timeDisplay.textContent = timeStr;
 
+            autoUpdateWeatherModeByTime(hours);
             highlightHourlyForecast(hours);
 
             const dayProgress = minutesOfDay / 1440;
@@ -1340,61 +1714,76 @@
 
         async function fetchWeatherData() {
             try {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=55.7558&longitude=37.6173&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,surface_pressure,precipitation,weather_code&timezone=Europe%2FMoscow`;
+                const dateInputVal = document.getElementById('meta-date-picker')?.value;
+                const targetDateStr = dateInputVal || new Date().toISOString().split('T')[0];
+
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,surface_pressure,precipitation,weather_code&start_date=${targetDateStr}&end_date=${targetDateStr}&timezone=Europe%2FMoscow`;
+                
                 const response = await fetch(url);
                 const data = await response.json();
                 
+                let curTemp = +7;
+                let curAppTemp = +3;
+                let curWind = 6.9;
+                let curHum = 40;
+                let curPress = 761;
+                let curPrecip = 0;
+                let curCode = 0;
+
                 if (data && data.current) {
-                    const temp = Math.round(data.current.temperature_2m);
-                    const appTemp = Math.round(data.current.apparent_temperature);
-                    const wind = data.current.wind_speed_10m || 6.9;
-                    const humidity = data.current.relative_humidity_2m || 40;
-                    const pressure = data.current.surface_pressure ? Math.round(data.current.surface_pressure * 0.75006) : 761;
-                    const precipitation = data.current.precipitation || 0;
-                    const weatherCode = data.current.weather_code || 0;
-
-                    const tempMain = document.getElementById('temp-main');
-                    const tempFeel = document.getElementById('temp-feel');
-                    const windVal = document.getElementById('wind-val');
-                    const humidityVal = document.getElementById('humidity-val');
-                    const pressureVal = document.getElementById('pressure-val');
-                    const conditionMain = document.getElementById('condition-main');
-
-                    if (tempMain) tempMain.innerText = `+${temp}°C`;
-                    if (tempFeel) tempFeel.innerText = `Ощущается как +${appTemp}°`;
-                    if (windVal) windVal.innerText = `${wind} м/с`;
-                    if (humidityVal) humidityVal.innerText = `${humidity}%`;
-                    if (pressureVal) pressureVal.innerText = `${pressure} мм`;
-
-                    let conditionText = "Ясно и солнечно";
-                    let isRainingOrSnowing = false;
-
-                    if (weatherCode >= 50 && weatherCode <= 67) {
-                        conditionText = "Идет дождь";
-                        isRainingOrSnowing = true;
-                    } else if (weatherCode >= 70 && weatherCode <= 77) {
-                        conditionText = "Идет снег";
-                        isRainingOrSnowing = true;
-                    } else if (weatherCode >= 1 && weatherCode <= 3) {
-                        conditionText = "Облачно с прояснениями";
-                    } else if (precipitation > 0) {
-                        conditionText = "Осадки";
-                        isRainingOrSnowing = true;
-                    }
-
-                    if (conditionMain) conditionMain.innerText = conditionText;
-
-                    const precipContainer = document.getElementById('precipitation-container');
-                    if (precipContainer) {
-                        if (isRainingOrSnowing) {
-                            initPrecipitationEffect(temp <= 0 ? 'snow' : 'rain');
-                        } else {
-                            precipContainer.innerHTML = '';
-                        }
-                    }
-
-                    checkStormAlert(wind);
+                    curTemp = Math.round(data.current.temperature_2m);
+                    curAppTemp = Math.round(data.current.apparent_temperature);
+                    curWind = data.current.wind_speed_10m || 6.9;
+                    curHum = data.current.relative_humidity_2m || 40;
+                    curPress = data.current.surface_pressure ? Math.round(data.current.surface_pressure * 0.75006) : 761;
+                    curPrecip = data.current.precipitation || 0;
+                    curCode = data.current.weather_code || 0;
+                } else if (data && data.daily) {
+                    // Fallback если запрашиваемая дата архивные или прогнозные сутки
+                    curTemp = Math.round(data.daily.temperature_2m_max?.[0] || 7);
                 }
+
+                const tempMain = document.getElementById('temp-main');
+                const tempFeel = document.getElementById('temp-feel');
+                const windVal = document.getElementById('wind-val');
+                const humidityVal = document.getElementById('humidity-val');
+                const pressureVal = document.getElementById('pressure-val');
+                const conditionMain = document.getElementById('condition-main');
+
+                if (tempMain) tempMain.innerText = `+${curTemp}°C`;
+                if (tempFeel) tempFeel.innerText = `Ощущается как +${curAppTemp}°`;
+                if (windVal) windVal.innerText = `${curWind} м/с`;
+                if (humidityVal) humidityVal.innerText = `${curHum}%`;
+                if (pressureVal) pressureVal.innerText = `${curPress} мм`;
+
+                let conditionText = "Ясно и солнечно";
+                let isRainingOrSnowing = false;
+
+                if (curCode >= 50 && curCode <= 67) {
+                    conditionText = "Идет дождь";
+                    isRainingOrSnowing = true;
+                } else if (curCode >= 70 && curCode <= 77) {
+                    conditionText = "Идет снег";
+                    isRainingOrSnowing = true;
+                } else if (curCode >= 1 && curCode <= 3) {
+                    conditionText = "Облачно с прояснениями";
+                } else if (curPrecip > 0) {
+                    conditionText = "Осадки";
+                    isRainingOrSnowing = true;
+                }
+
+                if (conditionMain) conditionMain.innerText = conditionText;
+
+                const precipContainer = document.getElementById('precipitation-container');
+                if (precipContainer) {
+                    if (isRainingOrSnowing) {
+                        initPrecipitationEffect(curTemp <= 0 ? 'snow' : 'rain');
+                    } else {
+                        precipContainer.innerHTML = '';
+                    }
+                }
+
+                checkStormAlert(curWind);
             } catch (err) {
                 console.error('Ошибка получения погоды:', err);
             }
@@ -1430,6 +1819,7 @@
             initMiniMap(data.lat, data.lon);
             calculateGoldenHours();
             updateSunLightPosition();
+            updateTimerDisplay();
         }
 
         function renderData(data) {
@@ -1453,7 +1843,18 @@
                 if (filmBtn) filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
                 if (theaterBtn) theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
                 if (weatherWidgetCard) weatherWidgetCard.style.display = 'flex';
-                if (spaceWidgetCard) spaceWidgetCard.style.display = 'flex';
+                if (spaceWidgetCard) {
+                    spaceWidgetCard.style.display = 'flex';
+                    setTimeout(() => {
+                        if (!rendererGlobe) init3DWidget();
+                        else {
+                            const container = document.getElementById('globeContainer');
+                            if (container && rendererGlobe) {
+                                rendererGlobe.setSize(container.clientWidth || 320, container.clientHeight || 160);
+                            }
+                        }
+                    }, 50);
+                }
             }
 
             const metaDay = document.getElementById('meta-day');
@@ -1474,11 +1875,6 @@
             if (generalTime) generalTime.value = data.generalCallTime || "07:30";
             if (generalDesc) generalDesc.innerText = data.generalCallDesc;
             
-            const sunRise = document.getElementById('sun-rise');
-            const sunSet = document.getElementById('sun-set');
-            if (sunRise) sunRise.innerText = data.sunRise;
-            if (sunSet) sunSet.innerText = data.sunSet;
-
             const locName = document.getElementById('location-name');
             const locAddr = document.getElementById('location-address');
             const locMetro = document.getElementById('location-metro');
@@ -1632,9 +2028,12 @@
 
         function updateDateFromPicker(input) {
             const generalDateInput = document.getElementById('general-call-date');
-            if (generalDateInput) generalDateInput.value = input.value;
+            if (generalDateInput && generalDateInput.value !== input.value) {
+                generalDateInput.value = input.value;
+            }
             saveChanges();
-            if (currentProductionType === 'film') fetchOnlineWeather();
+            if (currentProductionType === 'film') fetchWeatherData();
+            calculateGoldenHours();
             updateSunLightPosition();
         }
 
@@ -1759,7 +2158,6 @@
                 }
                 
                 if (generalCallTime) generalCallTime.removeAttribute('disabled');
-                if (generalCallDate) generalCallDate.removeAttribute('disabled');
                 if (generalCallHint) generalCallHint.style.display = 'none';
                 if (venueSearchContainer) venueSearchContainer.classList.remove('hidden');
 
@@ -1774,7 +2172,6 @@
                 }
 
                 if (generalCallTime) generalCallTime.setAttribute('disabled', 'true');
-                if (generalCallDate) generalCallDate.setAttribute('disabled', 'true');
                 if (generalCallHint) generalCallHint.style.display = 'inline';
                 if (venueSearchContainer) venueSearchContainer.classList.add('hidden');
 
@@ -1882,16 +2279,6 @@
             let d = collectDataFromDOM();
             d.contacts.splice(i, 1);
             renderData(d);
-        }
-
-        function exportJSON() {
-            const data = collectDataFromDOM();
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `stage_sheet_${data.metaDate}.json`;
-            a.click();
         }
 
         window.onload = function() {
