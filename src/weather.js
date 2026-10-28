@@ -61,7 +61,7 @@ export function initWidgetMoon(containerElement) {
     const cameraMoon = new THREE.PerspectiveCamera(50, width / height, 0.1, 3000);
     cameraMoon.position.set(0, 0, 2.4);
 
-    const rendererMoon = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    const rendererMoon = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance", alpha: true });
     rendererMoon.setSize(width, height);
     rendererMoon.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     containerElement.appendChild(rendererMoon.domElement);
@@ -71,7 +71,8 @@ export function initWidgetMoon(containerElement) {
     controlsMoon.dampingFactor = 0.04;
     controlsMoon.enableZoom = false;
 
-    const starsCount = 4000;
+    // Звездный фон вокруг мини-луны
+    const starsCount = 2000;
     const starsGeo = new THREE.BufferGeometry();
     const starsPos = new Float32Array(starsCount * 3);
     const starsCols = new Float32Array(starsCount * 3);
@@ -81,20 +82,20 @@ export function initWidgetMoon(containerElement) {
         const v = Math.random();
         const theta = u * 2.0 * Math.PI;
         const phi = Math.acos(2.0 * v - 1.0);
-        const r = 1000 + Math.random() * 1500;
+        const r = 800 + Math.random() * 1000;
 
         starsPos[i]     = r * Math.sin(phi) * Math.cos(theta);
         starsPos[i + 1] = r * Math.sin(phi) * Math.sin(theta);
         starsPos[i + 2] = r * Math.cos(phi);
 
-        starsCols[i] = 1.2; starsCols[i+1] = 1.2; starsCols[i+2] = 1.2;
+        starsCols[i] = 1.0; starsCols[i+1] = 1.0; starsCols[i+2] = 1.0;
     }
 
     starsGeo.setAttribute('position', new THREE.BufferAttribute(starsPos, 3));
     starsGeo.setAttribute('color', new THREE.BufferAttribute(starsCols, 3));
 
     const starsMat = new THREE.PointsMaterial({
-        size: 7.0,
+        size: 5.0,
         vertexColors: true,
         map: createStarTexture(),
         transparent: true,
@@ -105,20 +106,35 @@ export function initWidgetMoon(containerElement) {
     sceneMoon.add(new THREE.Points(starsGeo, starsMat));
 
     const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
-    const moonMat = new THREE.MeshStandardMaterial({ roughness: 0.85, metalness: 0.05, color: 0x888888 });
+    // Используем MeshStandardMaterial с красивым лунным серо-серебристым цветом на случай долгой загрузки текстуры
+    const moonMat = new THREE.MeshStandardMaterial({ 
+        roughness: 0.9, 
+        metalness: 0.1, 
+        color: 0xcccccc 
+    });
     const moonMesh = new THREE.Mesh(sphereGeo, moonMat);
     moonMesh.rotation.z = THREE.MathUtils.degToRad(1.54);
     sceneMoon.add(moonMesh);
 
-    new THREE.TextureLoader().load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg', (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        moonMat.map = texture;
-        moonMat.needsUpdate = true;
-    });
+    // Загрузка текстуры луны с надежного CDN
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.setCrossOrigin('anonymous');
+    textureLoader.load(
+        'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/textures/planets/moon_1024.jpg', 
+        (texture) => {
+            texture.colorSpace = THREE.SRGBColorSpace;
+            moonMat.map = texture;
+            moonMat.needsUpdate = true;
+        },
+        undefined,
+        (err) => {
+            console.warn('Не удалось загрузить текстуру луны, используется процедурный материал:', err);
+        }
+    );
 
-    const sunLightMoon = new THREE.DirectionalLight(0xfff8ee, 1.9);
+    const sunLightMoon = new THREE.DirectionalLight(0xfff8ee, 2.2);
     sceneMoon.add(sunLightMoon);
-    sceneMoon.add(new THREE.AmbientLight(0x1a2b4c, 0.35));
+    sceneMoon.add(new THREE.AmbientLight(0x1a2b4c, 0.4));
 
     widgetSunLights.push({ light: sunLightMoon, containerId: containerElement.id });
     updateSunLightPosition();
@@ -126,7 +142,7 @@ export function initWidgetMoon(containerElement) {
     const clock = new THREE.Clock();
     function animateMoon() {
         requestAnimationFrame(animateMoon);
-        moonMesh.rotation.y = clock.getElapsedTime() * 0.03;
+        moonMesh.rotation.y = clock.getElapsedTime() * 0.02;
         controlsMoon.update();
         rendererMoon.render(sceneMoon, cameraMoon);
     }
@@ -147,9 +163,11 @@ export function updateSunLightPosition(overrideAngle = null) {
     const distance = 8;
 
     widgetSunLights.forEach(item => {
-        item.light.position.x = Math.sin(angleRad) * distance;
-        item.light.position.z = Math.cos(angleRad) * distance;
-        item.light.position.y = 1.5;
+        if (item.light) {
+            item.light.position.x = Math.sin(angleRad) * distance;
+            item.light.position.z = Math.cos(angleRad) * distance;
+            item.light.position.y = 1.5;
+        }
     });
 
     const phaseLabel = document.getElementById('phase-label');
@@ -165,6 +183,13 @@ export function updateSunLightPosition(overrideAngle = null) {
         else phaseLabel.innerText = "Убывающий серп 🌘";
     }
 }
+
+// Слушатель событий для интерактивного ползунка фазы луны
+document.addEventListener('input', (e) => {
+    if (e.target && e.target.id === 'moon-phase-slider') {
+        updateSunLightPosition(parseFloat(e.target.value));
+    }
+});
 
 export function autoUpdateWeatherModeByTime(currentHour) {
     let targetMode = 'day';
@@ -231,7 +256,7 @@ export function applyWeatherThemeVisuals(mode) {
         setTimeout(() => {
             initWidgetMoon(document.getElementById('moon-header-3d'));
             initWidgetMoon(document.getElementById('moon-banner-3d'));
-        }, 40);
+        }, 50);
     }
 }
 
