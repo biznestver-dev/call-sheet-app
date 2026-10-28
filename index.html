@@ -127,7 +127,6 @@
             filter: none !important;
         }
 
-        /* Анимация осадков (дождь/снег) */
         @keyframes fallRain {
             0% { transform: translateY(-20px); opacity: 0; }
             20% { opacity: 0.8; }
@@ -212,22 +211,6 @@
             50% { transform: scale(1.08); filter: drop-shadow(0 0 28px rgba(245, 158, 11, 0.98)); }
         }
 
-        .moon-canvas-container {
-            width: 55px;
-            height: 55px;
-            min-width: 55px;
-            min-height: 55px;
-            position: relative;
-            border-radius: 50%;
-            overflow: hidden;
-            background: transparent;
-            cursor: grab;
-            flex-shrink: 0;
-        }
-        .moon-canvas-container:active {
-            cursor: grabbing;
-        }
-
         .banner-day {
             background: linear-gradient(135deg, rgba(217, 119, 6, 0.88) 0%, rgba(180, 83, 9, 0.92) 50%, rgba(146, 64, 14, 0.95) 100%);
             border-color: rgba(251, 191, 36, 0.8);
@@ -302,7 +285,6 @@
                     <button onclick="setProductionType('theater')" id="type-theater-btn" class="px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white">Театр</button>
                 </div>
 
-                <!-- Кнопка смены темы (Темная / Светлая) -->
                 <button onclick="toggleThemeMode()" id="theme-mode-btn" class="p-2 rounded-lg bg-slate-800 border border-slate-700 text-amber-400 hover:bg-slate-700 text-sm transition" title="Переключить тему">
                     <i class="fa-solid fa-sun" id="theme-icon"></i>
                 </button>
@@ -325,7 +307,7 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6" id="pdf-export-container">
 
-        <!-- Топ-панель: Интерактивный таймер смены с фазами -->
+        <!-- Топ-панель: Таймер смены -->
         <div class="bg-gradient-to-r from-sky-600/20 via-slate-900 to-slate-900 border border-sky-500/40 rounded-xl p-4 sm:p-5 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div class="flex items-start space-x-4">
                 <div class="w-12 h-12 rounded-xl bg-sky-500 text-slate-950 flex items-center justify-center font-black text-xl shrink-0 shadow-md">
@@ -333,18 +315,15 @@
                 </div>
                 <div>
                     <div class="text-xs uppercase tracking-wider text-sky-400 font-bold flex items-center space-x-2">
-                        <span id="timer-status-title">Таймер смены / Фазы</span>
+                        <span>Таймер смены / Фазы</span>
                         <span id="timer-active-badge" class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 text-[10px] font-mono hidden">АКТИВЕН</span>
                     </div>
                     <div class="flex items-center space-x-3 mt-1 flex-wrap gap-y-2">
-                        <!-- Цифровое табло таймера -->
                         <div id="timer-display" class="bg-slate-950 text-sky-400 font-mono font-black text-3xl sm:text-4xl px-4 py-1.5 rounded-lg border border-sky-500/30 tracking-wider shadow-inner">
                             00:25:00
                         </div>
-                        
-                        <!-- Кнопки управления таймером -->
                         <div class="flex items-center space-x-1.5 no-print">
-                            <button onclick="startTimer()" id="timer-start-btn" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center space-x-1 shadow">
+                            <button onclick="startTimer()" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center space-x-1 shadow">
                                 <i class="fa-solid fa-play"></i><span>Старт</span>
                             </button>
                             <button onclick="pauseTimer()" class="px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition flex items-center space-x-1 shadow">
@@ -359,43 +338,32 @@
                         </div>
                     </div>
 
-                    <!-- Переключатель фаз таймера -->
-                    <div class="flex items-center space-x-1.5 mt-2.5 flex-wrap gap-y-1.5 no-print" id="timer-phases-container">
+                    <div class="flex items-center space-x-1.5 mt-2.5 flex-wrap gap-y-1.5 no-print">
                         <span class="text-[10px] uppercase font-bold text-slate-400">Фаза:</span>
                         <button onclick="setTimerPhase('prep')" id="phase-prep-btn" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition">Подготовка (5 мин)</button>
                         <button onclick="setTimerPhase('work')" id="phase-work-btn" class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-600 text-white transition shadow">Мотор / Съемка (25 мин)</button>
                         <button onclick="setTimerPhase('break')" id="phase-break-btn" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition">Перерыв (5 мин)</button>
                     </div>
-
                     <p class="text-xs text-slate-300 mt-1.5" id="timer-mode-desc">Фаза: Мотор / Рабочий дубль</p>
                 </div>
             </div>
 
-            <!-- Настройка таймера (Интервалы и кастомное время) -->
             <div class="flex flex-col justify-center border-t lg:border-t-0 lg:border-l border-slate-800 pt-3 lg:pt-0 lg:pl-6 no-print space-y-2.5">
                 <div class="flex items-center space-x-2">
                     <span class="text-xs text-slate-400 font-semibold">Установка времени:</span>
                     <div class="flex items-center space-x-1 text-xs">
-                        <input type="number" id="input-hours" min="0" max="23" value="00" class="w-12 bg-slate-800 text-center text-white font-mono font-bold py-1 rounded border border-slate-700 outline-none focus:border-sky-500" placeholder="Ч">
+                        <input type="number" id="input-hours" min="0" max="23" value="00" class="w-12 bg-slate-800 text-center text-white font-mono font-bold py-1 rounded border border-slate-700 outline-none focus:border-sky-500">
                         <span class="text-slate-500">:</span>
-                        <input type="number" id="input-mins" min="0" max="59" value="25" class="w-12 bg-slate-800 text-center text-white font-mono font-bold py-1 rounded border border-slate-700 outline-none focus:border-sky-500" placeholder="М">
+                        <input type="number" id="input-mins" min="0" max="59" value="25" class="w-12 bg-slate-800 text-center text-white font-mono font-bold py-1 rounded border border-slate-700 outline-none focus:border-sky-500">
                         <span class="text-slate-500">:</span>
-                        <input type="number" id="input-secs" min="0" max="59" value="00" class="w-12 bg-slate-800 text-center text-white font-mono font-bold py-1 rounded border border-slate-700 outline-none focus:border-sky-500" placeholder="С">
+                        <input type="number" id="input-secs" min="0" max="59" value="00" class="w-12 bg-slate-800 text-center text-white font-mono font-bold py-1 rounded border border-slate-700 outline-none focus:border-sky-500">
                         <button onclick="setCustomTimerFromInputs()" class="px-2.5 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded font-bold transition ml-1">Задать</button>
                     </div>
-                </div>
-
-                <div class="flex items-center space-x-1.5 flex-wrap gap-y-1.5">
-                    <span class="text-[10px] uppercase font-bold text-slate-400">Быстро:</span>
-                    <button onclick="setTimerPreset(1, 0)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 rounded text-[11px] font-mono transition">1 мин</button>
-                    <button onclick="setTimerPreset(5, 0)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 rounded text-[11px] font-mono transition">5 мин</button>
-                    <button onclick="setTimerPreset(15, 0)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 rounded text-[11px] font-mono transition">15 мин</button>
-                    <button onclick="setTimerPreset(30, 0)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 rounded text-[11px] font-mono transition">30 мин</button>
                 </div>
             </div>
         </div>
 
-        <!-- Top Alert / General Call Banner with Date & Readiness Progress -->
+        <!-- Баннер общего сбора и готовности -->
         <div class="bg-gradient-to-r from-amber-500/20 via-slate-900 to-slate-900 border border-amber-500/40 rounded-xl p-4 sm:p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-start space-x-4">
                 <div class="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shrink-0 shadow-md">
@@ -404,22 +372,16 @@
                 <div>
                     <div class="text-xs uppercase tracking-wider text-amber-400 font-bold" id="general-call-title-label">Общий сбор группы (General Crew Call)</div>
                     <div class="flex items-center space-x-3 mt-1 flex-wrap gap-y-2">
-                        <!-- Время сбора -->
                         <input type="time" id="general-call-time" onchange="saveChanges()" class="bg-slate-800/80 text-white font-black text-2xl sm:text-3xl px-3 py-1 rounded-lg border border-slate-700 outline-none focus:border-amber-500 tracking-tight" disabled>
-                        
-                        <!-- Дата сбора на главной странице (прямая синхронизация всех виджетов) -->
                         <input type="date" id="general-call-date" onchange="syncGeneralDate(this)" class="bg-slate-800 text-amber-400 font-bold text-sm sm:text-base px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500 cursor-pointer shadow-sm hover:border-amber-500 transition">
-                        
-                        <span class="text-xs text-slate-400 hidden sm:inline" id="general-call-hint">(Измените дату для актуализации погоды и астрономии)</span>
+                        <span class="text-xs text-slate-400 hidden sm:inline" id="general-call-hint">(Измените дату для актуализации погоды)</span>
                     </div>
                     <p class="text-xs sm:text-sm text-slate-300 mt-1.5 editable-field" contenteditable="false" id="general-call-desc">Получение раций, инструктаж по ТБ, проверка пропусков на КПП</p>
                 </div>
             </div>
 
             <div class="flex flex-col items-end justify-center border-t md:border-t-0 md:border-l border-slate-800 pt-3 md:pt-0 md:pl-6 min-w-[200px]">
-                <div class="hidden">
-                    <input type="date" id="meta-date-picker" onchange="updateDateFromPicker(this)">
-                </div>
+                <div class="hidden"><input type="date" id="meta-date-picker" onchange="updateDateFromPicker(this)"></div>
                 <div class="flex items-center justify-between w-full text-xs text-slate-300 mb-1.5 font-semibold">
                     <span id="readiness-label-title">Готовность смены:</span>
                     <span id="readiness-percent" class="text-amber-400 font-mono font-bold">0%</span>
@@ -431,222 +393,117 @@
             </div>
         </div>
 
-        <!-- Grid: Weather & Atmosphere & Location -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" id="top-widgets-grid">
-            
+        <!-- Виджеты погоды, 3D и локации -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500 flex flex-col justify-between" id="weather-widget-card">
-                <!-- Контейнер для анимации осадков (дождь/снег) -->
                 <div class="absolute inset-0 overflow-hidden pointer-events-none z-0" id="precipitation-container"></div>
-
-                <div class="absolute inset-0 overflow-hidden pointer-events-none z-0" id="sky-bg-container">
-                    <div class="absolute -top-10 -right-10 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl transition-all duration-500" id="corona-bg"></div>
-                    <div class="cloud-layer-1"></div>
-                    <div class="cloud-layer-2"></div>
-                </div>
-
                 <div class="flex items-center justify-between mb-4 relative z-10">
                     <div class="flex items-center space-x-2.5">
-                        <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-400 text-sm shadow-inner transition-all duration-500" id="header-icon-box">
-                            <i class="fa-solid fa-cloud-sun" id="header-main-icon"></i>
+                        <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-400 text-sm shadow-inner">
+                            <i class="fa-solid fa-cloud-sun"></i>
                         </div>
                         <div>
                             <span class="text-[10px] uppercase tracking-widest text-slate-400 font-semibold block">Москва &bull; Натура</span>
                             <h2 class="text-sm font-bold text-white font-outfit tracking-wide">FilmSet Meteo Pro</h2>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="fetchWeatherData()" class="no-print w-8 h-8 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center transition shadow-sm active:scale-95" title="Обновить погоду">
-                            <i class="fa-solid fa-arrows-rotate text-xs"></i>
-                        </button>
-                    </div>
+                    <button onclick="fetchWeatherData()" class="no-print w-8 h-8 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center transition">
+                        <i class="fa-solid fa-arrows-rotate text-xs"></i>
+                    </button>
                 </div>
-
-                <div class="bg-gradient-to-r from-white/[0.09] to-white/[0.02] p-4 rounded-2xl border border-white/10 relative z-10 flex items-center justify-between mb-3 backdrop-blur-md shadow-xl overflow-hidden">
-                    <div class="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-400/10 via-transparent to-transparent"></div>
-
-                    <div class="relative z-10">
+                <div class="bg-gradient-to-r from-white/[0.09] to-white/[0.02] p-4 rounded-2xl border border-white/10 relative z-10 flex items-center justify-between mb-3 backdrop-blur-md shadow-xl">
+                    <div>
                         <div class="flex items-baseline space-x-2">
                             <h1 class="text-3xl font-extrabold text-white font-outfit tracking-tight" id="temp-main">+7°C</h1>
-                            <span class="text-[11px] text-amber-400 font-medium px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 shadow-sm" id="temp-feel">Ощущается как +3°</span>
+                            <span class="text-[11px] text-amber-400 font-medium px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20" id="temp-feel">Ощущается как +3°</span>
                         </div>
-                        <p class="text-xs text-slate-300 font-medium mt-1" id="condition-main">Солнечно с плывущими объемными облаками</p>
-                    </div>
-                    <div class="relative w-14 h-14 flex items-center justify-center shrink-0 z-10" id="header-celestial-container">
-                        <div class="photorealistic-sun" id="header-celestial-body"></div>
+                        <p class="text-xs text-slate-300 font-medium mt-1" id="condition-main">Солнечно</p>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-3 gap-2 mb-3 relative z-10 text-center">
-                    <div class="bg-slate-950/60 p-2 rounded-xl border border-white/5 backdrop-blur-sm shadow-inner">
+                    <div class="bg-slate-950/60 p-2 rounded-xl border border-white/5">
                         <div class="text-sky-400 text-xs mb-0.5"><i class="fa-solid fa-wind"></i></div>
-                        <div class="text-[9px] text-slate-400 uppercase tracking-wider font-semibold">Ветер</div>
+                        <div class="text-[9px] text-slate-400 uppercase font-semibold">Ветер</div>
                         <div class="text-xs font-bold text-slate-200 mt-0.5 font-outfit" id="wind-val">6.9 м/с</div>
                     </div>
-                    <div class="bg-slate-950/60 p-2 rounded-xl border border-white/5 backdrop-blur-sm shadow-inner">
+                    <div class="bg-slate-950/60 p-2 rounded-xl border border-white/5">
                         <div class="text-sky-400 text-xs mb-0.5"><i class="fa-solid fa-droplet"></i></div>
-                        <div class="text-[9px] text-slate-400 uppercase tracking-wider font-semibold">Влажность</div>
+                        <div class="text-[9px] text-slate-400 uppercase font-semibold">Влажность</div>
                         <div class="text-xs font-bold text-slate-200 mt-0.5 font-outfit" id="humidity-val">40%</div>
                     </div>
-                    <div class="bg-slate-950/60 p-2 rounded-xl border border-white/5 backdrop-blur-sm shadow-inner">
+                    <div class="bg-slate-950/60 p-2 rounded-xl border border-white/5">
                         <div class="text-sky-400 text-xs mb-0.5"><i class="fa-solid fa-gauge-high"></i></div>
-                        <div class="text-[9px] text-slate-400 uppercase tracking-wider font-semibold">Давление</div>
+                        <div class="text-[9px] text-slate-400 uppercase font-semibold">Давление</div>
                         <div class="text-xs font-bold text-slate-200 mt-0.5 font-outfit" id="pressure-val">761 мм</div>
                     </div>
                 </div>
-
-                <div class="banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 backdrop-blur-md transition-all duration-500" id="cinematic-banner">
-                    <div class="absolute inset-0 pointer-events-none overflow-hidden opacity-90 z-10">
-                        <div class="wind-line top-2.5 w-32" style="animation-delay: 0s;"></div>
-                        <div class="wind-line top-8 w-44" style="animation-delay: 0.4s;"></div>
+                <div class="banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3" id="cinematic-banner">
+                    <div class="flex items-center space-x-2 mb-1">
+                        <i class="fa-solid fa-triangle-exclamation text-[10px] text-amber-100" id="banner-alert-icon"></i>
+                        <span class="text-[10px] uppercase font-black tracking-wider text-amber-100" id="banner-title-text">Режимный свет / Золотой час</span>
                     </div>
-
-                    <div class="flex items-center justify-between mb-2 relative z-20">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-6 h-6 rounded-xl bg-black/30 border border-white/30 flex items-center justify-center text-amber-200 shrink-0 shadow">
-                                <i class="fa-solid fa-triangle-exclamation text-[10px] animate-bounce" id="banner-alert-icon"></i>
-                            </div>
-                            <span class="text-[10px] uppercase font-black tracking-wider text-amber-100 drop-shadow-sm" id="banner-title-text">Режимный свет / Золотой час</span>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between relative z-20">
-                        <div class="text-[11px] text-white font-semibold pr-2 drop-shadow-sm leading-relaxed" id="cinematic-status-text">
-                            Внимание: порывистый ветер до 6.9 м/с, контроль приборов света!
-                        </div>
-                        
-                        <div class="shrink-0 relative flex items-center justify-center" id="banner-celestial-container">
-                            <div class="photorealistic-sun" id="header-celestial-body-banner"></div>
-                        </div>
-                    </div>
-
-                    <div id="moon-controls-panel" class="mt-2.5 pt-2.5 border-t border-white/20 relative z-20 hidden">
-                        <div class="flex justify-between text-[10px] text-white font-medium mb-1">
-                            <span id="phase-title">Фаза Луны (Реальное время)</span>
-                            <span id="phase-label" class="text-amber-300 font-bold">Вычисление...</span>
-                        </div>
-                        <input type="range" id="moon-phase-slider" min="0" max="360" value="0" class="w-full accent-amber-400 cursor-pointer bg-slate-900 h-2 rounded-lg">
-                    </div>
-                </div>
-
-                <div class="relative z-10">
-                    <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-1.5 flex items-center justify-between">
-                        <span>Почасовой трек смены</span>
-                        <span class="text-amber-400 font-normal">UTC+3</span>
-                    </div>
-                    <div class="grid grid-cols-8 gap-1 bg-slate-950/80 p-2 rounded-2xl border border-white/5 text-[9px] text-slate-300 text-center backdrop-blur-sm shadow-inner" id="hourly-forecast-grid">
-                        <div class="flex flex-col items-center opacity-70" data-hour="6"><span>06:00</span><i class="fa-solid fa-cloud-sun text-[10px] my-0.5 text-sky-400"></i><span class="font-bold">+3°</span></div>
-                        <div class="flex flex-col items-center opacity-70" data-hour="9"><span>09:00</span><i class="fa-solid fa-cloud text-[10px] my-0.5 text-slate-300"></i><span class="font-bold">+5°</span></div>
-                        <div class="flex flex-col items-center opacity-70" data-hour="12"><span>12:00</span><i class="fa-solid fa-cloud-sun text-[10px] my-0.5 text-sky-400"></i><span class="font-bold">+7°</span></div>
-                        <div class="flex flex-col items-center opacity-70" data-hour="15"><span>15:00</span><i class="fa-solid fa-cloud-rain text-[10px] my-0.5 text-sky-400"></i><span class="font-bold">+6°</span></div>
-                        <div class="flex flex-col items-center opacity-70" data-hour="18"><span>18:00</span><i class="fa-solid fa-cloud text-[10px] my-0.5 text-slate-400"></i><span class="font-bold">+4°</span></div>
-                        <div class="flex flex-col items-center opacity-70" data-hour="21"><span>21:00</span><i class="fa-solid fa-moon text-[10px] my-0.5 text-indigo-300"></i><span class="font-bold">+2°</span></div>
-                        <div class="flex flex-col items-center opacity-70" data-hour="0"><span>00:00</span><i class="fa-solid fa-moon text-[10px] my-0.5 text-indigo-300"></i><span class="font-bold">+1°</span></div>
-                        <div class="flex flex-col items-center opacity-70" data-hour="3"><span>03:00</span><i class="fa-solid fa-moon text-[10px] my-0.5 text-indigo-300"></i><span class="font-bold">0°</span></div>
-                    </div>
+                    <div class="text-[11px] text-white font-semibold" id="cinematic-status-text">Контроль приборов света!</div>
                 </div>
             </div>
 
-            <!-- 3D Realistic Earth & Space Widget -->
+            <!-- 3D Глобус -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between relative overflow-hidden" id="space-widget-card">
                 <div>
                     <div class="flex items-center justify-between mb-3">
                         <span class="text-xs uppercase tracking-wider text-slate-300 font-bold flex items-center space-x-1.5">
                             <i class="fa-solid fa-globe text-sky-400"></i>
-                            <span id="sky-status-title">Космический цикл и режимный свет</span>
+                            <span>Космический цикл</span>
                         </span>
-                        <span class="text-[10px] px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-medium" id="sky-phase-badge">3D Real-Time</span>
                     </div>
-
                     <div class="globe-container my-2" id="globeContainer"></div>
                 </div>
-
                 <div class="space-y-3">
-                    <div>
-                        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
-                            <span id="sliderTimeLabel">Прокрутка времени суток</span>
-                            <span class="font-mono text-amber-400 font-bold" id="currentTimeDisplay">11:41</span>
-                        </div>
-                        <input type="range" id="timeSlider" min="0" max="1440" value="701" step="1" class="no-print">
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 text-center">
-                        <div class="bg-amber-500/10 border border-amber-500/20 p-2 rounded-lg">
-                            <div class="text-[10px] uppercase font-bold text-amber-400 flex items-center justify-center space-x-1">
-                                <i class="fa-solid fa-sun text-amber-400"></i>
-                                <span>Золотой час (утро)</span>
-                            </div>
-                            <div class="text-xs font-mono font-bold text-slate-200 mt-1" id="morning-golden-hour">07:25 - 08:25</div>
-                        </div>
-                        <div class="bg-orange-500/10 border border-orange-500/20 p-2 rounded-lg">
-                            <div class="text-[10px] uppercase font-bold text-orange-400 flex items-center justify-center space-x-1">
-                                <i class="fa-solid fa-moon text-orange-400"></i>
-                                <span>Золотой час (вечер)</span>
-                            </div>
-                            <div class="text-xs font-mono font-bold text-slate-200 mt-1" id="evening-golden-hour">16:01 - 17:01</div>
-                        </div>
-                    </div>
-
                     <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800 text-center">
                         <div class="bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
-                            <div class="text-[10px] text-slate-400 uppercase flex items-center justify-center space-x-1">
-                                <i class="fa-solid fa-sunrise text-amber-400"></i>
-                                <span>Рассвет</span>
-                            </div>
-                            <div class="text-sm font-bold text-slate-200 mt-0.5 editable-field" contenteditable="false" id="sun-rise">07:25</div>
+                            <div class="text-[10px] text-slate-400 uppercase">Рассвет</div>
+                            <div class="text-sm font-bold text-slate-200 mt-0.5" id="sun-rise">07:25</div>
                         </div>
                         <div class="bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
-                            <div class="text-[10px] text-slate-400 uppercase flex items-center justify-center space-x-1">
-                                <i class="fa-solid fa-sunset text-orange-400"></i>
-                                <span>Закат</span>
-                            </div>
-                            <div class="text-sm font-bold text-slate-200 mt-0.5 editable-field" contenteditable="false" id="sun-set">17:01</div>
+                            <div class="text-[10px] text-slate-400 uppercase">Закат</div>
+                            <div class="text-sm font-bold text-slate-200 mt-0.5" id="sun-set">17:01</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Location & Logistics -->
-            <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500 flex flex-col justify-between space-y-3" id="location-card">
+            <!-- Локация -->
+            <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500 flex flex-col justify-between space-y-3">
                 <div>
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs uppercase tracking-wider text-slate-400 font-bold"><i class="fa-solid fa-location-dot text-amber-500 mr-1.5"></i> <span id="location-title-label">Локация / Площадка</span></span>
+                        <span class="text-xs uppercase tracking-wider text-slate-400 font-bold"><i class="fa-solid fa-location-dot text-amber-500 mr-1.5"></i> Локация / Площадка</span>
                     </div>
-
                     <div class="mb-2 relative hidden" id="venue-search-container">
-                        <input type="text" id="venue-search-input" placeholder="🔍 Введите любой адрес или найдите площадку..." oninput="filterVenues(this.value)" onkeydown="handleCustomAddressKey(event)" onfocus="showVenueDropdown()" class="w-full bg-slate-950 text-amber-400 text-xs px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500">
+                        <input type="text" id="venue-search-input" placeholder="🔍 Введите адрес или найдите площадку..." oninput="filterVenues(this.value)" onkeydown="handleCustomAddressKey(event)" onfocus="showVenueDropdown()" class="w-full bg-slate-950 text-amber-400 text-xs px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500">
                         <div id="venue-dropdown-list" class="hidden absolute z-50 bg-slate-900 border border-slate-700 rounded-lg mt-1 max-h-48 overflow-y-auto shadow-2xl w-full"></div>
                     </div>
-
-                    <div onclick="openMapRoute()" class="cursor-pointer group hover:bg-white/5 p-1.5 rounded-lg transition -mx-1.5" title="Нажмите, чтобы открыть маршрут в Яндекс.Картах">
+                    <div onclick="openMapRoute()" class="cursor-pointer group hover:bg-white/5 p-1.5 rounded-lg transition -mx-1.5" title="Открыть маршрут в Яндекс.Картах">
                         <div class="text-base font-bold text-white group-hover:text-amber-400 transition flex items-center justify-between">
-                            <span contenteditable="false" id="location-name" class="editable-field">Офис АНО «АртМастерс»</span>
-                            <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-500 group-hover:text-amber-400"></i>
+                            <span id="location-name" class="editable-field">Офис АНО «АртМастерс»</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-xs text-slate-500"></i>
                         </div>
-                        <div class="text-xs text-slate-300 mt-0.5 editable-field" contenteditable="false" id="location-address">Москва, улица Мясницкая, 17 стр. 1</div>
+                        <div class="text-xs text-slate-300 mt-0.5 editable-field" id="location-address">Москва, улица Мясницкая, 17 стр. 1</div>
                     </div>
-
                     <div class="mini-map-container my-2" id="miniMap"></div>
-
                     <div class="text-xs bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80 space-y-1">
                         <div class="flex items-center space-x-1.5 text-sky-400 font-medium">
                             <i class="fa-solid fa-train-subway"></i>
-                            <span contenteditable="false" id="location-metro" class="editable-field">Метро «Лубянка» / «Чистые пруды»</span>
-                        </div>
-                        <div class="flex items-center space-x-1.5 text-slate-400">
-                            <i class="fa-solid fa-bus"></i>
-                            <span contenteditable="false" id="location-bus" class="editable-field">Центр города</span>
+                            <span id="location-metro" class="editable-field">Метро «Лубянка» / «Чистые пруды»</span>
                         </div>
                     </div>
                 </div>
-
                 <div class="text-xs bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
-                    <span class="text-slate-500 block mb-0.5" id="parking-label-title">Парковка / Заезд:</span>
-                    <span class="text-slate-300 font-medium editable-field" contenteditable="false" id="location-parking">Парковка по предварительному заказу пропуска.</span>
+                    <span class="text-slate-500 block mb-0.5">Парковка / Заезд:</span>
+                    <span class="text-slate-300 font-medium editable-field" id="location-parking">Парковка по предварительному заказу пропуска.</span>
                 </div>
             </div>
         </div>
 
-        <!-- Scenes Breakdown -->
+        <!-- Таблицы: Сцены -->
         <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
@@ -674,7 +531,7 @@
             </div>
         </div>
 
-        <!-- General Timeline -->
+        <!-- Таймлайн -->
         <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
@@ -700,7 +557,7 @@
             </div>
         </div>
 
-        <!-- Departments & Crew Call Times -->
+        <!-- Департаменты -->
         <div>
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
@@ -714,7 +571,7 @@
             <div id="departments-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
 
-        <!-- Key Contacts -->
+        <!-- Ключевые контакты -->
         <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
@@ -737,18 +594,17 @@
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
-
         <div class="text-center space-y-4 max-w-4xl w-full">
-            <div class="text-sm uppercase tracking-widest text-sky-400 font-bold" id="fs-timer-label">Таймер смены / Фазы</div>
+            <div class="text-sm uppercase tracking-widest text-sky-400 font-bold">Таймер смены / Фазы</div>
             <div id="fs-timer-display" class="font-mono font-black text-7xl sm:text-9xl text-white tracking-wider drop-shadow-[0_0_50px_rgba(56,189,248,0.4)]">
                 00:25:00
             </div>
             <div class="text-lg text-amber-400 font-bold mt-2" id="fs-timer-phase-desc">Фаза: Мотор / Рабочий дубль</div>
             <div class="flex items-center justify-center space-x-4 pt-6">
-                <button onclick="startTimer()" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-lg transition flex items-center space-x-2 shadow-lg shadow-emerald-600/30">
+                <button onclick="startTimer()" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-lg transition flex items-center space-x-2 shadow-lg">
                     <i class="fa-solid fa-play"></i><span>Старт</span>
                 </button>
-                <button onclick="pauseTimer()" class="px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-lg transition flex items-center space-x-2 shadow-lg shadow-amber-600/30">
+                <button onclick="pauseTimer()" class="px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-lg transition flex items-center space-x-2 shadow-lg">
                     <i class="fa-solid fa-pause"></i><span>Пауза</span>
                 </button>
                 <button onclick="resetTimer()" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-lg transition flex items-center space-x-2 border border-slate-700 shadow-lg">
@@ -758,7 +614,7 @@
         </div>
     </div>
 
-    <!-- Footer Actions -->
+    <!-- Футер -->
     <footer class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 text-center text-xs text-slate-500 no-print flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>Call Sheet & Stage Manager Pro &bull; Московская область</div>
         <div class="flex items-center space-x-4">
@@ -767,1524 +623,7 @@
         </div>
     </footer>
 
-    <!-- JavaScript Application Logic -->
-    <script>
-        let tg = window.Telegram?.WebApp;
-        if (tg && tg.initData) {
-            tg.ready();
-            tg.expand();
-            if (tg.colorScheme === 'light') {
-                document.documentElement.classList.remove('dark');
-                document.documentElement.classList.add('light');
-                const themeIcon = document.getElementById('theme-icon');
-                if (themeIcon) themeIcon.className = "fa-solid fa-moon";
-            }
-        }
-
-        const venuesDatabase = [
-            { id: "artmasters-office", name: "Офис АНО «АртМастерс»", address: "Москва, улица Мясницкая, 17 стр. 1", metro: "Метро «Лубянка» / «Чистые пруды»", bus: "Центр города", lat: 55.7618, lon: 37.6338 },
-            { id: "artmasters-warehouse", name: "Склад АНО «АртМастерс»", address: "Москва, Автомобильный проезд, 10 с. 5", metro: "МЦК «Угрешская» / Метро «Волгоградский проспект»", bus: "Автобусы по ЮВАО", lat: 55.7171, lon: 37.6912 },
-            { id: "amedia", name: "Киностудия «Амедиа»", address: "Москва, ул. Домостроительная, 1с2", metro: "Метро «Озёрная» / «Говорово»", bus: "Автобусы: № 610, 630, 785", lat: 55.6795, lon: 37.4392 },
-            { id: "electrotheatre", name: "Электротеатр Станиславский", address: "Москва, Тверская ул., 23", metro: "Метро «Пушкинская» / «Тверская»", bus: "В центре города", lat: 55.7664, lon: 37.6033 },
-            { id: "helikon", name: "Геликон-опера", address: "Москва, Большая Никитская ул., 19/16", metro: "Метро «Охотный Ряд»", bus: "Центральные маршруты", lat: 55.7571, lon: 37.6072 },
-            { id: "maska", name: "Театр «Маска» (МДМ)", address: "Москва, Комсомольский пр-кт, 28", metro: "Метро «Фрунзенская»", bus: "Троллейбусы, автобусы", lat: 55.7262, lon: 37.5768 }
-        ];
-
-        const defaultData = {
-            productionType: "film",
-            metaDay: "СЪЕМОЧНЫЙ ДЕНЬ #04",
-            metaProject: "Проект «Аврора» (Смена 12)",
-            metaDate: "2026-10-27",
-            metaVersion: "Rev. 2.7",
-            generalCallTime: "07:30",
-            generalCallDate: "2026-10-27",
-            generalCallDesc: "Получение раций, инструктаж по ТБ, проверка пропусков на КПП",
-            weatherTemp: "+7°C",
-            weatherCondition: "Онлайн (сегодня)",
-            weatherWind: "6.9 м/с",
-            weatherHumidity: "40%",
-            weatherPressure: "761 мм",
-            sunRise: "07:25",
-            sunSet: "17:01",
-            locationName: "Офис АНО «АртМастерс»",
-            locationAddress: "Москва, улица Мясницкая, 17 стр. 1",
-            locationMetro: "Метро «Лубянка» / «Чистые пруды»",
-            locationBus: "Центр города",
-            locationParking: "Парковка по предварительному заказу пропуска.",
-            lat: 55.7618,
-            lon: 37.6338,
-            scenes: [
-                { num: "14", ie: "ИНТ.", desc: "Кабинет главного инженера. Спор героев о запуске реактора.", time: "1/8", cast: "№1, №3" },
-                { num: "15", ie: "ЭКСТ.", desc: "Проходная завода. Прибытие кортежа.", time: "3/8", cast: "№2, №5, Массовка" }
-            ],
-            theaterScenes: [
-                { act: "Акт I", scene: "Картина 1", desc: "Явление первое. Завязка диалога на авансцене.", time: "15 мин", cast: "Герой 1, Герой 2" },
-                { act: "Акт I", scene: "Картина 2", desc: "Массовая сцена с перестановкой мягких декораций.", time: "25 мин", cast: "Хор, Кордебалет" }
-            ],
-            timeline: [
-                { time: "07:00", event: "Заезд техслужб, охраны и кейтеринга", responsible: "А. Белоусов" },
-                { time: "07:30", event: "Общий сбор группы, получение раций", responsible: "О. Зломанов" },
-                { time: "09:00", event: "Мотор! Съемка сцены №14, 15", responsible: "Съемочная группа" },
-                { time: "14:00", event: "Обеденный перерыв", responsible: "Кейтеринг" },
-                { time: "19:00", event: "Смена окончена, Wrap", responsible: "Все департаменты" }
-            ],
-            theaterTimeline: [
-                { time: "10:00", event: "Монтировка декораций на главной сцене", responsible: "Завпост / Монтировщики" },
-                { time: "12:00", event: "Световая репетиция (сухой прогон)", responsible: "Художник по свету" },
-                { time: "15:00", event: "Репетиция с оркестром", responsible: "Дирижер / Звукорежиссер" },
-                { time: "18:00", event: "Общий сбор артистов, грим", responsible: "Помощник режиссера (ПР)" },
-                { time: "19:00", event: "Начало спектакля / Генерального прогона", responsible: "Режиссер спектакля" }
-            ],
-            departments: [
-                {
-                    name: "Режиссура и Продюсеры",
-                    time: "07:30",
-                    ready: true,
-                    crew: [
-                        { role: "Режиссер-постановщик", name: "Арсентий Райков", phone: "+7 (999) 111-22-33" },
-                        { role: "Продюсер", name: "Борислав Володин", phone: "+7 (999) 222-33-44" }
-                    ]
-                },
-                {
-                    name: "Технический отдел",
-                    time: "07:00",
-                    ready: true,
-                    crew: [
-                        { role: "Технический директор", name: "Олег Зломанов", phone: "+7 (999) 777-88-99" },
-                        { role: "Инженер Плейбека", name: "Артем Сидоренко", phone: "+7 (999) 888-99-00" }
-                    ]
-                }
-            ],
-            theaterDepartments: [
-                {
-                    name: "Постановочная часть (Цех)",
-                    time: "10:00",
-                    ready: true,
-                    crew: [
-                        { role: "Заведующий постановочной частью", name: "Олег Зломанов", phone: "+7 (999) 777-88-99" },
-                        { role: "Начальник монтировочного цеха", name: "Артем Сидоренко", phone: "+7 (999) 888-99-00" }
-                    ]
-                },
-                {
-                    name: "Свет и Звук",
-                    time: "11:00",
-                    ready: true,
-                    crew: [
-                        { role: "Художник по свету", name: "Арсентий Райков", phone: "+7 (999) 111-22-33" },
-                        { role: "Звукорежиссер пульта", name: "Борислав Володин", phone: "+7 (999) 222-33-44" }
-                    ]
-                }
-            ],
-            contacts: [
-                { role: "Директор площадки", name: "Анастасия Шанаева", phone: "+7 (999) 123-45-67" },
-                { role: "Главный администратор", name: "Белоусов Алексей", phone: "+7 (999) 234-56-78" }
-            ]
-        };
-
-        let isEditMode = false;
-        let currentProductionType = "film";
-        let mapInstance = null;
-        let markerInstance = null;
-        let currentLat = 55.7618;
-        let currentLon = 37.6338;
-        let widgetSunLights = [];
-
-        // Логика таймера
-        let timerTotalSeconds = 1500; // 25 минут по умолчанию (Мотор)
-        let timerRemainingSeconds = 1500;
-        let timerInterval = null;
-        let isTimerRunning = false;
-        let currentPhaseName = "Фаза: Мотор / Рабочий дубль";
-
-        function updateTimerDisplay() {
-            const h = Math.floor(timerRemainingSeconds / 3600);
-            const m = Math.floor((timerRemainingSeconds % 3600) / 60);
-            const s = timerRemainingSeconds % 60;
-            const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-            
-            const display = document.getElementById('timer-display');
-            const fsDisplay = document.getElementById('fs-timer-display');
-            if (display) display.innerText = timeStr;
-            if (fsDisplay) fsDisplay.innerText = timeStr;
-        }
-
-        function startTimer() {
-            if (isTimerRunning) return;
-            if (timerRemainingSeconds <= 0) timerRemainingSeconds = timerTotalSeconds;
-            isTimerRunning = true;
-            document.getElementById('timer-active-badge')?.classList.remove('hidden');
-
-            timerInterval = setInterval(() => {
-                if (timerRemainingSeconds > 0) {
-                    timerRemainingSeconds--;
-                    updateTimerDisplay();
-                } else {
-                    pauseTimer();
-                    alert('⏰ Время таймера смены истекло!');
-                }
-            }, 1000);
-        }
-
-        function pauseTimer() {
-            isTimerRunning = false;
-            clearInterval(timerInterval);
-            document.getElementById('timer-active-badge')?.classList.add('hidden');
-        }
-
-        function resetTimer() {
-            pauseTimer();
-            timerRemainingSeconds = timerTotalSeconds;
-            updateTimerDisplay();
-        }
-
-        function setTimerPreset(mins, secs = 0) {
-            pauseTimer();
-            timerTotalSeconds = (mins * 60) + secs;
-            timerRemainingSeconds = timerTotalSeconds;
-            
-            document.getElementById('input-hours').value = String(Math.floor(mins / 60)).padStart(2, '0');
-            document.getElementById('input-mins').value = String(mins % 60).padStart(2, '0');
-            document.getElementById('input-secs').value = String(secs).padStart(2, '0');
-            
-            updateTimerDisplay();
-        }
-
-        function setCustomTimerFromInputs() {
-            const h = parseInt(document.getElementById('input-hours').value) || 0;
-            const m = parseInt(document.getElementById('input-mins').value) || 0;
-            const s = parseInt(document.getElementById('input-secs').value) || 0;
-            
-            pauseTimer();
-            timerTotalSeconds = (h * 3600) + (m * 60) + s;
-            timerRemainingSeconds = timerTotalSeconds;
-            updateTimerDisplay();
-        }
-
-        // Управление фазами таймера
-        function setTimerPhase(phaseType) {
-            pauseTimer();
-            
-            const prepBtn = document.getElementById('phase-prep-btn');
-            const workBtn = document.getElementById('phase-work-btn');
-            const breakBtn = document.getElementById('phase-break-btn');
-            
-            if (prepBtn) prepBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition";
-            if (workBtn) workBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition";
-            if (breakBtn) breakBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition";
-
-            let mins = 25;
-            if (phaseType === 'prep') {
-                mins = 5;
-                currentPhaseName = "Фаза: Подготовка / Расстановка света";
-                if (prepBtn) prepBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-slate-950 transition shadow";
-            } else if (phaseType === 'work') {
-                mins = 25;
-                currentPhaseName = "Фаза: Мотор / Рабочий дубль";
-                if (workBtn) workBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-sky-600 text-white transition shadow";
-            } else if (phaseType === 'break') {
-                mins = 5;
-                currentPhaseName = "Фаза: Технический перерыв / Переход";
-                if (breakBtn) breakBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white transition shadow";
-            }
-
-            setTimerPreset(mins, 0);
-            
-            const modeDesc = document.getElementById('timer-mode-desc');
-            const fsDesc = document.getElementById('fs-timer-phase-desc');
-            if (modeDesc) modeDesc.innerText = currentPhaseName;
-            if (fsDesc) fsDesc.innerText = currentPhaseName;
-        }
-
-        function openTimerFullscreen() {
-            document.getElementById('timer-fullscreen-modal')?.classList.remove('hidden');
-        }
-
-        function closeTimerFullscreen() {
-            document.getElementById('timer-fullscreen-modal')?.classList.add('hidden');
-        }
-
-        function toggleThemeMode() {
-            const htmlEl = document.documentElement;
-            const themeIcon = document.getElementById('theme-icon');
-            if (htmlEl.classList.contains('dark')) {
-                htmlEl.classList.remove('dark');
-                htmlEl.classList.add('light');
-                if (themeIcon) themeIcon.className = "fa-solid fa-moon";
-            } else {
-                htmlEl.classList.remove('light');
-                htmlEl.classList.add('dark');
-                if (themeIcon) themeIcon.className = "fa-solid fa-sun";
-            }
-        }
-
-        function exportPDF() {
-            const element = document.getElementById('pdf-export-container');
-            const opt = {
-                margin:       10,
-                filename:     `Call_Sheet_${document.getElementById('meta-date-picker')?.value || 'shift'}.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            const wasDark = document.documentElement.classList.contains('dark');
-            if (wasDark) {
-                document.documentElement.classList.remove('dark');
-                document.documentElement.classList.add('light');
-            }
-
-            html2pdf().from(element).set(opt).save().then(() => {
-                if (wasDark) {
-                    document.documentElement.classList.remove('light');
-                    document.documentElement.classList.add('dark');
-                }
-            });
-        }
-
-        function initPrecipitationEffect(type = 'rain') {
-            const container = document.getElementById('precipitation-container');
-            if (!container) return;
-            container.innerHTML = '';
-            
-            const count = type === 'snow' ? 25 : 35;
-            for (let i = 0; i < count; i++) {
-                const el = document.createElement('div');
-                el.className = type === 'snow' ? 'snow-flake' : 'rain-drop';
-                el.style.left = `${Math.random() * 100}%`;
-                el.style.top = `${Math.random() * -50}px`;
-                el.style.animationDelay = `${Math.random() * 2}s`;
-                el.style.animationDuration = `${type === 'snow' ? (2 + Math.random() * 2) : (0.5 + Math.random() * 0.4)}s`;
-                container.appendChild(el);
-            }
-        }
-
-        function getMoonPhaseAngle(dateObj) {
-            const year = dateObj.getFullYear();
-            const month = dateObj.getMonth() + 1;
-            const day = dateObj.getDate();
-            let c = 0;
-            let y = year;
-            let m = month;
-            if (m < 3) { y--; m += 12; }
-            let leap = Math.floor(y / 100);
-            c = 2 - leap + Math.floor(leap / 4);
-            let jd = Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + day + c - 1524.5;
-            let daysSinceNewMoon = jd - 2451549.5;
-            let newMoons = daysSinceNewMoon / 29.53058885;
-            let phaseFraction = newMoons - Math.floor(newMoons);
-            return phaseFraction * 360;
-        }
-
-        function createStarTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 256;
-            canvas.height = 256;
-            const ctx = canvas.getContext('2d');
-            const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-            gradient.addColorStop(0.15, 'rgba(220, 240, 255, 0.95)');
-            gradient.addColorStop(0.4, 'rgba(120, 180, 255, 0.4)');
-            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 256, 256);
-            return new THREE.CanvasTexture(canvas);
-        }
-
-        function initWidgetMoon(containerElement) {
-            if (!containerElement) return;
-            containerElement.innerHTML = '';
-
-            const sceneMoon = new THREE.Scene();
-            const width = containerElement.clientWidth || 55;
-            const height = containerElement.clientHeight || 55;
-            const cameraMoon = new THREE.PerspectiveCamera(50, width / height, 0.1, 3000);
-            cameraMoon.position.set(0, 0, 2.4);
-
-            const rendererMoon = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-            rendererMoon.setSize(width, height);
-            rendererMoon.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            containerElement.appendChild(rendererMoon.domElement);
-
-            const controlsMoon = new THREE.OrbitControls(cameraMoon, rendererMoon.domElement);
-            controlsMoon.enableDamping = true;
-            controlsMoon.dampingFactor = 0.04;
-            controlsMoon.enableZoom = false;
-
-            const starsCount = 4000;
-            const starsGeo = new THREE.BufferGeometry();
-            const starsPos = new Float32Array(starsCount * 3);
-            const starsCols = new Float32Array(starsCount * 3);
-
-            for (let i = 0; i < starsCount * 3; i += 3) {
-                const u = Math.random();
-                const v = Math.random();
-                const theta = u * 2.0 * Math.PI;
-                const phi = Math.acos(2.0 * v - 1.0);
-                const r = 1000 + Math.random() * 1500;
-
-                starsPos[i]     = r * Math.sin(phi) * Math.cos(theta);
-                starsPos[i + 1] = r * Math.sin(phi) * Math.sin(theta);
-                starsPos[i + 2] = r * Math.cos(phi);
-
-                starsCols[i] = 1.2; starsCols[i+1] = 1.2; starsCols[i+2] = 1.2;
-            }
-
-            starsGeo.setAttribute('position', new THREE.BufferAttribute(starsPos, 3));
-            starsGeo.setAttribute('color', new THREE.BufferAttribute(starsCols, 3));
-
-            const starsMat = new THREE.PointsMaterial({
-                size: 7.0,
-                vertexColors: true,
-                map: createStarTexture(),
-                transparent: true,
-                blending: THREE.AdditiveBlending,
-                depthWrite: false
-            });
-
-            sceneMoon.add(new THREE.Points(starsGeo, starsMat));
-
-            const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
-            const moonMat = new THREE.MeshStandardMaterial({ roughness: 0.85, metalness: 0.05, color: 0x888888 });
-            const moonMesh = new THREE.Mesh(sphereGeo, moonMat);
-            moonMesh.rotation.z = THREE.MathUtils.degToRad(1.54);
-            sceneMoon.add(moonMesh);
-
-            new THREE.TextureLoader().load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/moon_1024.jpg', (texture) => {
-                texture.colorSpace = THREE.SRGBColorSpace;
-                moonMat.map = texture;
-                moonMat.needsUpdate = true;
-            });
-
-            const sunLightMoon = new THREE.DirectionalLight(0xfff8ee, 1.9);
-            sceneMoon.add(sunLightMoon);
-            sceneMoon.add(new THREE.AmbientLight(0x1a2b4c, 0.35));
-
-            widgetSunLights.push({ light: sunLightMoon, containerId: containerElement.id });
-            updateSunLightPosition();
-
-            const clock = new THREE.Clock();
-            function animateMoon() {
-                requestAnimationFrame(animateMoon);
-                moonMesh.rotation.y = clock.getElapsedTime() * 0.03;
-                controlsMoon.update();
-                rendererMoon.render(sceneMoon, cameraMoon);
-            }
-            animateMoon();
-        }
-
-        function updateSunLightPosition(overrideAngle = null) {
-            const dateInputVal = document.getElementById('meta-date-picker').value;
-            const targetDate = dateInputVal ? new Date(dateInputVal) : new Date();
-            let angleDeg = overrideAngle !== null ? overrideAngle : getMoonPhaseAngle(targetDate);
-            
-            const slider = document.getElementById('moon-phase-slider');
-            if (slider && overrideAngle === null) {
-                slider.value = Math.round(angleDeg);
-            }
-
-            const angleRad = THREE.MathUtils.degToRad(angleDeg);
-            const distance = 8;
-
-            widgetSunLights.forEach(item => {
-                item.light.position.x = Math.sin(angleRad) * distance;
-                item.light.position.z = Math.cos(angleRad) * distance;
-                item.light.position.y = 1.5;
-            });
-
-            const phaseLabel = document.getElementById('phase-label');
-            if (phaseLabel) {
-                const normalized = ((angleDeg % 360) + 360) % 360;
-                if (normalized < 15 || normalized > 345) phaseLabel.innerText = "Новолуние 🌑";
-                else if (normalized < 90) phaseLabel.innerText = "Растущий серп 🌒";
-                else if (normalized < 105) phaseLabel.innerText = "Первая четверть 🌓";
-                else if (normalized < 180) phaseLabel.innerText = "Растущая луна 🌔";
-                else if (normalized <= 195) phaseLabel.innerText = "Полнолуние 🌕";
-                else if (normalized < 270) phaseLabel.innerText = "Убывающая луна 🌖";
-                else if (normalized < 285) phaseLabel.innerText = "Последняя четверть 🌗";
-                else phaseLabel.innerText = "Убывающий серп 🌘";
-            }
-        }
-
-        document.addEventListener('input', (e) => {
-            if (e.target && e.target.id === 'moon-phase-slider') {
-                updateSunLightPosition(parseFloat(e.target.value));
-            }
-        });
-
-        // Автоматическое определение режима погоды по текущему часу (День / Вечер / Ночь)
-        function autoUpdateWeatherModeByTime(currentHour) {
-            let targetMode = 'day';
-            if (currentHour >= 18 && currentHour < 21) {
-                targetMode = 'evening'; // Золотой час / сумерки
-            } else if (currentHour >= 21 || currentHour < 6) {
-                targetMode = 'night'; // Ночь
-            } else {
-                targetMode = 'day'; // День
-            }
-            applyWeatherThemeVisuals(targetMode);
-        }
-
-        function applyWeatherThemeVisuals(mode) {
-            const banner = document.getElementById('cinematic-banner');
-            const headerCelestial = document.getElementById('header-celestial-container');
-            const bannerCelestial = document.getElementById('banner-celestial-container');
-            const coronaBg = document.getElementById('corona-bg');
-            const headerIconBox = document.getElementById('header-icon-box');
-            const headerMainIcon = document.getElementById('header-main-icon');
-            const bannerTitleText = document.getElementById('banner-title-text');
-            const conditionMain = document.getElementById('condition-main');
-            const moonControlsPanel = document.getElementById('moon-controls-panel');
-
-            if (!banner) return;
-
-            if (mode === 'day') {
-                banner.className = "banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 backdrop-blur-md transition-all duration-500";
-                if (coronaBg) coronaBg.className = "absolute -top-10 -right-10 w-48 h-48 bg-amber-500/20 rounded-full blur-3xl transition-all duration-500";
-                if (headerIconBox) headerIconBox.className = "w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-400 text-sm shadow-inner transition-all duration-500";
-                if (headerMainIcon) headerMainIcon.className = "fa-solid fa-cloud-sun";
-                if (bannerTitleText) bannerTitleText.innerText = "Режимный свет / Золотой час";
-                if (conditionMain) conditionMain.innerText = "Солнечно с плывущими объемными облаками";
-                if (moonControlsPanel) moonControlsPanel.classList.add('hidden');
-
-                if (headerCelestial) headerCelestial.innerHTML = '<div class="photorealistic-sun"></div>';
-                if (bannerCelestial) bannerCelestial.innerHTML = '<div class="photorealistic-sun"></div>';
-
-            } else if (mode === 'evening') {
-                banner.className = "banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 backdrop-blur-md transition-all duration-500";
-                if (coronaBg) coronaBg.className = "absolute -top-10 -right-10 w-48 h-48 bg-orange-500/25 rounded-full blur-3xl transition-all duration-500";
-                if (headerIconBox) headerIconBox.className = "w-9 h-9 rounded-xl bg-orange-500/15 border border-orange-500/40 flex items-center justify-center text-orange-400 text-sm shadow-inner transition-all duration-500";
-                if (headerMainIcon) headerMainIcon.className = "fa-solid fa-sunset";
-                if (bannerTitleText) bannerTitleText.innerText = "Вечерний золотой час / Закат";
-                if (conditionMain) conditionMain.innerText = "Режимное вечернее освещение, закат";
-                if (moonControlsPanel) moonControlsPanel.classList.add('hidden');
-
-                if (headerCelestial) headerCelestial.innerHTML = '<div class="photorealistic-sun" style="background: radial-gradient(circle, #f97316 0%, #c2410c 70%);"></div>';
-                if (bannerCelestial) bannerCelestial.innerHTML = '<div class="photorealistic-sun" style="background: radial-gradient(circle, #f97316 0%, #c2410c 70%);"></div>';
-
-            } else {
-                banner.className = "banner-night p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 backdrop-blur-md transition-all duration-500";
-                if (coronaBg) coronaBg.className = "absolute -top-10 -right-10 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl transition-all duration-500";
-                if (headerIconBox) headerIconBox.className = "w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/40 flex items-center justify-center text-indigo-300 text-sm shadow-inner transition-all duration-500";
-                if (headerMainIcon) headerMainIcon.className = "fa-solid fa-cloud-moon";
-                if (bannerTitleText) bannerTitleText.innerText = "Ночная смена / Натура";
-                if (conditionMain) conditionMain.innerText = "Ясная ночь, лунное освещение";
-                if (moonControlsPanel) moonControlsPanel.classList.remove('hidden');
-
-                if (headerCelestial) headerCelestial.innerHTML = '<div class="moon-canvas-container" id="moon-header-3d"></div>';
-                if (bannerCelestial) bannerCelestial.innerHTML = '<div class="moon-canvas-container" id="moon-banner-3d"></div>';
-
-                widgetSunLights = [];
-                setTimeout(() => {
-                    initWidgetMoon(document.getElementById('moon-header-3d'));
-                    initWidgetMoon(document.getElementById('moon-banner-3d'));
-                }, 40);
-            }
-        }
-
-        function checkStormAlert(windSpeed) {
-            const banner = document.getElementById('cinematic-banner');
-            const titleText = document.getElementById('banner-title-text');
-            const statusText = document.getElementById('cinematic-status-text');
-            const alertIcon = document.getElementById('banner-alert-icon');
-
-            if (windSpeed >= 10.0) {
-                banner.className = "banner-danger p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 backdrop-blur-md transition-all duration-500 animate-pulse";
-                titleText.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> Штормовое предупреждение! (${windSpeed} м/с)`;
-                statusText.innerText = "Внимание! Ветер превышает 10 м/с. Обязательный демонтаж рассеивателей, крепление ферм и фиксация тяжелых световых приборов!";
-                alertIcon.className = "fa-solid fa-skull text-[10px] animate-spin";
-            }
-        }
-
-        function setProductionType(type) {
-            currentProductionType = type;
-            const iconEl = document.getElementById('project-icon');
-            const metaDayEl = document.getElementById('meta-day');
-            const filmBtn = document.getElementById('type-film-btn');
-            const theaterBtn = document.getElementById('type-theater-btn');
-            const weatherWidgetCard = document.getElementById('weather-widget-card');
-            const spaceWidgetCard = document.getElementById('space-widget-card');
-            const generalBellIcon = document.getElementById('general-bell-icon');
-            const generalCallTitleLabel = document.getElementById('general-call-title-label');
-            const readinessLabelTitle = document.getElementById('readiness-label-title');
-            const readinessSubtitle = document.getElementById('readiness-subtitle');
-            const locationTitleLabel = document.getElementById('location-title-label');
-            const parkingLabelTitle = document.getElementById('parking-label-title');
-            const tableIconScenes = document.getElementById('table-icon-scenes');
-            const scenesSectionTitle = document.getElementById('scenes-section-title');
-            const addSceneBtnText = document.getElementById('add-scene-btn-text');
-            const scenesTableHead = document.getElementById('scenes-table-head');
-            const timelineSectionTitle = document.getElementById('timeline-section-title');
-            const departmentsSectionTitle = document.getElementById('departments-section-title');
-
-            if (type === 'theater') {
-                if (iconEl) iconEl.className = "fa-solid fa-masks-theater";
-                if (metaDayEl && metaDayEl.innerText.includes("СЪЕМОЧНЫЙ ДЕНЬ")) {
-                    metaDayEl.innerText = metaDayEl.innerText.replace("СЪЕМОЧНЫЙ ДЕНЬ", "РЕПЕТИЦИОННЫЙ ДЕНЬ");
-                }
-                if (theaterBtn) theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
-                if (filmBtn) filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
-
-                if (weatherWidgetCard) weatherWidgetCard.style.display = 'none';
-                if (spaceWidgetCard) spaceWidgetCard.style.display = 'none';
-
-                if (generalBellIcon) generalBellIcon.className = "fa-solid fa-theater-masks";
-                if (generalCallTitleLabel) generalCallTitleLabel.innerText = "Общий сбор труппы и цехов (Theatre Call)";
-                if (readinessLabelTitle) readinessLabelTitle.innerText = "Готовность к монтировке:";
-                if (readinessSubtitle) readinessSubtitle.innerText = "Монтировка сцены и цехов";
-                if (locationTitleLabel) locationTitleLabel.innerText = "Театральная площадка / Сцена";
-                if (parkingLabelTitle) parkingLabelTitle.innerText = "Погрузка / Разгрузка декораций:";
-
-                if (tableIconScenes) tableIconScenes.className = "fa-solid fa-masks-theater text-amber-500";
-                if (scenesSectionTitle) scenesSectionTitle.innerText = "План монтировки и картины спектакля";
-                if (addSceneBtnText) addSceneBtnText.innerText = "Добавить картину";
-                if (scenesTableHead) {
-                    scenesTableHead.innerHTML = `
-                        <th class="py-2.5 px-3 font-semibold w-24">Акт</th>
-                        <th class="py-2.5 px-3 font-semibold w-28">Картина</th>
-                        <th class="py-2.5 px-3 font-semibold">Описание / Сценическая задача</th>
-                        <th class="py-2.5 px-3 font-semibold w-28">Хронометраж</th>
-                        <th class="py-2.5 px-3 font-semibold w-32">Участники</th>
-                        <th class="py-2.5 px-3 font-semibold text-right w-20 edit-action-btn hidden">Действие</th>
-                    `;
-                }
-                if (timelineSectionTitle) timelineSectionTitle.innerText = "Таймлайн монтировки и репетиции";
-                if (departmentsSectionTitle) departmentsSectionTitle.innerText = "Явка цехов и постановочной части";
-            } else {
-                if (iconEl) iconEl.className = "fa-solid fa-clapperboard";
-                if (metaDayEl && metaDayEl.innerText.includes("РЕПЕТИЦИОННЫЙ ДЕНЬ")) {
-                    metaDayEl.innerText = metaDayEl.innerText.replace("РЕПЕТИЦИОННЫЙ ДЕНЬ", "СЪЕМОЧНЫЙ ДЕНЬ");
-                }
-                if (filmBtn) filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
-                if (theaterBtn) theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
-
-                if (weatherWidgetCard) weatherWidgetCard.style.display = 'flex';
-                if (spaceWidgetCard) {
-                    spaceWidgetCard.style.display = 'flex';
-                    setTimeout(() => {
-                        if (!rendererGlobe) init3DWidget();
-                        else {
-                            const container = document.getElementById('globeContainer');
-                            if (container && rendererGlobe) {
-                                rendererGlobe.setSize(container.clientWidth || 320, container.clientHeight || 160);
-                            }
-                        }
-                    }, 50);
-                }
-
-                if (generalBellIcon) generalBellIcon.className = "fa-solid fa-bell";
-                if (generalCallTitleLabel) generalCallTitleLabel.innerText = "Общий сбор группы (General Crew Call)";
-                if (readinessLabelTitle) readinessLabelTitle.innerText = "Готовность смены:";
-                if (readinessSubtitle) readinessSubtitle.innerText = "Отмечено чек-листов департаментов";
-                if (locationTitleLabel) locationTitleLabel.innerText = "Локация / Площадка";
-                if (parkingLabelTitle) parkingLabelTitle.innerText = "Парковка / Заезд:";
-
-                if (tableIconScenes) tableIconScenes.className = "fa-solid fa-film text-amber-500";
-                if (scenesSectionTitle) scenesSectionTitle.innerText = "Пообъектный план смены (Сцены)";
-                if (addSceneBtnText) addSceneBtnText.innerText = "Добавить сцену";
-                if (scenesTableHead) {
-                    scenesTableHead.innerHTML = `
-                        <th class="py-2.5 px-3 font-semibold w-20">Сцена</th>
-                        <th class="py-2.5 px-3 font-semibold w-24">И/Э</th>
-                        <th class="py-2.5 px-3 font-semibold">Описание / Объект</th>
-                        <th class="py-2.5 px-3 font-semibold w-28">Хронометраж</th>
-                        <th class="py-2.5 px-3 font-semibold w-32">Персонажи</th>
-                        <th class="py-2.5 px-3 font-semibold text-right w-20 edit-action-btn hidden">Действие</th>
-                    `;
-                }
-                if (timelineSectionTitle) timelineSectionTitle.innerText = "Общий таймлайн смены";
-                if (departmentsSectionTitle) departmentsSectionTitle.innerText = "Явка департаментов и готовность";
-            }
-        }
-
-        // Астрономический расчет рассвета, заката и светового дня по координатам и дате
-        function calculateSunTimesForDate(dateObj, lat, lon) {
-            const doy = (Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()) - Date.UTC(dateObj.getFullYear(), 0, 0)) / 24 / 60 / 60 / 1000;
-            const rad = Math.PI / 180;
-            const decl = 23.44 * Math.sin(rad * (360 * (doy - 81) / 365));
-            const latRad = lat * rad;
-            const declRad = decl * rad;
-            const cosH = -Math.tan(latRad) * Math.tan(declRad);
-            
-            let H = 6;
-            if (cosH >= -1 && cosH <= 1) {
-                H = Math.acos(cosH) / (rad * 15);
-            } else if (cosH > 1) {
-                H = 0; // Полярная ночь
-            } else {
-                H = 12; // Полярный день
-            }
-
-            const tzOffset = 3; // UTC+3 (Москва)
-            const solarTransit = 12 - (lon / 15) + tzOffset;
-            
-            let riseDecimal = solarTransit - H;
-            let setDecimal = solarTransit + H;
-
-            function decimalToTime(dec) {
-                let norm = (dec + 24) % 24;
-                let h = Math.floor(norm);
-                let m = Math.floor((norm - h) * 60);
-                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-            }
-
-            return {
-                rise: decimalToTime(riseDecimal),
-                set: decimalToTime(setDecimal)
-            };
-        }
-
-        function calculateGoldenHours() {
-            const dateInputVal = document.getElementById('meta-date-picker')?.value;
-            const targetDate = dateInputVal ? new Date(dateInputVal) : new Date();
-            
-            const sunTimes = calculateSunTimesForDate(targetDate, currentLat, currentLon);
-            const sunRiseEl = document.getElementById('sun-rise');
-            const sunSetEl = document.getElementById('sun-set');
-
-            if (sunRiseEl) sunRiseEl.innerText = sunTimes.rise;
-            if (sunSetEl) sunSetEl.innerText = sunTimes.set;
-
-            const riseStr = sunTimes.rise;
-            const setStr = sunTimes.set;
-
-            function timeToMinutes(tStr) {
-                const parts = tStr.split(':');
-                if (parts.length !== 2) return 0;
-                return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
-            }
-
-            function minutesToTime(mins) {
-                mins = (mins + 1440) % 1440;
-                const h = Math.floor(mins / 60);
-                const m = Math.floor(mins % 60);
-                return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
-            }
-
-            const riseMins = timeToMinutes(riseStr);
-            const setMins = timeToMinutes(setStr);
-
-            const morningStart = riseMins;
-            const morningEnd = riseMins + 60;
-            const eveningStart = setMins - 60;
-            const eveningEnd = setMins;
-
-            const morningEl = document.getElementById('morning-golden-hour');
-            const eveningEl = document.getElementById('evening-golden-hour');
-
-            if (morningEl) morningEl.innerText = `${minutesToTime(morningStart)} - ${minutesToTime(morningEnd)}`;
-            if (eveningEl) eveningEl.innerText = `${minutesToTime(eveningStart)} - ${minutesToTime(eveningEnd)}`;
-        }
-
-        function showVenueDropdown() {
-            renderVenueDropdown(venuesDatabase);
-            document.getElementById('venue-dropdown-list')?.classList.remove('hidden');
-        }
-
-        function filterVenues(query) {
-            const q = query.toLowerCase();
-            const filtered = venuesDatabase.filter(v => v.name.toLowerCase().includes(q) || v.address.toLowerCase().includes(q));
-            renderVenueDropdown(filtered);
-            document.getElementById('venue-dropdown-list')?.classList.add('hidden');
-        }
-
-        function renderVenueDropdown(list) {
-            const dropdown = document.getElementById('venue-dropdown-list');
-            if (!dropdown) return;
-            dropdown.innerHTML = '';
-            if (list.length === 0) {
-                dropdown.innerHTML = '<div class="p-2 text-xs text-slate-400">Нет в базе. Нажмите Enter для ввода своего адреса</div>';
-                return;
-            }
-            list.forEach(v => {
-                const item = document.createElement('div');
-                item.className = "p-2 hover:bg-slate-800 cursor-pointer text-xs border-b border-slate-800 last:border-0";
-                item.innerHTML = `<div class="font-bold text-white">${v.name}</div><div class="text-[10px] text-slate-400">${v.address}</div>`;
-                item.onclick = () => selectVenue(v);
-                dropdown.appendChild(item);
-            });
-        }
-
-        function selectVenue(v) {
-            document.getElementById('location-name').innerText = v.name;
-            document.getElementById('location-address').innerText = v.address;
-            document.getElementById('location-metro').innerText = v.metro;
-            document.getElementById('location-bus').innerText = v.bus;
-            currentLat = v.lat;
-            currentLon = v.lon;
-            initMiniMap(currentLat, currentLon);
-            document.getElementById('venue-dropdown-list')?.classList.add('hidden');
-            const searchInput = document.getElementById('venue-search-input');
-            if (searchInput) searchInput.value = '';
-            calculateGoldenHours();
-            saveChanges();
-        }
-
-        function handleCustomAddressKey(event) {
-            if (event.key === 'Enter') {
-                const customText = event.target.value.trim();
-                if (customText) {
-                    document.getElementById('location-name').innerText = customText;
-                    document.getElementById('location-address').innerText = customText;
-                    document.getElementById('location-metro').innerText = "Произвольный адрес / Площадка";
-                    document.getElementById('location-bus').innerText = "Маршрут уточняется у координатора";
-                    document.getElementById('venue-dropdown-list')?.classList.add('hidden');
-                    event.target.value = '';
-                    initMiniMap(currentLat, currentLon);
-                    calculateGoldenHours();
-                    saveChanges();
-                }
-            }
-        }
-
-        window.addEventListener('click', (e) => {
-            const input = document.getElementById('venue-search-input');
-            const dropdown = document.getElementById('venue-dropdown-list');
-            if (input && dropdown && !input.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.classList.add('hidden');
-            }
-        });
-
-        function initMiniMap(lat, lon) {
-            currentLat = lat || 55.7618;
-            currentLon = lon || 37.6338;
-
-            const container = document.getElementById('miniMap');
-            if (!container) return;
-
-            setTimeout(() => {
-                if (!mapInstance) {
-                    mapInstance = L.map('miniMap', { zoomControl: false, attributionControl: false }).setView([currentLat, currentLon], 15);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
-                    markerInstance = L.marker([currentLat, currentLon]).addTo(mapInstance);
-                } else {
-                    mapInstance.setView([currentLat, currentLon], 15);
-                    markerInstance.setLatLng([currentLat, currentLon]);
-                }
-                mapInstance.invalidateSize();
-            }, 300);
-        }
-
-        function openMapRoute() {
-            const address = document.getElementById('location-address')?.innerText || '';
-            const name = document.getElementById('location-name')?.innerText || '';
-            const query = encodeURIComponent(`${name}, ${address}`);
-            window.open(`https://yandex.ru/maps/?text=${query}`, '_blank');
-        }
-
-        let sceneGlobe, cameraGlobe, rendererGlobe, earthGroup, cloudsMesh, starFieldGlobe, sunLightGlobe, sunMeshGlobe, moonMeshGlobe;
-
-        function init3DWidget() {
-            const container = document.getElementById('globeContainer');
-            if (!container) return;
-
-            const width = container.clientWidth || 320;
-            const height = container.clientHeight || 160;
-
-            sceneGlobe = new THREE.Scene();
-            cameraGlobe = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-            cameraGlobe.position.set(0, 0, 4.6);
-
-            rendererGlobe = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            rendererGlobe.setSize(width, height);
-            rendererGlobe.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            rendererGlobe.toneMapping = THREE.ACESFilmicToneMapping;
-            rendererGlobe.toneMappingExposure = 1.2;
-            container.appendChild(rendererGlobe.domElement);
-
-            const starsGeometry = new THREE.BufferGeometry();
-            const starsCount = 600;
-            const starPositions = new Float32Array(starsCount * 3);
-            for(let i = 0; i < starsCount * 3; i += 3) {
-                starPositions[i] = (Math.random() - 0.5) * 25;
-                starPositions[i+1] = (Math.random() - 0.5) * 25;
-                starPositions[i+2] = (Math.random() - 0.5) * 25;
-            }
-            starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-            starFieldGlobe = new THREE.Points(starsGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.05, transparent: true, opacity: 0.7 }));
-            sceneGlobe.add(starFieldGlobe);
-
-            earthGroup = new THREE.Group();
-            sceneGlobe.add(earthGroup);
-
-            const textureLoader = new THREE.TextureLoader();
-            const earthRadius = 1.1;
-            const earthGeometry = new THREE.SphereGeometry(earthRadius, 64, 64);
-            const earthMaterial = new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.1, color: 0x1d4ed8 });
-
-            textureLoader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg', (tex) => { 
-                earthMaterial.map = tex; 
-                earthMaterial.color.setHex(0xffffff);
-                earthMaterial.needsUpdate = true; 
-            });
-            
-            textureLoader.load('https://threejs.org/examples/textures/planets/earth_specular_2048.jpg', (tex) => { earthMaterial.roughnessMap = tex; earthMaterial.needsUpdate = true; });
-
-            earthGroup.add(new THREE.Mesh(earthGeometry, earthMaterial));
-
-            const cloudsGeometry = new THREE.SphereGeometry(earthRadius + 0.015, 64, 64);
-            const cloudsMaterial = new THREE.MeshStandardMaterial({ transparent: true, blending: THREE.AdditiveBlending, opacity: 0.35 });
-            textureLoader.load('https://threejs.org/examples/textures/planets/earth_clouds_1024.png', (tex) => { cloudsMaterial.map = tex; cloudsMaterial.needsUpdate = true; });
-            cloudsMesh = new THREE.Mesh(cloudsGeometry, cloudsMaterial);
-            earthGroup.add(cloudsMesh);
-
-            sunLightGlobe = new THREE.DirectionalLight(0xfffaed, 2.5);
-            sceneGlobe.add(sunLightGlobe);
-            sceneGlobe.add(new THREE.AmbientLight(0x111b33, 0.4));
-
-            sunMeshGlobe = new THREE.Mesh(new THREE.SphereGeometry(0.22, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffdd44 }));
-            sceneGlobe.add(sunMeshGlobe);
-
-            moonMeshGlobe = new THREE.Mesh(new THREE.SphereGeometry(0.25, 32, 32), new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.9 }));
-            sceneGlobe.add(moonMeshGlobe);
-
-            const timeSlider = document.getElementById('timeSlider');
-            if (timeSlider) {
-                timeSlider.addEventListener('input', (e) => {
-                    updateSceneByTime(parseFloat(e.target.value));
-                });
-            }
-
-            const now = new Date();
-            const currentMins = now.getHours() * 60 + now.getMinutes();
-            if (timeSlider) timeSlider.value = currentMins;
-            updateSceneByTime(currentMins);
-
-            function animateGlobe() {
-                requestAnimationFrame(animateGlobe);
-                if (starFieldGlobe) starFieldGlobe.rotation.y += 0.0002;
-                rendererGlobe.render(sceneGlobe, cameraGlobe);
-            }
-            animateGlobe();
-        }
-
-        function updateSceneByTime(minutesOfDay) {
-            const hours = Math.floor(minutesOfDay / 60);
-            const mins = Math.floor(minutesOfDay % 60);
-            const timeStr = String(hours).padStart(2, '0') + ':' + String(mins).padStart(2, '0');
-            
-            const timeDisplay = document.getElementById('currentTimeDisplay');
-            if (timeDisplay) timeDisplay.textContent = timeStr;
-
-            autoUpdateWeatherModeByTime(hours);
-            highlightHourlyForecast(hours);
-
-            const dayProgress = minutesOfDay / 1440;
-            const angle = dayProgress * Math.PI * 2;
-
-            if (earthGroup && cloudsMesh) {
-                earthGroup.rotation.y = angle * 2;
-                cloudsMesh.rotation.y = angle * 2.2;
-            }
-
-            const sunDistance = 3.0;
-            const sunAngle = (dayProgress - 0.25) * Math.PI * 2;
-            const sunX = Math.cos(sunAngle) * sunDistance;
-            const sunY = Math.sin(sunAngle) * sunDistance;
-            
-            if (sunMeshGlobe && sunLightGlobe) {
-                sunMeshGlobe.position.set(sunX, sunY, -0.5);
-                sunLightGlobe.position.copy(sunMeshGlobe.position);
-            }
-
-            if (moonMeshGlobe) {
-                const moonAngle = sunAngle + Math.PI;
-                const moonX = Math.cos(moonAngle) * sunDistance;
-                const moonY = Math.sin(moonAngle) * sunDistance;
-                moonMeshGlobe.position.set(moonX, moonY, -0.5);
-            }
-        }
-
-        function highlightHourlyForecast(currentHour) {
-            const grid = document.getElementById('hourly-forecast-grid');
-            if (!grid) return;
-            const items = grid.querySelectorAll('[data-hour]');
-            
-            const slots = [6, 9, 12, 15, 18, 21, 0, 3];
-            let closestSlot = slots.reduce((prev, curr) => Math.abs(curr - currentHour) < Math.abs(prev - currentHour) ? curr : prev);
-
-            items.forEach(item => {
-                const h = parseInt(item.getAttribute('data-hour'), 10);
-                if (h === closestSlot) {
-                    item.className = "flex flex-col items-center font-bold text-slate-950 bg-amber-400 rounded-lg py-0.5 shadow-md scale-105 transition-all";
-                } else {
-                    item.className = "flex flex-col items-center opacity-70 transition-all";
-                }
-            });
-        }
-
-        async function fetchWeatherData() {
-            try {
-                const dateInputVal = document.getElementById('meta-date-picker')?.value;
-                const targetDateStr = dateInputVal || new Date().toISOString().split('T')[0];
-
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${currentLat}&longitude=${currentLon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,surface_pressure,precipitation,weather_code&start_date=${targetDateStr}&end_date=${targetDateStr}&timezone=Europe%2FMoscow`;
-                
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                let curTemp = +7;
-                let curAppTemp = +3;
-                let curWind = 6.9;
-                let curHum = 40;
-                let curPress = 761;
-                let curPrecip = 0;
-                let curCode = 0;
-
-                if (data && data.current) {
-                    curTemp = Math.round(data.current.temperature_2m);
-                    curAppTemp = Math.round(data.current.apparent_temperature);
-                    curWind = data.current.wind_speed_10m || 6.9;
-                    curHum = data.current.relative_humidity_2m || 40;
-                    curPress = data.current.surface_pressure ? Math.round(data.current.surface_pressure * 0.75006) : 761;
-                    curPrecip = data.current.precipitation || 0;
-                    curCode = data.current.weather_code || 0;
-                } else if (data && data.daily) {
-                    // Fallback если запрашиваемая дата архивные или прогнозные сутки
-                    curTemp = Math.round(data.daily.temperature_2m_max?.[0] || 7);
-                }
-
-                const tempMain = document.getElementById('temp-main');
-                const tempFeel = document.getElementById('temp-feel');
-                const windVal = document.getElementById('wind-val');
-                const humidityVal = document.getElementById('humidity-val');
-                const pressureVal = document.getElementById('pressure-val');
-                const conditionMain = document.getElementById('condition-main');
-
-                if (tempMain) tempMain.innerText = `+${curTemp}°C`;
-                if (tempFeel) tempFeel.innerText = `Ощущается как +${curAppTemp}°`;
-                if (windVal) windVal.innerText = `${curWind} м/с`;
-                if (humidityVal) humidityVal.innerText = `${curHum}%`;
-                if (pressureVal) pressureVal.innerText = `${curPress} мм`;
-
-                let conditionText = "Ясно и солнечно";
-                let isRainingOrSnowing = false;
-
-                if (curCode >= 50 && curCode <= 67) {
-                    conditionText = "Идет дождь";
-                    isRainingOrSnowing = true;
-                } else if (curCode >= 70 && curCode <= 77) {
-                    conditionText = "Идет снег";
-                    isRainingOrSnowing = true;
-                } else if (curCode >= 1 && curCode <= 3) {
-                    conditionText = "Облачно с прояснениями";
-                } else if (curPrecip > 0) {
-                    conditionText = "Осадки";
-                    isRainingOrSnowing = true;
-                }
-
-                if (conditionMain) conditionMain.innerText = conditionText;
-
-                const precipContainer = document.getElementById('precipitation-container');
-                if (precipContainer) {
-                    if (isRainingOrSnowing) {
-                        initPrecipitationEffect(curTemp <= 0 ? 'snow' : 'rain');
-                    } else {
-                        precipContainer.innerHTML = '';
-                    }
-                }
-
-                checkStormAlert(curWind);
-            } catch (err) {
-                console.error('Ошибка получения погоды:', err);
-            }
-        }
-
-        function updateReadinessProgress() {
-            const checkboxes = document.querySelectorAll('.department-ready-checkbox');
-            if (checkboxes.length === 0) return;
-            let checkedCount = 0;
-            checkboxes.forEach(cb => {
-                if (cb.checked) checkedCount++;
-            });
-            const percent = Math.round((checkedCount / checkboxes.length) * 100);
-            const pEl = document.getElementById('readiness-percent');
-            const bEl = document.getElementById('readiness-bar');
-            if (pEl) pEl.innerText = `${percent}%`;
-            if (bEl) bEl.style.width = `${percent}%`;
-        }
-
-        function syncGeneralDate(input) {
-            const mainDatePicker = document.getElementById('meta-date-picker');
-            if (mainDatePicker) {
-                mainDatePicker.value = input.value;
-                updateDateFromPicker(mainDatePicker);
-            }
-        }
-
-        function initApp() {
-            const saved = localStorage.getItem('call_sheet_stage_data_v18');
-            const data = saved ? JSON.parse(saved) : defaultData;
-            renderData(data);
-            init3DWidget();
-            initMiniMap(data.lat, data.lon);
-            calculateGoldenHours();
-            updateSunLightPosition();
-            updateTimerDisplay();
-        }
-
-        function renderData(data) {
-            currentProductionType = data.productionType || "film";
-            
-            const filmBtn = document.getElementById('type-film-btn');
-            const theaterBtn = document.getElementById('type-theater-btn');
-            const iconEl = document.getElementById('project-icon');
-            const metaDayEl = document.getElementById('meta-day');
-            const weatherWidgetCard = document.getElementById('weather-widget-card');
-            const spaceWidgetCard = document.getElementById('space-widget-card');
-
-            if (currentProductionType === 'theater') {
-                if (iconEl) iconEl.className = "fa-solid fa-masks-theater";
-                if (theaterBtn) theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
-                if (filmBtn) filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
-                if (weatherWidgetCard) weatherWidgetCard.style.display = 'none';
-                if (spaceWidgetCard) spaceWidgetCard.style.display = 'none';
-            } else {
-                if (iconEl) iconEl.className = "fa-solid fa-clapperboard";
-                if (filmBtn) filmBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950";
-                if (theaterBtn) theaterBtn.className = "px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white";
-                if (weatherWidgetCard) weatherWidgetCard.style.display = 'flex';
-                if (spaceWidgetCard) {
-                    spaceWidgetCard.style.display = 'flex';
-                    setTimeout(() => {
-                        if (!rendererGlobe) init3DWidget();
-                        else {
-                            const container = document.getElementById('globeContainer');
-                            if (container && rendererGlobe) {
-                                rendererGlobe.setSize(container.clientWidth || 320, container.clientHeight || 160);
-                            }
-                        }
-                    }, 50);
-                }
-            }
-
-            const metaDay = document.getElementById('meta-day');
-            const metaProject = document.getElementById('meta-project');
-            const metaVersion = document.getElementById('meta-version');
-            if (metaDay) metaDay.innerText = data.metaDay;
-            if (metaProject) metaProject.innerText = data.metaProject;
-            if (metaVersion) metaVersion.innerText = data.metaVersion;
-            
-            const dateInput = document.getElementById('meta-date-picker');
-            const generalDateInput = document.getElementById('general-call-date');
-            const targetDate = data.metaDate || data.generalCallDate || new Date().toISOString().split('T')[0];
-            if (dateInput) dateInput.value = targetDate;
-            if (generalDateInput) generalDateInput.value = targetDate;
-
-            const generalTime = document.getElementById('general-call-time');
-            const generalDesc = document.getElementById('general-call-desc');
-            if (generalTime) generalTime.value = data.generalCallTime || "07:30";
-            if (generalDesc) generalDesc.innerText = data.generalCallDesc;
-            
-            const locName = document.getElementById('location-name');
-            const locAddr = document.getElementById('location-address');
-            const locMetro = document.getElementById('location-metro');
-            const locBus = document.getElementById('location-bus');
-            const locParking = document.getElementById('location-parking');
-
-            if (locName) locName.innerText = data.locationName;
-            if (locAddr) locAddr.innerText = data.locationAddress;
-            if (locMetro) locMetro.innerText = data.locationMetro || "Метро поблизости";
-            if (locBus) locBus.innerText = data.locationBus || "Наземный транспорт";
-            if (locParking) locParking.innerText = data.locationParking;
-
-            currentLat = data.lat || 55.7618;
-            currentLon = data.lon || 37.6338;
-            initMiniMap(currentLat, currentLon);
-
-            const scenesTbody = document.getElementById('scenes-tbody');
-            if (scenesTbody) {
-                scenesTbody.innerHTML = '';
-                if (currentProductionType === 'theater') {
-                    const activeTheaterScenes = data.theaterScenes || defaultData.theaterScenes;
-                    activeTheaterScenes.forEach((scene, index) => {
-                        scenesTbody.innerHTML += `
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="py-2.5 px-3 font-mono font-bold text-amber-400" contenteditable="${isEditMode}" data-tscene-act="${index}">${scene.act}</td>
-                                <td class="py-2.5 px-3 text-slate-300 font-semibold" contenteditable="${isEditMode}" data-tscene-scene="${index}">${scene.scene}</td>
-                                <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-tscene-desc="${index}">${scene.desc}</td>
-                                <td class="py-2.5 px-3 text-slate-400 font-mono" contenteditable="${isEditMode}" data-tscene-time="${index}">${scene.time}</td>
-                                <td class="py-2.5 px-3 text-sky-400 font-medium" contenteditable="${isEditMode}" data-tscene-cast="${index}">${scene.cast}</td>
-                                <td class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
-                                    <button onclick="removeSceneRow(${index})" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                } else {
-                    const activeScenes = data.scenes || defaultData.scenes;
-                    activeScenes.forEach((scene, index) => {
-                        scenesTbody.innerHTML += `
-                            <tr class="hover:bg-slate-800/40 transition">
-                                <td class="py-2.5 px-3 font-mono font-bold text-amber-400" contenteditable="${isEditMode}" data-scene-num="${index}">${scene.num}</td>
-                                <td class="py-2.5 px-3 text-slate-300 font-semibold" contenteditable="${isEditMode}" data-scene-ie="${index}">${scene.ie}</td>
-                                <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-scene-desc="${index}">${scene.desc}</td>
-                                <td class="py-2.5 px-3 text-slate-400 font-mono" contenteditable="${isEditMode}" data-scene-time="${index}">${scene.time}</td>
-                                <td class="py-2.5 px-3 text-sky-400 font-medium" contenteditable="${isEditMode}" data-scene-cast="${index}">${scene.cast}</td>
-                                <td class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
-                                    <button onclick="removeSceneRow(${index})" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                }
-            }
-
-            const timelineTbody = document.getElementById('timeline-tbody');
-            if (timelineTbody) {
-                timelineTbody.innerHTML = '';
-                const activeTimeline = (currentProductionType === 'theater') ? (data.theaterTimeline || defaultData.theaterTimeline) : (data.timeline || defaultData.timeline);
-                
-                activeTimeline.forEach((item, index) => {
-                    let timeCellContent = isEditMode 
-                        ? `<input type="time" value="${item.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-2 py-1 rounded border border-slate-700 text-sm outline-none" data-timeline-time="${index}">`
-                        : `<span class="font-mono font-bold text-amber-400 text-base" data-timeline-time="${index}" data-time-val="${item.time}">${item.time}</span>`;
-
-                    timelineTbody.innerHTML += `
-                        <tr class="hover:bg-slate-800/40 transition">
-                            <td class="py-2.5 px-3">${timeCellContent}</td>
-                            <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-timeline-event="${index}">${item.event}</td>
-                            <td class="py-2.5 px-3 text-slate-400 editable-field" contenteditable="${isEditMode}" data-timeline-resp="${index}">${item.responsible}</td>
-                            <td class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
-                                <button onclick="removeTimelineRow(${index})" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
-                            </td>
-                        </tr>
-                    `;
-                });
-            }
-
-            const deptContainer = document.getElementById('departments-container');
-            if (deptContainer) {
-                deptContainer.innerHTML = '';
-                const activeDepts = (currentProductionType === 'theater') ? (data.theaterDepartments || defaultData.theaterDepartments) : (data.departments || defaultData.departments);
-
-                activeDepts.forEach((dept, dIndex) => {
-                    let crewRows = '';
-                    dept.crew.forEach((c, cIndex) => {
-                        crewRows += `
-                            <div class="flex items-center justify-between py-2 border-b border-slate-800/60 last:border-0 text-sm">
-                                <div>
-                                    <div class="text-xs text-slate-400 editable-field" contenteditable="${isEditMode}" data-dept-role="${dIndex}-${cIndex}">${c.role}</div>
-                                    <div class="font-semibold text-white editable-field" contenteditable="${isEditMode}" data-dept-name="${dIndex}-${cIndex}">${c.name}</div>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <a href="tel:${c.phone}" class="text-xs text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1 rounded-md transition editable-field" contenteditable="${isEditMode}" data-dept-phone="${dIndex}-${cIndex}">${c.phone}</a>
-                                    ${isEditMode ? `<button onclick="removeCrewMember(${dIndex}, ${cIndex})" class="text-red-400 hover:text-red-300 text-xs px-1"><i class="fa-solid fa-xmark"></i></button>` : ''}
-                                </div>
-                            </div>
-                        `;
-                    });
-
-                    let deptCallTimeContent = isEditMode
-                        ? `<input type="time" value="${dept.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-1.5 py-0.5 rounded border border-slate-700 text-xs outline-none inline-block" data-dept-calltime="${dIndex}">`
-                        : `<strong class="text-amber-400 font-mono" data-dept-calltime="${dIndex}" data-time-val="${dept.time}">${dept.time}</strong>`;
-
-                    deptContainer.innerHTML += `
-                        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg flex flex-col justify-between">
-                            <div>
-                                <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-800">
-                                    <div>
-                                        <h3 class="font-bold text-white uppercase tracking-wider text-sm editable-field" contenteditable="${isEditMode}" data-dept-title="${dIndex}">${dept.name}</h3>
-                                        <span class="text-xs text-slate-400">Сбор: ${deptCallTimeContent}</span>
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        <label class="flex items-center space-x-1 cursor-pointer text-xs bg-slate-950 px-2 py-1 rounded border border-slate-800" title="Отметить готовность департамента">
-                                            <input type="checkbox" class="department-ready-checkbox accent-amber-500 cursor-pointer" ${dept.ready ? 'checked' : ''} onchange="updateReadinessProgress()">
-                                            <span class="text-slate-300">Готов</span>
-                                        </label>
-                                        ${isEditMode ? `<button onclick="removeDepartment(${dIndex})" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-                                    </div>
-                                </div>
-                                <div class="space-y-1">${crewRows}</div>
-                            </div>
-                            ${isEditMode ? `<div class="mt-4 pt-2 border-t border-slate-800"><button onclick="addCrewMember(${dIndex})" class="w-full py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 rounded-lg transition">+ Сотрудник</button></div>` : ''}
-                        </div>
-                    `;
-                });
-            }
-
-            const contactsGrid = document.getElementById('contacts-grid');
-            if (contactsGrid) {
-                contactsGrid.innerHTML = '';
-                data.contacts.forEach((contact, index) => {
-                    contactsGrid.innerHTML += `
-                        <div class="bg-slate-950/50 p-3.5 rounded-lg border border-slate-800 flex flex-col justify-between">
-                            <div>
-                                <div class="text-xs text-slate-400 editable-field" contenteditable="${isEditMode}" data-contact-role="${index}">${contact.role}</div>
-                                <div class="font-bold text-white text-sm editable-field" contenteditable="${isEditMode}" data-contact-name="${index}">${contact.name}</div>
-                            </div>
-                            <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between">
-                                <a href="tel:${contact.phone}" class="text-xs text-amber-400 font-semibold hover:underline editable-field" contenteditable="${isEditMode}" data-contact-phone="${index}">${contact.phone}</a>
-                                ${isEditMode ? `<button onclick="removeContact(${index})" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
-                            </div>
-                        </div>
-                    `;
-                });
-            }
-
-            calculateGoldenHours();
-            updateSunLightPosition();
-            updateReadinessProgress();
-        }
-
-        function updateDateFromPicker(input) {
-            const generalDateInput = document.getElementById('general-call-date');
-            if (generalDateInput && generalDateInput.value !== input.value) {
-                generalDateInput.value = input.value;
-            }
-            saveChanges();
-            if (currentProductionType === 'film') fetchWeatherData();
-            calculateGoldenHours();
-            updateSunLightPosition();
-        }
-
-        function collectDataFromDOM() {
-            let data = {
-                productionType: currentProductionType,
-                metaDay: document.getElementById('meta-day')?.innerText || '',
-                metaProject: document.getElementById('meta-project')?.innerText || '',
-                metaDate: document.getElementById('meta-date-picker')?.value || '',
-                metaVersion: document.getElementById('meta-version')?.innerText || '',
-                generalCallTime: document.getElementById('general-call-time')?.value || '',
-                generalCallDate: document.getElementById('general-call-date')?.value || '',
-                generalCallDesc: document.getElementById('general-call-desc')?.innerText || '',
-                weatherTemp: document.getElementById('temp-main')?.innerText || '',
-                weatherCondition: document.getElementById('condition-main')?.innerText || '',
-                weatherWind: document.getElementById('wind-val')?.innerText || '',
-                weatherHumidity: document.getElementById('humidity-val')?.innerText || '',
-                weatherPressure: document.getElementById('pressure-val')?.innerText || '',
-                sunRise: document.getElementById('sun-rise')?.innerText || '',
-                sunSet: document.getElementById('sun-set')?.innerText || '',
-                locationName: document.getElementById('location-name')?.innerText || '',
-                locationAddress: document.getElementById('location-address')?.innerText || '',
-                locationMetro: document.getElementById('location-metro')?.innerText || '',
-                locationBus: document.getElementById('location-bus')?.innerText || '',
-                locationParking: document.getElementById('location-parking')?.innerText || '',
-                lat: currentLat,
-                lon: currentLon,
-                scenes: [],
-                theaterScenes: [],
-                timeline: [],
-                theaterTimeline: [],
-                departments: [],
-                theaterDepartments: [],
-                contacts: []
-            };
-
-            if (currentProductionType === 'theater') {
-                document.querySelectorAll('[data-tscene-act]').forEach((el, index) => {
-                    const act = el.innerText;
-                    const scene = document.querySelector(`[data-tscene-scene="${index}"]`)?.innerText || '';
-                    const desc = document.querySelector(`[data-tscene-desc="${index}"]`)?.innerText || '';
-                    const time = document.querySelector(`[data-tscene-time="${index}"]`)?.innerText || '';
-                    const cast = document.querySelector(`[data-tscene-cast="${index}"]`)?.innerText || '';
-                    data.theaterScenes.push({ act, scene, desc, time, cast });
-                });
-            } else {
-                document.querySelectorAll('[data-scene-num]').forEach((el, index) => {
-                    const num = el.innerText;
-                    const ie = document.querySelector(`[data-scene-ie="${index}"]`)?.innerText || '';
-                    const desc = document.querySelector(`[data-scene-desc="${index}"]`)?.innerText || '';
-                    const time = document.querySelector(`[data-scene-time="${index}"]`)?.innerText || '';
-                    const cast = document.querySelector(`[data-scene-cast="${index}"]`)?.innerText || '';
-                    data.scenes.push({ num, ie, desc, time, cast });
-                });
-            }
-
-            document.querySelectorAll('[data-timeline-time]').forEach((el, index) => {
-                let rawTime = isEditMode ? (el.value || "00:00") : (el.getAttribute('data-time-val') || "00:00");
-                const event = document.querySelector(`[data-timeline-event="${index}"]`)?.innerText || '';
-                const responsible = document.querySelector(`[data-timeline-resp="${index}"]`)?.innerText || '';
-                if (currentProductionType === 'theater') {
-                    data.theaterTimeline.push({ time: rawTime, event, responsible });
-                } else {
-                    data.timeline.push({ time: rawTime, event, responsible });
-                }
-            });
-
-            let deptIndices = new Set();
-            document.querySelectorAll('[data-dept-title]').forEach(el => deptIndices.add(el.getAttribute('data-dept-title')));
-            deptIndices.forEach(dIdx => {
-                const name = document.querySelector(`[data-dept-title="${dIdx}"]`)?.innerText || '';
-                const timeEl = document.querySelector(`[data-dept-calltime="${dIdx}"]`);
-                let deptTime = isEditMode ? (timeEl?.value || "00:00") : (timeEl?.getAttribute('data-time-val') || "00:00");
-                
-                const readyCheckbox = document.querySelectorAll('.department-ready-checkbox')[dIdx];
-                const isReady = readyCheckbox ? readyCheckbox.checked : true;
-
-                let crew = [];
-                let cIndices = new Set();
-                document.querySelectorAll(`[data-dept-role^="${dIdx}-"]`).forEach(el => {
-                    cIndices.add(el.getAttribute('data-dept-role').split('-')[1]);
-                });
-                cIndices.forEach(cIdx => {
-                    const role = document.querySelector(`[data-dept-role="${dIdx}-${cIdx}"]`)?.innerText || '';
-                    const name = document.querySelector(`[data-dept-name="${dIdx}-${cIdx}"]`)?.innerText || '';
-                    const phone = document.querySelector(`[data-dept-phone="${dIdx}-${cIdx}"]`)?.innerText || '';
-                    crew.push({ role, name, phone });
-                });
-
-                if (currentProductionType === 'theater') {
-                    data.theaterDepartments.push({ name, time: deptTime, ready: isReady, crew });
-                } else {
-                    data.departments.push({ name, time: deptTime, ready: isReady, crew });
-                }
-            });
-
-            document.querySelectorAll('[data-contact-role]').forEach((el, index) => {
-                const role = el.innerText;
-                const name = document.querySelector(`[data-contact-name="${index}"]`)?.innerText || '';
-                const phone = document.querySelector(`[data-contact-phone="${index}"]`)?.innerText || '';
-                data.contacts.push({ role, name, phone });
-            });
-
-            return data;
-        }
-
-        function toggleEditMode() {
-            isEditMode = !isEditMode;
-            const btnText = document.getElementById('edit-mode-text');
-            const btn = document.getElementById('edit-mode-btn');
-            
-            const generalCallTime = document.getElementById('general-call-time');
-            const generalCallDate = document.getElementById('general-call-date');
-            const generalCallHint = document.getElementById('general-call-hint');
-            const venueSearchContainer = document.getElementById('venue-search-container');
-
-            if (isEditMode) {
-                if (btnText) btnText.innerText = "Готово (Просмотр)";
-                if (btn) {
-                    btn.classList.add('bg-amber-500', 'text-slate-950', 'border-amber-400');
-                    btn.classList.remove('bg-amber-500/10', 'text-amber-400');
-                }
-                
-                if (generalCallTime) generalCallTime.removeAttribute('disabled');
-                if (generalCallHint) generalCallHint.style.display = 'none';
-                if (venueSearchContainer) venueSearchContainer.classList.remove('hidden');
-
-                document.querySelectorAll('.editable-field').forEach(el => el.setAttribute('contenteditable', 'true'));
-                document.querySelectorAll('.edit-action-btn').forEach(el => el.classList.remove('hidden'));
-            } else {
-                saveChanges();
-                if (btnText) btnText.innerText = "Режим правки";
-                if (btn) {
-                    btn.classList.remove('bg-amber-500', 'text-slate-950', 'border-amber-400');
-                    btn.classList.add('bg-amber-500/10', 'text-amber-400');
-                }
-
-                if (generalCallTime) generalCallTime.setAttribute('disabled', 'true');
-                if (generalCallHint) generalCallHint.style.display = 'inline';
-                if (venueSearchContainer) venueSearchContainer.classList.add('hidden');
-
-                document.querySelectorAll('.editable-field').forEach(el => el.setAttribute('contenteditable', 'false'));
-                document.querySelectorAll('.edit-action-btn').forEach(el => el.classList.add('hidden'));
-            }
-            renderData(collectDataFromDOM());
-        }
-
-        function saveChanges() {
-            const data = collectDataFromDOM();
-            localStorage.setItem('call_sheet_stage_data_v18', JSON.stringify(data));
-            calculateGoldenHours();
-            updateReadinessProgress();
-        }
-
-        function resetToDefaults() {
-            if (confirm('Сбросить изменения по умолчанию?')) {
-                localStorage.removeItem('call_sheet_stage_data_v18');
-                renderData(defaultData);
-            }
-        }
-
-        function addSceneRow() {
-            let d = collectDataFromDOM();
-            if (currentProductionType === 'theater') {
-                d.theaterScenes.push({ act: "Акт II", scene: "Картина 1", desc: "Новая картина", time: "15 мин", cast: "Артисты" });
-            } else {
-                d.scenes.push({ num: "16", ie: "ИНТ.", desc: "Новая сцена", time: "1/8", cast: "—" });
-            }
-            renderData(d);
-        }
-
-        function removeSceneRow(i) {
-            let d = collectDataFromDOM();
-            if (currentProductionType === 'theater') {
-                d.theaterScenes.splice(i, 1);
-            } else {
-                d.scenes.splice(i, 1);
-            }
-            renderData(d);
-        }
-
-        function addTimelineRow() {
-            let d = collectDataFromDOM();
-            if (currentProductionType === 'theater') {
-                d.theaterTimeline.push({ time: "15:00", event: "Новая репетиция", responsible: "Помощник режиссера" });
-            } else {
-                d.timeline.push({ time: "12:00", event: "Новое событие", responsible: "Ответственный" });
-            }
-            renderData(d);
-        }
-
-        function removeTimelineRow(i) {
-            let d = collectDataFromDOM();
-            if (currentProductionType === 'theater') {
-                d.theaterTimeline.splice(i, 1);
-            } else {
-                d.timeline.splice(i, 1);
-            }
-            renderData(d);
-        }
-
-        function addDepartment() {
-            let d = collectDataFromDOM();
-            if (currentProductionType === 'theater') {
-                d.theaterDepartments.push({ name: "Новый цех", time: "10:00", ready: false, crew: [{ role: "Мастер", name: "Имя", phone: "+7..." }] });
-            } else {
-                d.departments.push({ name: "Новый отдел", time: "08:00", ready: false, crew: [{ role: "Сотрудник", name: "Имя", phone: "+7..." }] });
-            }
-            renderData(d);
-        }
-
-        function removeDepartment(i) {
-            let d = collectDataFromDOM();
-            if (currentProductionType === 'theater') {
-                d.theaterDepartments.splice(i, 1);
-            } else {
-                d.departments.splice(i, 1);
-            }
-            renderData(d);
-        }
-
-        function addCrewMember(dIdx) {
-            let d = collectDataFromDOM();
-            const targetDepts = (currentProductionType === 'theater') ? d.theaterDepartments : d.departments;
-            targetDepts[dIdx].crew.push({ role: "Должность", name: "Имя", phone: "+7..." });
-            renderData(d);
-        }
-
-        function removeCrewMember(dIdx, cIdx) {
-            let d = collectDataFromDOM();
-            const targetDepts = (currentProductionType === 'theater') ? d.theaterDepartments : d.departments;
-            targetDepts[dIdx].crew.splice(cIdx, 1);
-            renderData(d);
-        }
-
-        function addContact() {
-            let d = collectDataFromDOM();
-            d.contacts.push({ role: "Должность", name: "Имя", phone: "+7..." });
-            renderData(d);
-        }
-
-        function removeContact(i) {
-            let d = collectDataFromDOM();
-            d.contacts.splice(i, 1);
-            renderData(d);
-        }
-
-        window.onload = function() {
-            initApp();
-            fetchWeatherData();
-        };
-    </script>
+    <!-- Подключение современного модульного скрипта Vite -->
+    <script type="module" src="/src/main.js"></script>
 </body>
 </html>
