@@ -27,13 +27,14 @@ if (tg && tg.initData) {
 }
 
 let isEditMode = false;
+let isNightVision = false;
 let currentProductionType = "film";
 let currentLat = 55.7618;
 let currentLon = 37.6338;
 
 let sceneGlobe, cameraGlobe, rendererGlobe, earthGroup, cloudsMesh, starFieldGlobe, sunLightGlobe, sunMeshGlobe, moonMeshGlobe;
 
-// Глобальная привязка функций к объекту window
+// Глобальная привязка функций к window
 window.startTimer = startTimer;
 window.pauseTimer = pauseTimer;
 window.resetTimer = resetTimer;
@@ -43,7 +44,10 @@ window.setTimerPhase = setTimerPhase;
 window.openTimerFullscreen = openTimerFullscreen;
 window.closeTimerFullscreen = closeTimerFullscreen;
 window.toggleThemeMode = toggleThemeMode;
+window.toggleNightVision = toggleNightVision;
 window.exportPDF = exportPDF;
+window.exportJSON = exportJSON;
+window.importJSON = importJSON;
 window.fetchWeatherData = () => fetchWeatherData(currentLat, currentLon);
 window.setProductionType = setProductionType;
 window.updateDateFromPicker = updateDateFromPicker;
@@ -72,9 +76,10 @@ window.toggleEditMode = toggleEditMode;
 window.saveChanges = saveChanges;
 window.resetToDefaults = resetToDefaults;
 window.updateReadinessProgress = updateReadinessProgress;
+window.updateTimelineProgress = updateTimelineProgress;
 
 function initApp() {
-    const saved = localStorage.getItem('call_sheet_stage_data_v18');
+    const saved = localStorage.getItem('call_sheet_stage_data_v19');
     const data = saved ? JSON.parse(saved) : defaultData;
     renderData(data);
     init3DWidget();
@@ -195,6 +200,7 @@ function renderData(data) {
         }
     }
 
+    // Рендер таймлайна с интерактивными чекбоксами выполнения
     const timelineTbody = document.getElementById('timeline-tbody');
     if (timelineTbody) {
         timelineTbody.innerHTML = '';
@@ -205,9 +211,15 @@ function renderData(data) {
                 ? `<input type="time" value="${item.time}" class="bg-slate-800 text-amber-400 font-mono font-bold px-2 py-1 rounded border border-slate-700 text-sm outline-none" data-timeline-time="${index}">`
                 : `<span class="font-mono font-bold text-amber-400 text-base" data-timeline-time="${index}" data-time-val="${item.time}">${item.time}</span>`;
 
+            const isDone = item.done ? 'checked' : '';
+            const rowClass = item.done ? 'bg-emerald-950/20 text-slate-400 line-through' : '';
+
             timelineTbody.innerHTML += `
-                <tr class="hover:bg-slate-800/40 transition">
-                    <td class="py-2.5 px-3">${timeCellContent}</td>
+                <tr class="hover:bg-slate-800/40 transition ${rowClass}" id="timeline-row-${index}">
+                    <td class="py-2.5 px-3 flex items-center space-x-2">
+                        <input type="checkbox" class="timeline-done-checkbox accent-emerald-500 cursor-pointer w-4 h-4" ${isDone} onchange="updateTimelineProgress(${index})" title="Отметить выполненным">
+                        ${timeCellContent}
+                    </td>
                     <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-timeline-event="${index}">${item.event}</td>
                     <td class="py-2.5 px-3 text-slate-400 editable-field" contenteditable="${isEditMode}" data-timeline-resp="${index}">${item.responsible}</td>
                     <td class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
@@ -218,6 +230,7 @@ function renderData(data) {
         });
     }
 
+    // Департаменты с кликабельными ссылками на телефоны (tel:)
     const deptContainer = document.getElementById('departments-container');
     if (deptContainer) {
         deptContainer.innerHTML = '';
@@ -226,6 +239,7 @@ function renderData(data) {
         activeDepts.forEach((dept, dIndex) => {
             let crewRows = '';
             dept.crew.forEach((c, cIndex) => {
+                const cleanPhone = c.phone.replace(/[^+\d]/g, '');
                 crewRows += `
                     <div class="flex items-center justify-between py-2 border-b border-slate-800/60 last:border-0 text-sm">
                         <div>
@@ -233,7 +247,9 @@ function renderData(data) {
                             <div class="font-semibold text-white editable-field" contenteditable="${isEditMode}" data-dept-name="${dIndex}-${cIndex}">${c.name}</div>
                         </div>
                         <div class="flex items-center space-x-2">
-                            <a href="tel:${c.phone}" class="text-xs text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1 rounded-md transition editable-field" contenteditable="${isEditMode}" data-dept-phone="${dIndex}-${cIndex}">${c.phone}</a>
+                            <a href="tel:${cleanPhone}" class="text-xs text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1 rounded-md transition flex items-center space-x-1 shadow-sm editable-field" contenteditable="${isEditMode}" data-dept-phone="${dIndex}-${cIndex}">
+                                <i class="fa-solid fa-phone text-[10px]"></i><span>${c.phone}</span>
+                            </a>
                             ${isEditMode ? `<button onclick="removeCrewMember(${dIndex}, ${cIndex})" class="text-red-400 hover:text-red-300 text-xs px-1"><i class="fa-solid fa-xmark"></i></button>` : ''}
                         </div>
                     </div>
@@ -268,10 +284,12 @@ function renderData(data) {
         });
     }
 
+    // Контакты с tel: ссылками
     const contactsGrid = document.getElementById('contacts-grid');
     if (contactsGrid) {
         contactsGrid.innerHTML = '';
         data.contacts.forEach((contact, index) => {
+            const cleanPhone = contact.phone.replace(/[^+\d]/g, '');
             contactsGrid.innerHTML += `
                 <div class="bg-slate-950/50 p-3.5 rounded-lg border border-slate-800 flex flex-col justify-between">
                     <div>
@@ -279,7 +297,9 @@ function renderData(data) {
                         <div class="font-bold text-white text-sm editable-field" contenteditable="${isEditMode}" data-contact-name="${index}">${contact.name}</div>
                     </div>
                     <div class="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between">
-                        <a href="tel:${contact.phone}" class="text-xs text-amber-400 font-semibold hover:underline editable-field" contenteditable="${isEditMode}" data-contact-phone="${index}">${contact.phone}</a>
+                        <a href="tel:${cleanPhone}" class="text-xs text-amber-400 font-semibold hover:underline flex items-center space-x-1 editable-field" contenteditable="${isEditMode}" data-contact-phone="${index}">
+                            <i class="fa-solid fa-phone text-[10px]"></i><span>${contact.phone}</span>
+                        </a>
                         ${isEditMode ? `<button onclick="removeContact(${index})" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>` : ''}
                     </div>
                 </div>
@@ -290,6 +310,70 @@ function renderData(data) {
     calculateGoldenHours();
     updateSunLightPosition();
     updateReadinessProgress();
+}
+
+// Экспорт смены в JSON файл
+function exportJSON() {
+    const data = collectDataFromDOM();
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `CallSheet_${data.metaDate || 'shift'}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
+
+// Импорт смены из JSON файла
+function importJSON(event) {
+    const fileReader = new FileReader();
+    if (event.target.files[0]) {
+        fileReader.readAsText(event.target.files[0], "UTF-8");
+        fileReader.onload = (e) => {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                localStorage.setItem('call_sheet_stage_data_v19', JSON.stringify(importedData));
+                renderData(importedData);
+                if (importedData.lat && importedData.lon) {
+                    currentLat = importedData.lat;
+                    currentLon = importedData.lon;
+                    initMiniMap(currentLat, currentLon);
+                    fetchWeatherData(currentLat, currentLon);
+                }
+                alert('✅ Смена успешно импортирована!');
+            } catch (error) {
+                alert('❌ Ошибка чтения JSON файла.');
+                console.error(error);
+            }
+        };
+    }
+}
+
+// Ночной режим (Night Vision - глубокая ночная тема)
+function toggleNightVision() {
+    isNightVision = !isNightVision;
+    const btn = document.getElementById('night-vision-btn');
+    if (isNightVision) {
+        document.documentElement.style.filter = "hue-rotate(320deg) contrast(1.15) brightness(0.9)";
+        if (btn) btn.className = "p-2 rounded-lg bg-red-950 border border-red-700 text-red-400 hover:bg-red-900 text-sm transition shadow-[0_0_15px_rgba(239,68,68,0.4)]";
+    } else {
+        document.documentElement.style.filter = "none";
+        if (btn) btn.className = "p-2 rounded-lg bg-slate-800 border border-slate-700 text-amber-500 hover:bg-slate-700 text-sm transition";
+    }
+}
+
+// Обновление прогресса выполнения вех таймлайна
+function updateTimelineProgress(index) {
+    const checkbox = document.querySelectorAll('.timeline-done-checkbox')[index];
+    const row = document.getElementById(`timeline-row-${index}`);
+    if (checkbox && row) {
+        if (checkbox.checked) {
+            row.className = "hover:bg-slate-800/40 transition bg-emerald-950/20 text-slate-400 line-through";
+        } else {
+            row.className = "hover:bg-slate-800/40 transition";
+        }
+        saveChanges();
+    }
 }
 
 async function updateDateFromPicker(input) {
@@ -557,10 +641,12 @@ function collectDataFromDOM() {
         let rawTime = isEditMode ? (el.value || "00:00") : (el.getAttribute('data-time-val') || "00:00");
         const event = document.querySelector(`[data-timeline-event="${index}"]`)?.innerText || '';
         const responsible = document.querySelector(`[data-timeline-resp="${index}"]`)?.innerText || '';
+        const isDone = document.querySelectorAll('.timeline-done-checkbox')[index]?.checked || false;
+        
         if (currentProductionType === 'theater') {
-            data.theaterTimeline.push({ time: rawTime, event, responsible });
+            data.theaterTimeline.push({ time: rawTime, event, responsible, done: isDone });
         } else {
-            data.timeline.push({ time: rawTime, event, responsible });
+            data.timeline.push({ time: rawTime, event, responsible, done: isDone });
         }
     });
 
@@ -641,14 +727,14 @@ function toggleEditMode() {
 
 function saveChanges() {
     const data = collectDataFromDOM();
-    localStorage.setItem('call_sheet_stage_data_v18', JSON.stringify(data));
+    localStorage.setItem('call_sheet_stage_data_v19', JSON.stringify(data));
     calculateGoldenHours();
     updateReadinessProgress();
 }
 
 function resetToDefaults() {
     if (confirm('Сбросить изменения по умолчанию?')) {
-        localStorage.removeItem('call_sheet_stage_data_v18');
+        localStorage.removeItem('call_sheet_stage_data_v19');
         renderData(defaultData);
         fetchWeatherData(defaultData.lat, defaultData.lon);
     }
@@ -673,9 +759,9 @@ function removeSceneRow(i) {
 function addTimelineRow() {
     let d = collectDataFromDOM();
     if (currentProductionType === 'theater') {
-        d.theaterTimeline.push({ time: "15:00", event: "Новая репетиция", responsible: "ПР" });
+        d.theaterTimeline.push({ time: "15:00", event: "Новая репетиция", responsible: "ПР", done: false });
     } else {
-        d.timeline.push({ time: "12:00", event: "Новое событие", responsible: "Ответственный" });
+        d.timeline.push({ time: "12:00", event: "Новое событие", responsible: "Ответственный", done: false });
     }
     renderData(d);
 }
