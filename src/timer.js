@@ -1,10 +1,10 @@
 // src/timer.js
 
-export let timerTotalSeconds = 1500; // 25 минут по умолчанию (Мотор)
-export let timerRemainingSeconds = 1500;
-export let timerInterval = null;
-export let isTimerRunning = false;
-export let currentPhaseName = "Фаза: Мотор / Рабочий дубль";
+let timerTotalSeconds = 1500;
+let timerRemainingSeconds = 1500;
+let timerInterval = null;
+let isTimerRunning = false;
+let currentPhaseName = "Фаза: Мотор / Рабочий дубль";
 
 export function updateTimerDisplay() {
     const h = Math.floor(timerRemainingSeconds / 3600);
@@ -55,7 +55,6 @@ export function setTimerPreset(mins, secs = 0) {
     const hInput = document.getElementById('input-hours');
     const mInput = document.getElementById('input-mins');
     const sInput = document.getElementById('input-secs');
-
     if (hInput) hInput.value = String(Math.floor(mins / 60)).padStart(2, '0');
     if (mInput) mInput.value = String(mins % 60).padStart(2, '0');
     if (sInput) sInput.value = String(secs).padStart(2, '0');

@@ -5,8 +5,8 @@ import {
     setTimerPreset, setCustomTimerFromInputs, setTimerPhase, 
     openTimerFullscreen, closeTimerFullscreen 
 } from './timer.js';
-import { fetchWeatherData, calculateGoldenHours } from './weather.js';
-import { initMiniMap, openMapRoute, showVenueDropdown, filterVenues, handleCustomAddressKey, selectVenue } from './map.js';
+import { fetchWeatherData, calculateGoldenHours, autoUpdateWeatherModeByTime } from './weather.js';
+import { initMiniMap, openMapRoute, showVenueDropdown, filterVenues, handleCustomAddressKey } from './map.js';
 
 let tg = window.Telegram?.WebApp;
 if (tg && tg.initData) {
@@ -24,9 +24,10 @@ let isEditMode = false;
 let currentProductionType = "film";
 let currentLat = 55.7618;
 let currentLon = 37.6338;
+
 let sceneGlobe, cameraGlobe, rendererGlobe, earthGroup, cloudsMesh, starFieldGlobe, sunLightGlobe, sunMeshGlobe, moonMeshGlobe;
 
-// Глобальная привязка функций к объекту window
+// Глобальная привязка функций
 window.startTimer = startTimer;
 window.pauseTimer = pauseTimer;
 window.resetTimer = resetTimer;
@@ -37,7 +38,7 @@ window.openTimerFullscreen = openTimerFullscreen;
 window.closeTimerFullscreen = closeTimerFullscreen;
 window.toggleThemeMode = toggleThemeMode;
 window.exportPDF = exportPDF;
-window.fetchWeatherData = () => fetchWeatherData(currentLat, currentLon);
+window.fetchWeatherData = fetchWeatherData;
 window.setProductionType = setProductionType;
 window.updateDateFromPicker = updateDateFromPicker;
 window.syncGeneralDate = syncGeneralDate;
@@ -59,7 +60,6 @@ window.toggleEditMode = toggleEditMode;
 window.saveChanges = saveChanges;
 window.resetToDefaults = resetToDefaults;
 window.updateReadinessProgress = updateReadinessProgress;
-window.updateSunLightPosition = updateSunLightPosition;
 
 function initApp() {
     const saved = localStorage.getItem('call_sheet_stage_data_v18');
@@ -67,8 +67,7 @@ function initApp() {
     renderData(data);
     init3DWidget();
     initMiniMap(currentLat, currentLon);
-    calculateGoldenHours(currentLat, currentLon);
-    updateSunLightPosition();
+    calculateGoldenHours();
     updateTimerDisplay();
 }
 
@@ -78,6 +77,7 @@ function renderData(data) {
     const filmBtn = document.getElementById('type-film-btn');
     const theaterBtn = document.getElementById('type-theater-btn');
     const iconEl = document.getElementById('project-icon');
+    const metaDayEl = document.getElementById('meta-day');
     const weatherWidgetCard = document.getElementById('weather-widget-card');
     const spaceWidgetCard = document.getElementById('space-widget-card');
 
@@ -124,6 +124,11 @@ function renderData(data) {
     if (generalTime) generalTime.value = data.generalCallTime || "07:30";
     if (generalDesc) generalDesc.innerText = data.generalCallDesc;
     
+    const sunRise = document.getElementById('sun-rise');
+    const sunSet = document.getElementById('sun-set');
+    if (sunRise) sunRise.innerText = data.sunRise;
+    if (sunSet) sunSet.innerText = data.sunSet;
+
     const locName = document.getElementById('location-name');
     const locAddr = document.getElementById('location-address');
     const locMetro = document.getElementById('location-metro');
@@ -270,8 +275,7 @@ function renderData(data) {
         });
     }
 
-    calculateGoldenHours(currentLat, currentLon);
-    updateSunLightPosition();
+    calculateGoldenHours();
     updateReadinessProgress();
 }
 
@@ -281,9 +285,7 @@ function updateDateFromPicker(input) {
         generalDateInput.value = input.value;
     }
     saveChanges();
-    if (currentProductionType === 'film') fetchWeatherData(currentLat, currentLon);
-    calculateGoldenHours(currentLat, currentLon);
-    updateSunLightPosition();
+    if (currentProductionType === 'film') fetchWeatherData();
 }
 
 function syncGeneralDate(input) {
@@ -341,61 +343,6 @@ function exportPDF() {
     });
 }
 
-function updateSunLightPosition(overrideAngle = null) {
-    const now = new Date();
-    const currentMins = now.getHours() * 60 + now.getMinutes();
-
-    const sunRiseEl = document.getElementById('sun-rise')?.innerText || "07:25";
-    const sunSetEl = document.getElementById('sun-set')?.innerText || "17:01";
-
-    function parseTime(tStr) {
-        const parts = tStr.split(':');
-        if (parts.length !== 2) return 0;
-        return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
-    }
-
-    const riseMins = parseTime(sunRiseEl);
-    const setMins = parseTime(sunSetEl);
-
-    const banner = document.getElementById('cinematic-banner');
-    const titleText = document.getElementById('banner-title-text');
-    const statusText = document.getElementById('cinematic-status-text');
-    const alertIcon = document.getElementById('banner-alert-icon');
-
-    if (banner && titleText && statusText) {
-        if (currentMins >= riseMins && currentMins <= riseMins + 60) {
-            banner.className = "banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 transition-all duration-500";
-            titleText.innerHTML = `<i class="fa-solid fa-sun mr-1"></i> Утренний золотой час / Рассвет`;
-            statusText.innerText = "Мягкий боковой свет. Идеально для утренних экстерьеров.";
-            if (alertIcon) alertIcon.className = "fa-solid fa-sun text-[10px]";
-        } else if (currentMins >= setMins - 60 && currentMins <= setMins) {
-            banner.className = "banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 transition-all duration-500";
-            titleText.innerHTML = `<i class="fa-solid fa-moon mr-1"></i> Вечерний золотой час / Закат`;
-            statusText.innerText = "Внимание: режимный свет, жесткий контроль приборов заполнения!";
-            if (alertIcon) alertIcon.className = "fa-solid fa-circle-half-stroke text-[10px]";
-        } else if (currentMins > setMins || currentMins < riseMins) {
-            banner.className = "banner-night p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 transition-all duration-500";
-            titleText.innerHTML = `<i class="fa-solid fa-moon mr-1"></i> Ночная смена / Ночное время`;
-            statusText.innerText = "Работа в темное время суток. Контроль питания и ночного света.";
-            if (alertIcon) alertIcon.className = "fa-solid fa-moon text-[10px]";
-        } else {
-            banner.className = "banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 transition-all duration-500";
-            titleText.innerHTML = `<i class="fa-solid fa-cloud-sun mr-1"></i> Дневная смена`;
-            statusText.innerText = "Штатный режим освещения на площадке.";
-            if (alertIcon) alertIcon.className = "fa-solid fa-check text-[10px]";
-        }
-    }
-
-    const angleDeg = overrideAngle !== null ? overrideAngle : 45;
-    const rad = angleDeg * (Math.PI / 180);
-    if (sunLightGlobe && sunMeshGlobe) {
-        sunLightGlobe.position.set(Math.cos(rad) * 5, Math.sin(rad) * 5, 3);
-        sunMeshGlobe.position.set(Math.cos(rad) * 3.5, Math.sin(rad) * 3.5, 0);
-    }
-    const slider = document.getElementById('moon-phase-slider');
-    if (slider && overrideAngle === null) slider.value = Math.round(angleDeg);
-}
-
 function init3DWidget() {
     const container = document.getElementById('globeContainer');
     if (!container) return;
@@ -404,65 +351,133 @@ function init3DWidget() {
 
     sceneGlobe = new THREE.Scene();
     cameraGlobe = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    cameraGlobe.position.set(0, 0, 4.2);
+    cameraGlobe.position.set(0, 0, 4.6);
 
     rendererGlobe = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     rendererGlobe.setSize(width, height);
     rendererGlobe.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    rendererGlobe.toneMapping = THREE.ACESFilmicToneMapping;
+    rendererGlobe.toneMappingExposure = 1.2;
     container.appendChild(rendererGlobe.domElement);
+
+    const starsGeometry = new THREE.BufferGeometry();
+    const starsCount = 600;
+    const starPositions = new Float32Array(starsCount * 3);
+    for(let i = 0; i < starsCount * 3; i += 3) {
+        starPositions[i] = (Math.random() - 0.5) * 25;
+        starPositions[i+1] = (Math.random() - 0.5) * 25;
+        starPositions[i+2] = (Math.random() - 0.5) * 25;
+    }
+    starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    starFieldGlobe = new THREE.Points(starsGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.05, transparent: true, opacity: 0.7 }));
+    sceneGlobe.add(starFieldGlobe);
 
     earthGroup = new THREE.Group();
     sceneGlobe.add(earthGroup);
 
     const textureLoader = new THREE.TextureLoader();
     const earthRadius = 1.1;
+    const earthGeometry = new THREE.SphereGeometry(earthRadius, 64, 64);
+    const earthMaterial = new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.1, color: 0x1d4ed8 });
 
-    // Текстура Земли
-    const earthGeometry = new THREE.SphereGeometry(earthRadius, 32, 32);
-    const earthMaterial = new THREE.MeshStandardMaterial({
-        roughness: 0.6,
-        metalness: 0.1,
-        color: 0x2563eb,
-        wireframe: false
+    textureLoader.load('https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg', (tex) => { 
+        earthMaterial.map = tex; 
+        earthMaterial.color.setHex(0xffffff);
+        earthMaterial.needsUpdate = true; 
     });
-    const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
-    earthGroup.add(earthMesh);
+    textureLoader.load('https://threejs.org/examples/textures/planets/earth_specular_2048.jpg', (tex) => { earthMaterial.roughnessMap = tex; earthMaterial.needsUpdate = true; });
 
-    // Слой облаков
-    const cloudsGeometry = new THREE.SphereGeometry(earthRadius + 0.02, 32, 32);
-    const cloudsMaterial = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.3
-    });
+    earthGroup.add(new THREE.Mesh(earthGeometry, earthMaterial));
+
+    const cloudsGeometry = new THREE.SphereGeometry(earthRadius + 0.015, 64, 64);
+    const cloudsMaterial = new THREE.MeshStandardMaterial({ transparent: true, blending: THREE.AdditiveBlending, opacity: 0.35 });
+    textureLoader.load('https://threejs.org/examples/textures/planets/earth_clouds_1024.png', (tex) => { cloudsMaterial.map = tex; cloudsMaterial.needsUpdate = true; });
     cloudsMesh = new THREE.Mesh(cloudsGeometry, cloudsMaterial);
     earthGroup.add(cloudsMesh);
 
-    // Источники света
-    sunLightGlobe = new THREE.DirectionalLight(0xfffaed, 2.2);
-    sunLightGlobe.position.set(5, 3, 3);
+    sunLightGlobe = new THREE.DirectionalLight(0xfffaed, 2.5);
     sceneGlobe.add(sunLightGlobe);
-    sceneGlobe.add(new THREE.AmbientLight(0x111b33, 0.5));
+    sceneGlobe.add(new THREE.AmbientLight(0x111b33, 0.4));
 
-    // Солнце и Луна
-    const sunGeo = new THREE.SphereGeometry(0.2, 16, 16);
-    const sunMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
-    sunMeshGlobe = new THREE.Mesh(sunGeo, sunMat);
+    sunMeshGlobe = new THREE.Mesh(new THREE.SphereGeometry(0.22, 32, 32), new THREE.MeshBasicMaterial({ color: 0xffdd44 }));
     sceneGlobe.add(sunMeshGlobe);
 
-    const moonGeo = new THREE.SphereGeometry(0.12, 16, 16);
-    const moonMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.9 });
-    moonMeshGlobe = new THREE.Mesh(moonGeo, moonMat);
-    moonMeshGlobe.position.set(-3.5, -2, 0);
+    moonMeshGlobe = new THREE.Mesh(new THREE.SphereGeometry(0.25, 32, 32), new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.9 }));
     sceneGlobe.add(moonMeshGlobe);
+
+    const timeSlider = document.getElementById('timeSlider');
+    if (timeSlider) {
+        timeSlider.addEventListener('input', (e) => {
+            updateSceneByTime(parseFloat(e.target.value));
+        });
+    }
+
+    const now = new Date();
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+    if (timeSlider) timeSlider.value = currentMins;
+    updateSceneByTime(currentMins);
 
     function animateGlobe() {
         requestAnimationFrame(animateGlobe);
-        earthGroup.rotation.y += 0.002;
-        if (cloudsMesh) cloudsMesh.rotation.y += 0.0025;
+        if (starFieldGlobe) starFieldGlobe.rotation.y += 0.0002;
         rendererGlobe.render(sceneGlobe, cameraGlobe);
     }
     animateGlobe();
+}
+
+function updateSceneByTime(minutesOfDay) {
+    const hours = Math.floor(minutesOfDay / 60);
+    const mins = Math.floor(minutesOfDay % 60);
+    const timeStr = String(hours).padStart(2, '0') + ':' + String(mins).padStart(2, '0');
+    
+    const timeDisplay = document.getElementById('currentTimeDisplay');
+    if (timeDisplay) timeDisplay.textContent = timeStr;
+
+    autoUpdateWeatherModeByTime(hours);
+    highlightHourlyForecast(hours);
+
+    const dayProgress = minutesOfDay / 1440;
+    const angle = dayProgress * Math.PI * 2;
+
+    if (earthGroup && cloudsMesh) {
+        earthGroup.rotation.y = angle * 2;
+        cloudsMesh.rotation.y = angle * 2.2;
+    }
+
+    const sunDistance = 3.0;
+    const sunAngle = (dayProgress - 0.25) * Math.PI * 2;
+    const sunX = Math.cos(sunAngle) * sunDistance;
+    const sunY = Math.sin(sunAngle) * sunDistance;
+    
+    if (sunMeshGlobe && sunLightGlobe) {
+        sunMeshGlobe.position.set(sunX, sunY, -0.5);
+        sunLightGlobe.position.copy(sunMeshGlobe.position);
+    }
+
+    if (moonMeshGlobe) {
+        const moonAngle = sunAngle + Math.PI;
+        const moonX = Math.cos(moonAngle) * sunDistance;
+        const moonY = Math.sin(moonAngle) * sunDistance;
+        moonMeshGlobe.position.set(moonX, moonY, -0.5);
+    }
+}
+
+function highlightHourlyForecast(currentHour) {
+    const grid = document.getElementById('hourly-forecast-grid');
+    if (!grid) return;
+    const items = grid.querySelectorAll('[data-hour]');
+    
+    const slots = [6, 9, 12, 15, 18, 21, 0, 3];
+    let closestSlot = slots.reduce((prev, curr) => Math.abs(curr - currentHour) < Math.abs(prev - currentHour) ? curr : prev);
+
+    items.forEach(item => {
+        const h = parseInt(item.getAttribute('data-hour'), 10);
+        if (h === closestSlot) {
+            item.className = "flex flex-col items-center font-bold text-slate-950 bg-amber-400 rounded-lg py-0.5 shadow-md scale-105 transition-all";
+        } else {
+            item.className = "flex flex-col items-center opacity-70 transition-all";
+        }
+    });
 }
 
 function collectDataFromDOM() {
@@ -475,6 +490,13 @@ function collectDataFromDOM() {
         generalCallTime: document.getElementById('general-call-time')?.value || '',
         generalCallDate: document.getElementById('general-call-date')?.value || '',
         generalCallDesc: document.getElementById('general-call-desc')?.innerText || '',
+        weatherTemp: document.getElementById('temp-main')?.innerText || '',
+        weatherCondition: document.getElementById('condition-main')?.innerText || '',
+        weatherWind: document.getElementById('wind-val')?.innerText || '',
+        weatherHumidity: document.getElementById('humidity-val')?.innerText || '',
+        weatherPressure: document.getElementById('pressure-val')?.innerText || '',
+        sunRise: document.getElementById('sun-rise')?.innerText || '',
+        sunSet: document.getElementById('sun-set')?.innerText || '',
         locationName: document.getElementById('location-name')?.innerText || '',
         locationAddress: document.getElementById('location-address')?.innerText || '',
         locationMetro: document.getElementById('location-metro')?.innerText || '',
@@ -594,7 +616,7 @@ function toggleEditMode() {
 function saveChanges() {
     const data = collectDataFromDOM();
     localStorage.setItem('call_sheet_stage_data_v18', JSON.stringify(data));
-    calculateGoldenHours(currentLat, currentLon);
+    calculateGoldenHours();
     updateReadinessProgress();
 }
 
@@ -681,5 +703,5 @@ function removeContact(i) {
 
 window.addEventListener('DOMContentLoaded', () => {
     initApp();
-    fetchWeatherData(currentLat, currentLon);
+    fetchWeatherData();
 });

@@ -1,13 +1,12 @@
 // src/map.js
 import { venuesDatabase } from './data.js';
-import { calculateGoldenHours, fetchWeatherData } from './weather.js';
 
 let mapInstance = null;
 let markerInstance = null;
 let currentLat = 55.7618;
 let currentLon = 37.6338;
 
-export function initMiniMap(lat, lon, onLocationChange) {
+export function initMiniMap(lat, lon) {
     currentLat = lat || 55.7618;
     currentLon = lon || 37.6338;
 
@@ -77,8 +76,6 @@ export function selectVenue(v) {
     document.getElementById('venue-dropdown-list')?.classList.add('hidden');
     const searchInput = document.getElementById('venue-search-input');
     if (searchInput) searchInput.value = '';
-    calculateGoldenHours(currentLat, currentLon);
-    fetchWeatherData(currentLat, currentLon);
 }
 
 export function handleCustomAddressKey(event) {
@@ -92,7 +89,6 @@ export function handleCustomAddressKey(event) {
             document.getElementById('venue-dropdown-list')?.classList.add('hidden');
             event.target.value = '';
             initMiniMap(currentLat, currentLon);
-            calculateGoldenHours(currentLat, currentLon);
         }
     }
 }
