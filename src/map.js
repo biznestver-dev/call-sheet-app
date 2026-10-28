@@ -1,5 +1,6 @@
 // src/map.js
 import { venuesDatabase } from './data.js';
+import { fetchWeatherData } from './weather.js';
 
 let mapInstance = null;
 let markerInstance = null;
@@ -50,7 +51,7 @@ function renderVenueDropdown(list) {
     if (!dropdown) return;
     dropdown.innerHTML = '';
     if (list.length === 0) {
-        dropdown.innerHTML = '<div class="p-2 text-xs text-slate-400">Нет в базе. Нажмите Enter для ввода своего адреса</div>';
+        dropdown.innerHTML = '<div class="p-2 text-xs text-slate-400">Нет в базе. Нажмите Enter, чтобы найти адрес на карте</div>';
         return;
     }
     list.forEach(v => {
@@ -65,28 +66,56 @@ function renderVenueDropdown(list) {
 export function selectVenue(v) {
     document.getElementById('location-name').innerText = v.name;
     document.getElementById('location-address').innerText = v.address;
-    document.getElementById('location-metro').innerText = v.metro;
-    document.getElementById('location-bus').innerText = v.bus;
+    document.getElementById('location-metro').innerText = v.metro || "Выбрано из базы";
+    document.getElementById('location-bus').innerText = v.bus || "Транспортная доступность";
     currentLat = v.lat;
     currentLon = v.lon;
     initMiniMap(currentLat, currentLon);
     document.getElementById('venue-dropdown-list')?.classList.add('hidden');
     const searchInput = document.getElementById('venue-search-input');
     if (searchInput) searchInput.value = '';
+
+    // Автоматически обновляем погоду и астрономию для новой точки
+    fetchWeatherData(currentLat, currentLon);
 }
 
-export function handleCustomAddressKey(event) {
+// Умный поиск координат по произвольному тексту через Nominatim API при нажатии Enter
+export async function handleCustomAddressKey(event) {
     if (event.key === 'Enter') {
         const customText = event.target.value.trim();
-        if (customText) {
-            document.getElementById('location-name').innerText = customText;
+        if (!customText) return;
+
+        document.getElementById('venue-dropdown-list')?.classList.add('hidden');
+        document.getElementById('location-name').innerText = customText;
+        document.getElementById('location-address').innerText = "Поиск координат на карте...";
+
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(customText)}&limit=1`, {
+                headers: { 'Accept-Language': 'ru' }
+            });
+            const results = await res.json();
+
+            if (results && results.length > 0) {
+                currentLat = parseFloat(results[0].lat);
+                currentLon = parseFloat(results[0].lon);
+                const fullName = results[0].display_name || customText;
+
+                document.getElementById('location-address').innerText = fullName;
+                document.getElementById('location-metro').innerText = "Адрес найден по OSM геокодеру";
+                document.getElementById('location-bus').innerText = "Подъезд автотранспорта";
+
+                initMiniMap(currentLat, currentLon);
+                fetchWeatherData(currentLat, currentLon);
+            } else {
+                document.getElementById('location-address').innerText = customText;
+                document.getElementById('location-metro').innerText = "Координаты не найдены (оставлена текущая точка)";
+            }
+        } catch (err) {
+            console.error('Ошибка геокодирования адреса:', err);
             document.getElementById('location-address').innerText = customText;
-            document.getElementById('location-metro').innerText = "Произвольный адрес / Площадка";
-            document.getElementById('location-bus').innerText = "Маршрут уточняется у координатора";
-            document.getElementById('venue-dropdown-list')?.classList.add('hidden');
-            event.target.value = '';
-            initMiniMap(currentLat, currentLon);
         }
+
+        event.target.value = '';
     }
 }
 
@@ -127,6 +156,8 @@ export function detectUserLocation(onSuccessCallback) {
             document.getElementById('location-metro').innerText = "Точка по GPS-координатам";
             document.getElementById('location-bus').innerText = "Наземный подъезд";
 
+            currentLat = lat;
+            currentLon = lon;
             initMiniMap(lat, lon);
             
             if (onSuccessCallback) onSuccessCallback(lat, lon);
