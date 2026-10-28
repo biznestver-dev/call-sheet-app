@@ -75,11 +75,10 @@ export function selectVenue(v) {
     const searchInput = document.getElementById('venue-search-input');
     if (searchInput) searchInput.value = '';
 
-    // Автоматически обновляем погоду и астрономию для новой точки
     fetchWeatherData(currentLat, currentLon);
 }
 
-// Умный поиск координат по произвольному тексту через Nominatim API при нажатии Enter
+// Умный поиск координат (с запасным вариантом поиска по улице/населенному пункту)
 export async function handleCustomAddressKey(event) {
     if (event.key === 'Enter') {
         const customText = event.target.value.trim();
@@ -89,11 +88,26 @@ export async function handleCustomAddressKey(event) {
         document.getElementById('location-name').innerText = customText;
         document.getElementById('location-address').innerText = "Поиск координат на карте...";
 
-        try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(customText)}&limit=1`, {
+        async function tryGeocode(query) {
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
                 headers: { 'Accept-Language': 'ru' }
             });
-            const results = await res.json();
+            return await res.json();
+        }
+
+        try {
+            // Попытка №1: ищем полный введенный адрес
+            let results = await tryGeocode(customText);
+
+            // Попытка №2: если дом не найден, отрезаем первую часть (номер дома) и ищем саму улицу/деревню
+            if ((!results || results.length === 0) && customText.includes(',')) {
+                const parts = customText.split(',').map(p => p.trim());
+                if (parts.length > 1) {
+                    parts.shift();
+                    const fallbackQuery = parts.join(', ');
+                    results = await tryGeocode(fallbackQuery);
+                }
+            }
 
             if (results && results.length > 0) {
                 currentLat = parseFloat(results[0].lat);
@@ -108,7 +122,7 @@ export async function handleCustomAddressKey(event) {
                 fetchWeatherData(currentLat, currentLon);
             } else {
                 document.getElementById('location-address').innerText = customText;
-                document.getElementById('location-metro').innerText = "Координаты не найдены (оставлена текущая точка)";
+                document.getElementById('location-metro').innerText = "Точные координаты не найдены в базе OSM";
             }
         } catch (err) {
             console.error('Ошибка геокодирования адреса:', err);
