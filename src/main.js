@@ -24,8 +24,7 @@ let isEditMode = false;
 let currentProductionType = "film";
 let currentLat = 55.7618;
 let currentLon = 37.6338;
-let widgetSunLights = [];
-let sceneGlobe, cameraGlobe, rendererGlobe, earthGroup, cloudsMesh, starFieldGlobe, sunLightGlobe, sunMeshGlobe, moonMeshGlobe;
+let sceneGlobe, cameraGlobe, rendererGlobe, earthGroup;
 
 // Глобальная привязка функций к объекту window, чтобы HTML-атрибуты onclick их видели
 window.startTimer = startTimer;
@@ -78,7 +77,6 @@ function renderData(data) {
     const filmBtn = document.getElementById('type-film-btn');
     const theaterBtn = document.getElementById('type-theater-btn');
     const iconEl = document.getElementById('project-icon');
-    const metaDayEl = document.getElementById('meta-day');
     const weatherWidgetCard = document.getElementById('weather-widget-card');
     const spaceWidgetCard = document.getElementById('space-widget-card');
 
@@ -342,13 +340,50 @@ function exportPDF() {
     });
 }
 
-function updateSunLightPosition(overrideAngle = null) {
-    const dateInputVal = document.getElementById('meta-date-picker')?.value;
-    const targetDate = dateInputVal ? new Date(dateInputVal) : new Date();
-    // Простая симуляция угла
-    const angleDeg = overrideAngle !== null ? overrideAngle : 45;
-    const slider = document.getElementById('moon-phase-slider');
-    if (slider && overrideAngle === null) slider.value = Math.round(angleDeg);
+function updateSunLightPosition() {
+    const now = new Date();
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+
+    const sunRiseEl = document.getElementById('sun-rise')?.innerText || "07:25";
+    const sunSetEl = document.getElementById('sun-set')?.innerText || "17:01";
+
+    function parseTime(tStr) {
+        const parts = tStr.split(':');
+        if (parts.length !== 2) return 0;
+        return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+    }
+
+    const riseMins = parseTime(sunRiseEl);
+    const setMins = parseTime(sunSetEl);
+
+    const banner = document.getElementById('cinematic-banner');
+    const titleText = document.getElementById('banner-title-text');
+    const statusText = document.getElementById('cinematic-status-text');
+    const alertIcon = document.getElementById('banner-alert-icon');
+
+    if (banner && titleText && statusText) {
+        if (currentMins >= riseMins && currentMins <= riseMins + 60) {
+            banner.className = "banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 transition-all duration-500";
+            titleText.innerHTML = `<i class="fa-solid fa-sun mr-1"></i> Утренний золотой час / Рассвет`;
+            statusText.innerText = "Мягкий боковой свет. Идеально для утренних экстерьеров.";
+            if (alertIcon) alertIcon.className = "fa-solid fa-sun text-[10px]";
+        } else if (currentMins >= setMins - 60 && currentMins <= setMins) {
+            banner.className = "banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 transition-all duration-500";
+            titleText.innerHTML = `<i class="fa-solid fa-moon mr-1"></i> Вечерний золотой час / Закат`;
+            statusText.innerText = "Внимание: режимный свет, жесткий контроль приборов заполнения!";
+            if (alertIcon) alertIcon.className = "fa-solid fa-circle-half-stroke text-[10px]";
+        } else if (currentMins > setMins || currentMins < riseMins) {
+            banner.className = "banner-night p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 transition-all duration-500";
+            titleText.innerHTML = `<i class="fa-solid fa-moon mr-1"></i> Ночная смена / Ночное время`;
+            statusText.innerText = "Работа в темное время суток. Контроль питания и ночного света.";
+            if (alertIcon) alertIcon.className = "fa-solid fa-moon text-[10px]";
+        } else {
+            banner.className = "banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 transition-all duration-500";
+            titleText.innerHTML = `<i class="fa-solid fa-cloud-sun mr-1"></i> Дневная смена`;
+            statusText.innerText = "Штатный режим освещения на площадке.";
+            if (alertIcon) alertIcon.className = "fa-solid fa-check text-[10px]";
+        }
+    }
 }
 
 function init3DWidget() {
@@ -369,14 +404,12 @@ function init3DWidget() {
     earthGroup = new THREE.Group();
     sceneGlobe.add(earthGroup);
 
-    const textureLoader = new THREE.TextureLoader();
     const earthRadius = 1.1;
     const earthGeometry = new THREE.SphereGeometry(earthRadius, 32, 32);
     const earthMaterial = new THREE.MeshStandardMaterial({ roughness: 0.6, color: 0x1d4ed8 });
     earthGroup.add(new THREE.Mesh(earthGeometry, earthMaterial));
 
-    sunLightGlobe = new THREE.DirectionalLight(0xfffaed, 2.5);
-    sceneGlobe.add(sunLightGlobe);
+    sceneGlobe.add(new THREE.DirectionalLight(0xfffaed, 2.5));
     sceneGlobe.add(new THREE.AmbientLight(0x111b33, 0.4));
 
     function animateGlobe() {
