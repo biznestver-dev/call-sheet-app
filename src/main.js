@@ -200,7 +200,6 @@ function renderData(data) {
         }
     }
 
-    // Рендер таймлайна с интерактивными чекбоксами выполнения
     const timelineTbody = document.getElementById('timeline-tbody');
     if (timelineTbody) {
         timelineTbody.innerHTML = '';
@@ -230,7 +229,6 @@ function renderData(data) {
         });
     }
 
-    // Департаменты с кликабельными ссылками на телефоны (tel:)
     const deptContainer = document.getElementById('departments-container');
     if (deptContainer) {
         deptContainer.innerHTML = '';
@@ -284,7 +282,6 @@ function renderData(data) {
         });
     }
 
-    // Контакты с tel: ссылками
     const contactsGrid = document.getElementById('contacts-grid');
     if (contactsGrid) {
         contactsGrid.innerHTML = '';
@@ -312,7 +309,6 @@ function renderData(data) {
     updateReadinessProgress();
 }
 
-// Экспорт смены в JSON файл
 function exportJSON() {
     const data = collectDataFromDOM();
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
@@ -324,7 +320,6 @@ function exportJSON() {
     downloadAnchor.remove();
 }
 
-// Импорт смены из JSON файла
 function importJSON(event) {
     const fileReader = new FileReader();
     if (event.target.files[0]) {
@@ -349,7 +344,6 @@ function importJSON(event) {
     }
 }
 
-// Ночной режим (Night Vision - глубокая ночная тема)
 function toggleNightVision() {
     isNightVision = !isNightVision;
     const btn = document.getElementById('night-vision-btn');
@@ -362,7 +356,6 @@ function toggleNightVision() {
     }
 }
 
-// Обновление прогресса выполнения вех таймлайна
 function updateTimelineProgress(index) {
     const checkbox = document.querySelectorAll('.timeline-done-checkbox')[index];
     const row = document.getElementById(`timeline-row-${index}`);
