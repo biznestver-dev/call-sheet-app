@@ -24,9 +24,9 @@ let isEditMode = false;
 let currentProductionType = "film";
 let currentLat = 55.7618;
 let currentLon = 37.6338;
-let sceneGlobe, cameraGlobe, rendererGlobe, earthGroup;
+let sceneGlobe, cameraGlobe, rendererGlobe, earthGroup, cloudsMesh, starFieldGlobe, sunLightGlobe, sunMeshGlobe, moonMeshGlobe;
 
-// Глобальная привязка функций к объекту window, чтобы HTML-атрибуты onclick их видели
+// Глобальная привязка функций к объекту window
 window.startTimer = startTimer;
 window.pauseTimer = pauseTimer;
 window.resetTimer = resetTimer;
@@ -59,6 +59,7 @@ window.toggleEditMode = toggleEditMode;
 window.saveChanges = saveChanges;
 window.resetToDefaults = resetToDefaults;
 window.updateReadinessProgress = updateReadinessProgress;
+window.updateSunLightPosition = updateSunLightPosition;
 
 function initApp() {
     const saved = localStorage.getItem('call_sheet_stage_data_v18');
@@ -340,7 +341,7 @@ function exportPDF() {
     });
 }
 
-function updateSunLightPosition() {
+function updateSunLightPosition(overrideAngle = null) {
     const now = new Date();
     const currentMins = now.getHours() * 60 + now.getMinutes();
 
@@ -384,6 +385,15 @@ function updateSunLightPosition() {
             if (alertIcon) alertIcon.className = "fa-solid fa-check text-[10px]";
         }
     }
+
+    const angleDeg = overrideAngle !== null ? overrideAngle : 45;
+    const rad = angleDeg * (Math.PI / 180);
+    if (sunLightGlobe && sunMeshGlobe) {
+        sunLightGlobe.position.set(Math.cos(rad) * 5, Math.sin(rad) * 5, 3);
+        sunMeshGlobe.position.set(Math.cos(rad) * 3.5, Math.sin(rad) * 3.5, 0);
+    }
+    const slider = document.getElementById('moon-phase-slider');
+    if (slider && overrideAngle === null) slider.value = Math.round(angleDeg);
 }
 
 function init3DWidget() {
@@ -394,7 +404,7 @@ function init3DWidget() {
 
     sceneGlobe = new THREE.Scene();
     cameraGlobe = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    cameraGlobe.position.set(0, 0, 4.6);
+    cameraGlobe.position.set(0, 0, 4.2);
 
     rendererGlobe = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     rendererGlobe.setSize(width, height);
@@ -404,16 +414,52 @@ function init3DWidget() {
     earthGroup = new THREE.Group();
     sceneGlobe.add(earthGroup);
 
+    const textureLoader = new THREE.TextureLoader();
     const earthRadius = 1.1;
-    const earthGeometry = new THREE.SphereGeometry(earthRadius, 32, 32);
-    const earthMaterial = new THREE.MeshStandardMaterial({ roughness: 0.6, color: 0x1d4ed8 });
-    earthGroup.add(new THREE.Mesh(earthGeometry, earthMaterial));
 
-    sceneGlobe.add(new THREE.DirectionalLight(0xfffaed, 2.5));
-    sceneGlobe.add(new THREE.AmbientLight(0x111b33, 0.4));
+    // Текстура Земли
+    const earthGeometry = new THREE.SphereGeometry(earthRadius, 32, 32);
+    const earthMaterial = new THREE.MeshStandardMaterial({
+        roughness: 0.6,
+        metalness: 0.1,
+        color: 0x2563eb,
+        wireframe: false
+    });
+    const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+    earthGroup.add(earthMesh);
+
+    // Слой облаков
+    const cloudsGeometry = new THREE.SphereGeometry(earthRadius + 0.02, 32, 32);
+    const cloudsMaterial = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.3
+    });
+    cloudsMesh = new THREE.Mesh(cloudsGeometry, cloudsMaterial);
+    earthGroup.add(cloudsMesh);
+
+    // Источники света
+    sunLightGlobe = new THREE.DirectionalLight(0xfffaed, 2.2);
+    sunLightGlobe.position.set(5, 3, 3);
+    sceneGlobe.add(sunLightGlobe);
+    sceneGlobe.add(new THREE.AmbientLight(0x111b33, 0.5));
+
+    // Солнце и Луна
+    const sunGeo = new THREE.SphereGeometry(0.2, 16, 16);
+    const sunMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
+    sunMeshGlobe = new THREE.Mesh(sunGeo, sunMat);
+    sceneGlobe.add(sunMeshGlobe);
+
+    const moonGeo = new THREE.SphereGeometry(0.12, 16, 16);
+    const moonMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.9 });
+    moonMeshGlobe = new THREE.Mesh(moonGeo, moonMat);
+    moonMeshGlobe.position.set(-3.5, -2, 0);
+    sceneGlobe.add(moonMeshGlobe);
 
     function animateGlobe() {
         requestAnimationFrame(animateGlobe);
+        earthGroup.rotation.y += 0.002;
+        if (cloudsMesh) cloudsMesh.rotation.y += 0.0025;
         rendererGlobe.render(sceneGlobe, cameraGlobe);
     }
     animateGlobe();
