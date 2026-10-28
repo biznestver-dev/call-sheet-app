@@ -9,7 +9,10 @@ import {
     fetchWeatherData, calculateGoldenHours, 
     autoUpdateWeatherModeByTime, updateSunLightPosition 
 } from './weather.js';
-import { initMiniMap, openMapRoute, showVenueDropdown, filterVenues, handleCustomAddressKey } from './map.js';
+import { 
+    initMiniMap, openMapRoute, showVenueDropdown, 
+    filterVenues, handleCustomAddressKey, detectUserLocation 
+} from './map.js';
 
 let tg = window.Telegram?.WebApp;
 if (tg && tg.initData) {
@@ -46,19 +49,15 @@ window.setProductionType = setProductionType;
 window.updateDateFromPicker = updateDateFromPicker;
 window.syncGeneralDate = syncGeneralDate;
 window.openMapRoute = openMapRoute;
-window.showVenueDropdown = () => showVenueDropdown((v) => {
-    currentLat = v.lat;
-    currentLon = v.lon;
-    fetchWeatherData(currentLat, currentLon);
-    saveChanges();
-});
-window.filterVenues = (q) => filterVenues(q, (v) => {
-    currentLat = v.lat;
-    currentLon = v.lon;
-    fetchWeatherData(currentLat, currentLon);
-    saveChanges();
-});
+window.showVenueDropdown = () => showVenueDropdown();
+window.filterVenues = (q) => filterVenues(q);
 window.handleCustomAddressKey = handleCustomAddressKey;
+window.detectUserLocation = () => detectUserLocation((lat, lon) => {
+    currentLat = lat;
+    currentLon = lon;
+    fetchWeatherData(currentLat, currentLon);
+    saveChanges();
+});
 window.addSceneRow = addSceneRow;
 window.removeSceneRow = removeSceneRow;
 window.addTimelineRow = addTimelineRow;

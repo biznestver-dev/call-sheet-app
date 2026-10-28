@@ -33,19 +33,19 @@ export function openMapRoute() {
     window.open(`https://yandex.ru/maps/?text=${query}`, '_blank');
 }
 
-export function showVenueDropdown(onSelectCallback) {
-    renderVenueDropdown(venuesDatabase, onSelectCallback);
+export function showVenueDropdown() {
+    renderVenueDropdown(venuesDatabase);
     document.getElementById('venue-dropdown-list')?.classList.remove('hidden');
 }
 
-export function filterVenues(query, onSelectCallback) {
+export function filterVenues(query) {
     const q = query.toLowerCase();
     const filtered = venuesDatabase.filter(v => v.name.toLowerCase().includes(q) || v.address.toLowerCase().includes(q));
-    renderVenueDropdown(filtered, onSelectCallback);
+    renderVenueDropdown(filtered);
     document.getElementById('venue-dropdown-list')?.classList.remove('hidden');
 }
 
-function renderVenueDropdown(list, onSelectCallback) {
+function renderVenueDropdown(list) {
     const dropdown = document.getElementById('venue-dropdown-list');
     if (!dropdown) return;
     dropdown.innerHTML = '';
@@ -57,10 +57,7 @@ function renderVenueDropdown(list, onSelectCallback) {
         const item = document.createElement('div');
         item.className = "p-2 hover:bg-slate-800 cursor-pointer text-xs border-b border-slate-800 last:border-0";
         item.innerHTML = `<div class="font-bold text-white">${v.name}</div><div class="text-[10px] text-slate-400">${v.address}</div>`;
-        item.onclick = () => {
-            selectVenue(v);
-            if (onSelectCallback) onSelectCallback(v);
-        };
+        item.onclick = () => selectVenue(v);
         dropdown.appendChild(item);
     });
 }
@@ -91,4 +88,54 @@ export function handleCustomAddressKey(event) {
             initMiniMap(currentLat, currentLon);
         }
     }
+}
+
+// Автоматическое определение геолокации устройства по GPS
+export function detectUserLocation(onSuccessCallback) {
+    if (!navigator.geolocation) {
+        alert('Геолокация не поддерживается вашим браузером');
+        return;
+    }
+
+    const btnIcon = document.querySelector('.fa-location-crosshairs');
+    if (btnIcon) btnIcon.classList.add('fa-spin');
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            if (btnIcon) btnIcon.classList.remove('fa-spin');
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            let placeName = `GPS: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+            let placeAddress = "Определено по GPS устройства";
+            
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=16&addressdetails=1`, {
+                    headers: { 'Accept-Language': 'ru' }
+                });
+                const data = await res.json();
+                if (data && data.display_name) {
+                    placeName = data.address?.city || data.address?.town || data.address?.village || "Съемочная площадка (GPS)";
+                    placeAddress = data.display_name;
+                }
+            } catch (err) {
+                console.warn('Не удалось расшифровать адрес по координатам:', err);
+            }
+
+            document.getElementById('location-name').innerText = placeName;
+            document.getElementById('location-address').innerText = placeAddress;
+            document.getElementById('location-metro').innerText = "Точка по GPS-координатам";
+            document.getElementById('location-bus').innerText = "Наземный подъезд";
+
+            initMiniMap(lat, lon);
+            
+            if (onSuccessCallback) onSuccessCallback(lat, lon);
+        },
+        (error) => {
+            if (btnIcon) btnIcon.classList.remove('fa-spin');
+            console.error('Ошибка геолокации:', error);
+            alert('Не удалось получить геопозицию. Проверьте разрешения браузера.');
+        },
+        { timeout: 10000, enableHighAccuracy: true }
+    );
 }
