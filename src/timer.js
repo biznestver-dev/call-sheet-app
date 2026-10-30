@@ -6,6 +6,9 @@ let timerInterval = null;
 let isTimerRunning = false;
 let currentPhaseName = "Фаза: Мотор / Рабочий дубль";
 
+// Флаг, чтобы автообновление слайдера не мешало, если пользователь крутит его вручную
+let userIsInteractingWithTimeSlider = false;
+
 export function updateTimerDisplay() {
     const h = Math.floor(timerRemainingSeconds / 3600);
     const m = Math.floor((timerRemainingSeconds % 3600) / 60);
@@ -113,4 +116,56 @@ export function openTimerFullscreen() {
 
 export function closeTimerFullscreen() {
     document.getElementById('timer-fullscreen-modal')?.classList.add('hidden');
+}
+
+/**
+ * Синхронизация слайдера времени суток (планеты/солнца) с реальным временем
+ * @param {Function} updateSceneCallback - функция обновления 3D-сцены (принимает минуты от начала суток)
+ */
+export function initDayTimeSync(updateSceneCallback) {
+    const timeSlider = document.getElementById('timeSlider');
+    if (!timeSlider) return;
+
+    // 1. Устанавливаем текущее суточное время при старте
+    const now = new Date();
+    const currentMins = now.getHours() * 60 + now.getMinutes();
+    timeSlider.value = currentMins;
+    if (typeof updateSceneCallback === 'function') {
+        updateSceneCallback(currentMins);
+    }
+
+    // 2. Отслеживаем ручной ввод/перемещение ползунка пользователем
+    timeSlider.addEventListener('mousedown', () => { userIsInteractingWithTimeSlider = true; });
+    timeSlider.addEventListener('touchstart', () => { userIsInteractingWithTimeSlider = true; });
+
+    timeSlider.addEventListener('input', () => {
+        userIsInteractingWithTimeSlider = true;
+        const val = parseInt(timeSlider.value);
+        if (typeof updateSceneCallback === 'function') {
+            updateSceneCallback(val);
+        }
+    });
+
+    const releaseInteraction = () => {
+        // Даем небольшую паузу (3 секунды) перед возвратом автообновления
+        setTimeout(() => { userIsInteractingWithTimeSlider = false; }, 3000);
+    };
+
+    timeSlider.addEventListener('mouseup', releaseInteraction);
+    timeSlider.addEventListener('touchend', releaseInteraction);
+
+    // 3. Автоматическое обновление времени каждую минуту (60 000 мс)
+    setInterval(() => {
+        if (!userIsInteractingWithTimeSlider) {
+            const currentTime = new Date();
+            const mins = currentTime.getHours() * 60 + currentTime.getMinutes();
+            
+            if (parseInt(timeSlider.value) !== mins) {
+                timeSlider.value = mins;
+                if (typeof updateSceneCallback === 'function') {
+                    updateSceneCallback(mins);
+                }
+            }
+        }
+    }, 60000);
 }

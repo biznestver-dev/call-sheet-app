@@ -3,7 +3,7 @@ import { defaultData } from './data.js';
 import { 
     startTimer, pauseTimer, resetTimer, updateTimerDisplay, 
     setTimerPreset, setCustomTimerFromInputs, setTimerPhase, 
-    openTimerFullscreen, closeTimerFullscreen 
+    openTimerFullscreen, closeTimerFullscreen, initDayTimeSync 
 } from './timer.js';
 import { 
     fetchWeatherData, calculateGoldenHours, 
@@ -508,17 +508,10 @@ function init3DWidget() {
     moonMeshGlobe = new THREE.Mesh(new THREE.SphereGeometry(0.25, 32, 32), new THREE.MeshStandardMaterial({ color: 0xcccccc, roughness: 0.9 }));
     sceneGlobe.add(moonMeshGlobe);
 
-    const timeSlider = document.getElementById('timeSlider');
-    if (timeSlider) {
-        timeSlider.addEventListener('input', (e) => {
-            updateSceneByTime(parseFloat(e.target.value));
-        });
-    }
-
-    const now = new Date();
-    const currentMins = now.getHours() * 60 + now.getMinutes();
-    if (timeSlider) timeSlider.value = currentMins;
-    updateSceneByTime(currentMins);
+    // Интеграция автосинхронизации времени суток из модуля timer.js
+    initDayTimeSync((minutesOfDay) => {
+        updateSceneByTime(minutesOfDay);
+    });
 
     function animateGlobe() {
         requestAnimationFrame(animateGlobe);
