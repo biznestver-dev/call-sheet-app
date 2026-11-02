@@ -1,8 +1,14 @@
 {
+  "name": "call-sheet-app",
   "devDependencies": {
     "vite": "^8.3.5"
   },
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0"
   }
 }

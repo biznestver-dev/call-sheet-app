@@ -14,6 +14,9 @@ import {
     initMiniMap, openMapRoute, showVenueDropdown, 
     filterVenues, handleCustomAddressKey, detectUserLocation 
 } from './map.js';
+import {
+    connectSharedStore, getSharedStoreMode, saveSharedData
+} from './sharedStore.js';
 
 let tg = window.Telegram?.WebApp;
 if (tg && tg.initData) {
@@ -33,6 +36,11 @@ let currentProductionType = "film";
 let currentLat = 55.7618;
 let currentLon = 37.6338;
 let editingTimerPhaseId = null;
+let sharedStoreReady = false;
+let sharedRealtimeConnected = false;
+let appInitialized = false;
+let pendingRemoteData = null;
+let sharedSaveTimeout = null;
 
 let sceneGlobe, cameraGlobe, rendererGlobe, earthGroup, cloudsMesh, starFieldGlobe, sunLightGlobe, sunMeshGlobe, moonMeshGlobe;
 
@@ -85,15 +93,103 @@ window.resetToDefaults = resetToDefaults;
 window.updateReadinessProgress = updateReadinessProgress;
 window.updateTimelineProgress = updateTimelineProgress;
 
-function initApp() {
+async function initApp() {
     const saved = localStorage.getItem('call_sheet_stage_data_v19');
-    const data = saved ? JSON.parse(saved) : defaultData;
+    let data = saved ? JSON.parse(saved) : defaultData;
+    const sharedStoreMode = getSharedStoreMode();
+
+    if (sharedStoreMode === 'local') {
+        setSharedStatus('local', 'Локальный режим — изменения видны только в этом браузере.');
+    } else if (sharedStoreMode === 'incomplete') {
+        setSharedStatus('error', 'Настройки общего хранилища заполнены не полностью.');
+    } else {
+        const editButton = document.getElementById('edit-mode-btn');
+        if (editButton) editButton.disabled = true;
+        try {
+            data = await connectSharedStore(data, handleRemoteUpdate, status => {
+                if (status === 'connected') {
+                    sharedRealtimeConnected = true;
+                    setSharedStatus('connected', 'Общий лист подключён — изменения синхронизируются.');
+                } else if (status === 'connecting') {
+                    setSharedStatus('connecting', 'Подключение общего листа…');
+                } else if (status === 'offline') {
+                    sharedRealtimeConnected = false;
+                    setSharedStatus('error', 'Нет связи с общим листом — изменения пока только локальные.');
+                }
+            });
+            if (pendingRemoteData) {
+                data = pendingRemoteData;
+                pendingRemoteData = null;
+            }
+            sharedStoreReady = true;
+            localStorage.setItem('call_sheet_stage_data_v19', JSON.stringify(data));
+            setSharedStatus('connected', 'Общий лист подключён — изменения синхронизируются.');
+        } catch (error) {
+            sharedRealtimeConnected = false;
+            console.error('Не удалось подключить общее хранилище:', error);
+            setSharedStatus('error', 'Нет связи с общим листом — изменения пока только локальные.');
+        } finally {
+            if (editButton) editButton.disabled = false;
+        }
+    }
+
     renderData(data);
+    appInitialized = true;
     init3DWidget();
     initMiniMap(currentLat, currentLon);
     calculateGoldenHours();
     updateSunLightPosition();
     updateTimerDisplay();
+}
+
+function setSharedStatus(state, message) {
+    const status = document.getElementById('shared-sync-status');
+    if (!status) return;
+
+    const styles = {
+        local: 'border-slate-700 bg-slate-900 text-slate-300',
+        connecting: 'border-sky-500/40 bg-sky-950/50 text-sky-200',
+        connected: 'border-emerald-500/40 bg-emerald-950/50 text-emerald-200',
+        error: 'border-amber-500/40 bg-amber-950/50 text-amber-200',
+        conflict: 'border-red-500/50 bg-red-950/50 text-red-200'
+    };
+    status.className = `rounded-lg border px-3 py-2 text-xs ${styles[state] || styles.local}`;
+    status.textContent = message;
+}
+
+function handleRemoteUpdate(data) {
+    if (!appInitialized) {
+        pendingRemoteData = data;
+        return;
+    }
+    if (!data || JSON.stringify(data) === JSON.stringify(collectDataFromDOM())) return;
+
+    if (isEditMode) {
+        pendingRemoteData = data;
+        setSharedStatus('conflict', 'Поступили чужие правки. При выходе из режима правки выберите, какие изменения сохранить.');
+        return;
+    }
+
+    localStorage.setItem('call_sheet_stage_data_v19', JSON.stringify(data));
+    renderData(data);
+    setSharedStatus('connected', 'Общий лист подключён — изменения синхронизируются.');
+}
+
+function initSharedEditingListeners() {
+    document.addEventListener('input', event => {
+        if (event.target.isContentEditable && event.target.closest('#pdf-export-container')) {
+            saveChanges();
+        }
+    });
+    document.addEventListener('change', event => {
+        if (
+            event.target.closest('#pdf-export-container') &&
+            event.target.matches('input:not([type="file"]), select, textarea') &&
+            !event.target.matches('#input-hours, #input-mins, #input-secs, #venue-search-input')
+        ) {
+            saveChanges();
+        }
+    });
 }
 
 function renderData(data) {
@@ -338,6 +434,7 @@ function importJSON(event) {
                 const importedData = JSON.parse(e.target.result);
                 localStorage.setItem('call_sheet_stage_data_v19', JSON.stringify(importedData));
                 renderData(importedData);
+                saveChanges();
                 if (importedData.lat && importedData.lon) {
                     currentLat = importedData.lat;
                     currentLon = importedData.lon;
@@ -403,6 +500,7 @@ function syncGeneralDate(input) {
 function setProductionType(type) {
     currentProductionType = type;
     renderData(collectDataFromDOM());
+    saveChanges();
 }
 
 function updateReadinessProgress() {
@@ -634,7 +732,9 @@ function collectDataFromDOM() {
     }
 
     document.querySelectorAll('[data-timeline-time]').forEach((el, index) => {
-        let rawTime = isEditMode ? (el.value || "00:00") : (el.getAttribute('data-time-val') || "00:00");
+        let rawTime = el instanceof HTMLInputElement
+            ? (el.value || "00:00")
+            : (el.getAttribute('data-time-val') || "00:00");
         const event = document.querySelector(`[data-timeline-event="${index}"]`)?.innerText || '';
         const responsible = document.querySelector(`[data-timeline-resp="${index}"]`)?.innerText || '';
         const isDone = document.querySelectorAll('.timeline-done-checkbox')[index]?.checked || false;
@@ -651,7 +751,9 @@ function collectDataFromDOM() {
     deptIndices.forEach(dIdx => {
         const name = document.querySelector(`[data-dept-title="${dIdx}"]`)?.innerText || '';
         const timeEl = document.querySelector(`[data-dept-calltime="${dIdx}"]`);
-        let deptTime = isEditMode ? (timeEl?.value || "00:00") : (timeEl?.getAttribute('data-time-val') || "00:00");
+        let deptTime = timeEl instanceof HTMLInputElement
+            ? (timeEl.value || "00:00")
+            : (timeEl?.getAttribute('data-time-val') || "00:00");
         const readyCheckbox = document.querySelectorAll('.department-ready-checkbox')[dIdx];
         const isReady = readyCheckbox ? readyCheckbox.checked : true;
 
@@ -685,6 +787,15 @@ function collectDataFromDOM() {
 }
 
 function toggleEditMode() {
+    let remoteDataToApply = null;
+    if (isEditMode && pendingRemoteData) {
+        const keepLocalChanges = confirm(
+            'Пока вы редактировали лист, другой участник сохранил изменения. Нажмите «ОК», чтобы сохранить свои правки поверх его версии, или «Отмена», чтобы загрузить его версию.'
+        );
+        if (!keepLocalChanges) remoteDataToApply = pendingRemoteData;
+        pendingRemoteData = null;
+    }
+
     isEditMode = !isEditMode;
     const btnText = document.getElementById('edit-mode-text');
     const btn = document.getElementById('edit-mode-btn');
@@ -705,7 +816,13 @@ function toggleEditMode() {
         document.querySelectorAll('.editable-field').forEach(el => el.setAttribute('contenteditable', 'true'));
         document.querySelectorAll('.edit-action-btn').forEach(el => el.classList.remove('hidden'));
     } else {
-        saveChanges();
+        if (remoteDataToApply) {
+            localStorage.setItem('call_sheet_stage_data_v19', JSON.stringify(remoteDataToApply));
+            renderData(remoteDataToApply);
+            setSharedStatus('connected', 'Загружены правки другого участника.');
+        } else {
+            saveChanges();
+        }
         if (btnText) btnText.innerText = "Режим правки";
         if (btn) {
             btn.classList.remove('bg-amber-500', 'text-slate-950', 'border-amber-400');
@@ -724,6 +841,21 @@ function toggleEditMode() {
 function saveChanges() {
     const data = collectDataFromDOM();
     localStorage.setItem('call_sheet_stage_data_v19', JSON.stringify(data));
+    if (sharedStoreReady) {
+        clearTimeout(sharedSaveTimeout);
+        sharedSaveTimeout = setTimeout(() => {
+            saveSharedData(data).then(() => {
+                if (!pendingRemoteData && sharedRealtimeConnected) {
+                    setSharedStatus('connected', 'Общий лист подключён — изменения синхронизируются.');
+                } else if (!sharedRealtimeConnected) {
+                    setSharedStatus('error', 'Лист сохранён, но realtime-синхронизация отключена.');
+                }
+            }).catch(error => {
+                console.error('Не удалось сохранить общий лист:', error);
+                setSharedStatus('error', 'Не удалось сохранить изменения в общий лист. Они остались только в этом браузере.');
+            });
+        }, 400);
+    }
     calculateGoldenHours();
     updateReadinessProgress();
 }
@@ -804,6 +936,7 @@ function resetToDefaults() {
         localStorage.removeItem('call_sheet_stage_data_v19');
         renderData(defaultData);
         fetchWeatherData(defaultData.lat, defaultData.lon);
+        saveChanges();
     }
 }
 
@@ -815,12 +948,14 @@ function addSceneRow() {
         d.scenes.push({ num: "16", ie: "ИНТ.", desc: "Новая сцена", time: "1/8", cast: "—" });
     }
     renderData(d);
+    saveChanges();
 }
 
 function removeSceneRow(i) {
     let d = collectDataFromDOM();
     if (currentProductionType === 'theater') { d.theaterScenes.splice(i, 1); } else { d.scenes.splice(i, 1); }
     renderData(d);
+    saveChanges();
 }
 
 function addTimelineRow() {
@@ -831,12 +966,14 @@ function addTimelineRow() {
         d.timeline.push({ time: "12:00", event: "Новое событие", responsible: "Ответственный", done: false });
     }
     renderData(d);
+    saveChanges();
 }
 
 function removeTimelineRow(i) {
     let d = collectDataFromDOM();
     if (currentProductionType === 'theater') { d.theaterTimeline.splice(i, 1); } else { d.timeline.splice(i, 1); }
     renderData(d);
+    saveChanges();
 }
 
 function addDepartment() {
@@ -847,12 +984,14 @@ function addDepartment() {
         d.departments.push({ name: "Новый отдел", time: "08:00", ready: false, crew: [{ role: "Сотрудник", name: "Имя", phone: "+7..." }] });
     }
     renderData(d);
+    saveChanges();
 }
 
 function removeDepartment(i) {
     let d = collectDataFromDOM();
     if (currentProductionType === 'theater') { d.theaterDepartments.splice(i, 1); } else { d.departments.splice(i, 1); }
     renderData(d);
+    saveChanges();
 }
 
 function addCrewMember(dIdx) {
@@ -860,6 +999,7 @@ function addCrewMember(dIdx) {
     const targetDepts = (currentProductionType === 'theater') ? d.theaterDepartments : d.departments;
     targetDepts[dIdx].crew.push({ role: "Должность", name: "Имя", phone: "+7..." });
     renderData(d);
+    saveChanges();
 }
 
 function removeCrewMember(dIdx, cIdx) {
@@ -867,21 +1007,29 @@ function removeCrewMember(dIdx, cIdx) {
     const targetDepts = (currentProductionType === 'theater') ? d.theaterDepartments : d.departments;
     targetDepts[dIdx].crew.splice(cIdx, 1);
     renderData(d);
+    saveChanges();
 }
 
 function addContact() {
     let d = collectDataFromDOM();
     d.contacts.push({ role: "Должность", name: "Имя", phone: "+7..." });
     renderData(d);
+    saveChanges();
 }
 
 function removeContact(i) {
     let d = collectDataFromDOM();
     d.contacts.splice(i, 1);
     renderData(d);
+    saveChanges();
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    initApp();
-    fetchWeatherData(currentLat, currentLon);
+    initSharedEditingListeners();
+    initApp()
+        .then(() => fetchWeatherData(currentLat, currentLon))
+        .catch(error => {
+            console.error('Не удалось запустить приложение:', error);
+            setSharedStatus('error', 'Ошибка запуска — подробности доступны в консоли браузера.');
+        });
 });
