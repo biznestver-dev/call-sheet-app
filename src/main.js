@@ -76,7 +76,6 @@ window.detectUserLocation = () => detectUserLocation((lat, lon) => {
     currentLat = lat;
     currentLon = lon;
     fetchWeatherData(currentLat, currentLon);
-    saveChanges();
 });
 window.addSceneRow = addSceneRow;
 window.removeSceneRow = removeSceneRow;
@@ -93,6 +92,13 @@ window.saveChanges = saveChanges;
 window.resetToDefaults = resetToDefaults;
 window.updateReadinessProgress = updateReadinessProgress;
 window.updateTimelineProgress = updateTimelineProgress;
+window.addEventListener('call-sheet-location-updated', event => {
+    const { lat, lon } = event.detail || {};
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+    currentLat = lat;
+    currentLon = lon;
+    saveChanges();
+});
 
 window.addEventListener('beforeprint', () => {
     document.documentElement.classList.add('print-mode');

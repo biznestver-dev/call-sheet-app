@@ -545,7 +545,7 @@
                     <!-- Поиск и кнопка определения по GPS -->
                     <div class="mb-2 relative hidden" id="venue-search-container">
                         <div class="flex items-center space-x-1">
-                            <input type="text" id="venue-search-input" placeholder="🔍 Введите адрес или найдите площадку..." oninput="filterVenues(this.value)" onkeydown="handleCustomAddressKey(event)" onfocus="showVenueDropdown()" class="w-full bg-slate-950 text-amber-400 text-xs px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500">
+                            <input type="text" id="venue-search-input" placeholder="Введите адрес или площадку и нажмите Enter..." oninput="filterVenues(this.value)" onkeydown="handleCustomAddressKey(event)" onfocus="showVenueDropdown()" class="w-full bg-slate-950 text-amber-400 text-xs px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500">
                             <button onclick="detectUserLocation()" class="px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs rounded-lg transition shrink-0 shadow" title="Определить мое GPS-положение">
                                 <i class="fa-solid fa-location-crosshairs"></i>
                             </button>
@@ -564,12 +564,14 @@
                     <div class="mini-map-container my-2" id="miniMap"></div>
 
                     <div class="text-xs bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80 space-y-1">
-                        <div class="flex items-center space-x-1.5 text-sky-400 font-medium">
+                        <div class="flex flex-wrap items-center gap-x-1.5 text-sky-400 font-medium">
                             <i class="fa-solid fa-train-subway"></i>
+                            <span>Метро / электрички / трамвай:</span>
                             <span contenteditable="false" id="location-metro" class="editable-field">Метро «Лубянка» / «Чистые пруды»</span>
                         </div>
-                        <div class="flex items-center space-x-1.5 text-slate-400">
+                        <div class="flex flex-wrap items-center gap-x-1.5 text-slate-400">
                             <i class="fa-solid fa-bus"></i>
+                            <span>Автобус:</span>
                             <span contenteditable="false" id="location-bus" class="editable-field">Центр города</span>
                         </div>
                     </div>
