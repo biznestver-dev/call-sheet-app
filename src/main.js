@@ -94,6 +94,13 @@ window.resetToDefaults = resetToDefaults;
 window.updateReadinessProgress = updateReadinessProgress;
 window.updateTimelineProgress = updateTimelineProgress;
 
+window.addEventListener('beforeprint', () => {
+    document.documentElement.classList.add('print-mode');
+});
+window.addEventListener('afterprint', () => {
+    document.documentElement.classList.remove('print-mode');
+});
+
 async function initApp() {
     const saved = localStorage.getItem('call_sheet_stage_data_v19');
     let data = saved ? JSON.parse(saved) : defaultData;
@@ -547,7 +554,7 @@ function toggleThemeMode() {
     }
 }
 
-function exportPDF() {
+async function exportPDF() {
     const element = document.getElementById('pdf-export-container');
     const opt = {
         margin:       10,
@@ -557,10 +564,21 @@ function exportPDF() {
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
     const wasDark = document.documentElement.classList.contains('dark');
-    if (wasDark) { document.documentElement.classList.remove('dark'); document.documentElement.classList.add('light'); }
-    html2pdf().from(element).set(opt).save().then(() => {
-        if (wasDark) { document.documentElement.classList.remove('light'); document.documentElement.classList.add('dark'); }
-    });
+    const alreadyPrintMode = document.documentElement.classList.contains('print-mode');
+    if (wasDark) {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+    }
+    document.documentElement.classList.add('print-mode');
+    try {
+        await html2pdf().from(element).set(opt).save();
+    } finally {
+        if (!alreadyPrintMode) document.documentElement.classList.remove('print-mode');
+        if (wasDark) {
+            document.documentElement.classList.remove('light');
+            document.documentElement.classList.add('dark');
+        }
+    }
 }
 
 function init3DWidget() {

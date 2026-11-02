@@ -140,3 +140,245 @@
     display: none;
   }
 }
+
+@page {
+  size: A4 landscape;
+  margin: 12mm;
+}
+
+html.print-mode,
+html.print-mode body,
+html.print-mode.light,
+html.print-mode.light body {
+  background: #fff !important;
+  color: #111827 !important;
+  color-scheme: light;
+  font-family: Arial, sans-serif;
+}
+
+html.print-mode body {
+  min-height: 0;
+  padding: 0;
+  font-size: 9pt;
+}
+
+html.print-mode header {
+  position: static;
+  display: block;
+  border: 0;
+  border-bottom: 2px solid #334155;
+  background: #fff !important;
+  box-shadow: none;
+  color: #111827 !important;
+}
+
+html.print-mode header > div {
+  max-width: none;
+  min-height: 0;
+  height: auto;
+  padding: 0 0 4mm;
+}
+
+html.print-mode #project-icon-box,
+html.print-mode #header-actions,
+html.print-mode #mobile-quick-nav,
+html.print-mode #shared-sync-status,
+html.print-mode #precipitation-container,
+html.print-mode #sky-bg-container,
+html.print-mode #globeContainer,
+html.print-mode #header-celestial-container,
+html.print-mode #banner-celestial-container,
+html.print-mode #moon-controls-panel,
+html.print-mode .leaflet-control-container,
+html.print-mode .no-print,
+html.print-mode .edit-action-btn {
+  display: none !important;
+}
+
+html.print-mode #pdf-export-container {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 5mm 0 0;
+  overflow: visible;
+}
+
+html.print-mode #pdf-export-container,
+html.print-mode #pdf-export-container * {
+  color: #111827 !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+html.print-mode #pdf-export-container .glass-card,
+html.print-mode #pdf-export-container #shift-timer-panel,
+html.print-mode #pdf-export-container #call-sheet-overview,
+html.print-mode #pdf-export-container #space-widget-card,
+html.print-mode #pdf-export-container #location-card,
+html.print-mode #pdf-export-container #cinematic-banner,
+html.print-mode #pdf-export-container .bg-slate-900,
+html.print-mode #pdf-export-container .bg-slate-950,
+html.print-mode #pdf-export-container .bg-slate-800 {
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 2mm !important;
+  background: #fff !important;
+}
+
+html.print-mode #pdf-export-container [class*="bg-slate-"],
+html.print-mode #pdf-export-container [class*="bg-amber-"],
+html.print-mode #pdf-export-container [class*="bg-sky-"],
+html.print-mode #pdf-export-container [class*="bg-emerald-"],
+html.print-mode #pdf-export-container [class*="bg-orange-"],
+html.print-mode #pdf-export-container [class*="bg-indigo-"] {
+  background-color: #fff !important;
+}
+
+html.print-mode #pdf-export-container [class*="bg-gradient"] {
+  background-image: none !important;
+}
+
+html.print-mode #pdf-export-container .banner-danger,
+html.print-mode #pdf-export-container .banner-day,
+html.print-mode #pdf-export-container .banner-night {
+  border: 1px solid #94a3b8 !important;
+  background: #f8fafc !important;
+}
+
+html.print-mode #pdf-export-container .text-amber-400,
+html.print-mode #pdf-export-container .text-amber-500,
+html.print-mode #pdf-export-container .text-sky-400,
+html.print-mode #pdf-export-container .text-sky-300,
+html.print-mode #pdf-export-container .text-emerald-400,
+html.print-mode #pdf-export-container .text-red-400 {
+  color: #334155 !important;
+}
+
+html.print-mode #pdf-export-container .backdrop-blur-md,
+html.print-mode #pdf-export-container .backdrop-blur-sm {
+  backdrop-filter: none !important;
+}
+
+html.print-mode #top-widgets-grid {
+  display: block;
+}
+
+html.print-mode #top-widgets-grid > * {
+  margin-bottom: 4mm;
+  overflow: visible !important;
+}
+
+html.print-mode #hourly-forecast-grid {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  border: 1px solid #cbd5e1;
+  background: #fff !important;
+}
+
+html.print-mode #scenes-section,
+html.print-mode #timeline-section,
+html.print-mode #contacts-section,
+html.print-mode #location-card,
+html.print-mode #weather-widget-card,
+html.print-mode #space-widget-card,
+html.print-mode #departments-container > *,
+html.print-mode #contacts-grid > * {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+html.print-mode #departments-section {
+  break-before: auto;
+}
+
+html.print-mode .overflow-x-auto {
+  overflow: visible !important;
+}
+
+html.print-mode .mobile-card-table {
+  display: table !important;
+  width: 100% !important;
+  table-layout: auto;
+  border-collapse: collapse;
+}
+
+html.print-mode .mobile-card-table thead {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  clip-path: none;
+  display: table-header-group;
+}
+
+html.print-mode .mobile-card-table tbody {
+  display: table-row-group;
+}
+
+html.print-mode .mobile-card-table tbody tr {
+  display: table-row;
+  border: 0;
+  border-bottom: 1px solid #cbd5e1;
+  border-radius: 0;
+  background: #fff !important;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+html.print-mode .mobile-card-table th,
+html.print-mode .mobile-card-table td,
+html.print-mode .mobile-card-table tbody td:not(.hidden) {
+  display: table-cell !important;
+  width: auto;
+  padding: 2mm;
+  border: 1px solid #cbd5e1;
+  background: #fff !important;
+  color: #111827 !important;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+html.print-mode .mobile-card-table td::before {
+  content: none !important;
+}
+
+html.print-mode .mobile-card-table tbody .edit-action-btn {
+  display: none !important;
+}
+
+html.print-mode .mobile-card-table thead .edit-action-btn {
+  display: none !important;
+}
+
+html.print-mode h1,
+html.print-mode h2,
+html.print-mode h3 {
+  color: #111827 !important;
+  break-after: avoid;
+  page-break-after: avoid;
+}
+
+html.print-mode input,
+html.print-mode textarea,
+html.print-mode select,
+html.print-mode [contenteditable="true"] {
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  color: #111827 !important;
+}
+
+html.print-mode input[type="checkbox"] {
+  appearance: auto;
+  accent-color: #111827;
+}
+
+@media print {
+  html {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
