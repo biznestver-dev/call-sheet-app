@@ -1,3 +1,26 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@media (max-width: 639px) {
+  #shift-timer-panel > div:first-child {
+    min-width: 0;
+  }
+
+  #timer-display {
+    font-size: clamp(1.5rem, 8vw, 1.875rem);
+    letter-spacing: 0.08em;
+    padding-inline: 0.75rem;
+  }
+
+  #timer-phases-list > div > button:first-child {
+    max-width: calc(100vw - 11.75rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #timer-setting-label {
+    width: 100%;
+  }
+}

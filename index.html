@@ -260,7 +260,7 @@
 <body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-amber-500 selection:text-slate-950 pb-20">
 
     <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 no-print">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-16 flex flex-wrap items-center justify-between gap-y-2 py-2 sm:h-16 sm:flex-nowrap sm:py-0">
             <div class="flex items-center space-x-3">
                 <div id="project-icon-box" class="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 text-lg">
                     <i class="fa-solid fa-clapperboard" id="project-icon"></i>
@@ -271,7 +271,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2 sm:space-x-3">
+            <div class="w-full flex flex-wrap items-center justify-end gap-2 sm:w-auto sm:flex-nowrap sm:space-x-2 sm:gap-0">
                 <div class="bg-slate-800 border border-slate-700 rounded-lg p-0.5 flex items-center text-xs">
                     <button onclick="setProductionType('film')" id="type-film-btn" class="px-2.5 py-1.5 rounded-md font-medium transition bg-amber-500 text-slate-950">Кино</button>
                     <button onclick="setProductionType('theater')" id="type-theater-btn" class="px-2.5 py-1.5 rounded-md font-medium transition text-slate-300 hover:text-white">Театр</button>
@@ -315,19 +315,19 @@
         </div>
 
         <!-- Таймер смены -->
-        <div class="bg-gradient-to-r from-sky-600/20 via-slate-900 to-slate-900 border border-sky-500/40 rounded-xl p-4 sm:p-5 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div id="shift-timer-panel" class="bg-gradient-to-r from-sky-600/20 via-slate-900 to-slate-900 border border-sky-500/40 rounded-xl p-4 sm:p-5 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div class="flex items-start space-x-4">
                 <div class="w-12 h-12 rounded-xl bg-sky-500 text-slate-950 flex items-center justify-center font-black text-xl shrink-0 shadow-md">
                     <i class="fa-solid fa-stopwatch"></i>
                 </div>
-                <div>
+                <div class="min-w-0 flex-1">
                     <div class="text-xs uppercase tracking-wider text-sky-400 font-bold flex items-center space-x-2">
                         <span id="timer-status-title">Таймер смены / Фазы</span>
                         <span id="timer-active-badge" class="px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 text-[10px] font-mono hidden">АКТИВЕН</span>
                     </div>
                     <div class="flex items-center space-x-3 mt-1 flex-wrap gap-y-2">
                         <div id="timer-display" class="bg-slate-950 text-sky-400 font-mono font-black text-3xl sm:text-4xl px-4 py-1.5 rounded-lg border border-sky-500/30 tracking-wider shadow-inner">00:25:00</div>
-                        <div class="flex items-center space-x-1.5 no-print">
+                        <div id="timer-controls" class="flex items-center gap-1.5 flex-wrap no-print">
                             <button onclick="startTimer()" id="timer-start-btn" class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center space-x-1 shadow"><i class="fa-solid fa-play"></i><span>Старт</span></button>
                             <button onclick="pauseTimer()" class="px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition flex items-center space-x-1 shadow"><i class="fa-solid fa-pause"></i><span>Пауза</span></button>
                             <button onclick="resetTimer()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition flex items-center space-x-1 border border-slate-700"><i class="fa-solid fa-rotate-right"></i><span>Сброс</span></button>
@@ -345,10 +345,10 @@
                 </div>
             </div>
 
-            <div class="flex flex-col justify-center border-t lg:border-t-0 lg:border-l border-slate-800 pt-3 lg:pt-0 lg:pl-6 no-print space-y-2.5">
-                <div class="flex items-center space-x-2">
-                    <span class="text-xs text-slate-400 font-semibold">Установка времени:</span>
-                    <div class="flex items-center space-x-1 text-xs">
+            <div class="flex min-w-0 flex-col justify-center border-t lg:border-t-0 lg:border-l border-slate-800 pt-3 lg:pt-0 lg:pl-6 no-print space-y-2.5">
+                <div id="timer-setting-row" class="flex flex-wrap items-center gap-y-1">
+                    <span id="timer-setting-label" class="text-xs text-slate-400 font-semibold">Установка времени:</span>
+                    <div id="timer-setting-inputs" class="flex items-center gap-1 text-xs">
                         <input type="number" id="input-hours" min="0" max="23" value="00" class="w-12 bg-slate-800 text-center text-white font-mono font-bold py-1 rounded border border-slate-700 outline-none focus:border-sky-500" placeholder="Ч">
                         <span class="text-slate-500">:</span>
                         <input type="number" id="input-mins" min="0" max="59" value="25" class="w-12 bg-slate-800 text-center text-white font-mono font-bold py-1 rounded border border-slate-700 outline-none focus:border-sky-500" placeholder="М">
@@ -686,12 +686,12 @@
         </div>
         <div class="text-center space-y-4 max-w-4xl w-full">
             <div class="text-sm uppercase tracking-widest text-sky-400 font-bold" id="fs-timer-label">Таймер смены / Фазы</div>
-            <div id="fs-timer-display" class="font-mono font-black text-7xl sm:text-9xl text-white tracking-wider drop-shadow-[0_0_50px_rgba(56,189,248,0.4)]">00:25:00</div>
+            <div id="fs-timer-display" class="font-mono font-black text-5xl sm:text-7xl lg:text-9xl text-white tracking-wide sm:tracking-wider drop-shadow-[0_0_50px_rgba(56,189,248,0.4)]">00:25:00</div>
             <div class="text-lg text-amber-400 font-bold mt-2" id="fs-timer-phase-desc">Фаза: Мотор / Рабочий дубль</div>
-            <div class="flex items-center justify-center space-x-4 pt-6">
-                <button onclick="startTimer()" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-lg transition flex items-center space-x-2 shadow-lg"><i class="fa-solid fa-play"></i><span>Старт</span></button>
-                <button onclick="pauseTimer()" class="px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-lg transition flex items-center space-x-2 shadow-lg"><i class="fa-solid fa-pause"></i><span>Пауза</span></button>
-                <button onclick="resetTimer()" class="px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-lg transition flex items-center space-x-2 border border-slate-700 shadow-lg"><i class="fa-solid fa-rotate-right"></i><span>Сброс</span></button>
+            <div class="flex flex-wrap items-center justify-center gap-2 pt-6">
+                <button onclick="startTimer()" class="px-4 sm:px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base sm:text-lg transition flex items-center space-x-2 shadow-lg"><i class="fa-solid fa-play"></i><span>Старт</span></button>
+                <button onclick="pauseTimer()" class="px-4 sm:px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-base sm:text-lg transition flex items-center space-x-2 shadow-lg"><i class="fa-solid fa-pause"></i><span>Пауза</span></button>
+                <button onclick="resetTimer()" class="px-4 sm:px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-base sm:text-lg transition flex items-center space-x-2 border border-slate-700 shadow-lg"><i class="fa-solid fa-rotate-right"></i><span>Сброс</span></button>
             </div>
         </div>
     </div>
