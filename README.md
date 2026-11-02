@@ -25,8 +25,8 @@
 1. Создайте проект в [Supabase](https://supabase.com/).
 2. Откройте SQL Editor проекта и выполните содержимое [`supabase/schema.sql`](./supabase/schema.sql). Таблица содержит единственный общий документ; политика разрешает анонимным посетителям читать и изменять его.
 3. В настройках репозитория GitHub откройте **Settings → Secrets and variables → Actions → Variables** и создайте:
-   - `VITE_SUPABASE_URL` — Project URL из Supabase;
-   - `VITE_SUPABASE_ANON_KEY` — публичный `anon`/`publishable` ключ проекта.
+   - URL проекта как `VITE_SUPABASE_URL` или `NEXT_PUBLIC_SUPABASE_URL`;
+   - публичный ключ как `VITE_SUPABASE_ANON_KEY` или `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
 4. В GitHub откройте **Settings → Pages** и выберите **Source: GitHub Actions**.
 5. Запустите workflow **Deploy to GitHub Pages** на вкладке **Actions** (или отправьте коммит в `main`). После успешного деплоя обновите сайт.
 
