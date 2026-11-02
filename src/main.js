@@ -136,11 +136,28 @@ async function initApp() {
 
     renderData(data);
     appInitialized = true;
+    initCurrentDateTime();
     init3DWidget();
     initMiniMap(currentLat, currentLon);
     calculateGoldenHours();
     updateSunLightPosition();
     updateTimerDisplay();
+}
+
+function initCurrentDateTime() {
+    const clockValue = document.getElementById('current-datetime-value');
+    if (!clockValue) return;
+
+    const formatter = new Intl.DateTimeFormat('ru-RU', {
+        dateStyle: 'long',
+        timeStyle: 'short',
+    });
+    const update = () => {
+        clockValue.textContent = `Сейчас: ${formatter.format(new Date())}`;
+    };
+
+    update();
+    setInterval(update, 60_000);
 }
 
 function setSharedStatus(state, message) {

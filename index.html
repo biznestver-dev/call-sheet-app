@@ -372,6 +372,10 @@
                         <input type="time" id="general-call-time" onchange="saveChanges()" class="bg-slate-800/80 text-white font-black text-2xl sm:text-3xl px-3 py-1 rounded-lg border border-slate-700 outline-none focus:border-amber-500 tracking-tight" disabled>
                         <input type="date" id="general-call-date" onchange="syncGeneralDate(this)" class="bg-slate-800 text-amber-400 font-bold text-sm sm:text-base px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-amber-500 cursor-pointer shadow-sm hover:border-amber-500 transition">
                         <span class="text-xs text-slate-400 hidden sm:inline" id="general-call-hint">(Измените дату для актуализации погоды и астрономии)</span>
+                        <span id="current-datetime" class="no-print inline-flex items-center gap-1.5 text-xs text-slate-400" aria-label="Текущие дата и время">
+                            <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                            <span id="current-datetime-value"></span>
+                        </span>
                     </div>
                     <p class="text-xs sm:text-sm text-slate-300 mt-1.5 editable-field" contenteditable="false" id="general-call-desc">Получение раций, инструктаж по ТБ, проверка пропусков на КПП</p>
                 </div>
