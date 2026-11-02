@@ -1,4 +1,5 @@
 // src/main.js
+import './styles.css';
 import { defaultData } from './data.js';
 import { 
     startTimer, pauseTimer, resetTimer, updateTimerDisplay, 
