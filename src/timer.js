@@ -5,6 +5,15 @@ let timerRemainingSeconds = 1500;
 let timerInterval = null;
 let isTimerRunning = false;
 let currentPhaseName = "Фаза: Мотор / Рабочий дубль";
+const defaultTimerPhases = [
+    { id: "prep", name: "Подготовка / Расстановка света", durationSeconds: 300 },
+    { id: "work", name: "Мотор / Рабочий дубль", durationSeconds: 1500 },
+    { id: "break", name: "Технический перерыв / Переход", durationSeconds: 300 }
+];
+let timerPhases = defaultTimerPhases.map(phase => ({ ...phase }));
+let currentTimerPhaseId = "work";
+let editPhaseHandler = () => {};
+let removePhaseHandler = () => {};
 
 // Флаг, чтобы автообновление слайдера не мешало, если пользователь крутит его вручную
 let userIsInteractingWithTimeSlider = false;
@@ -65,6 +74,102 @@ export function setTimerPreset(mins, secs = 0) {
     updateTimerDisplay();
 }
 
+export function getTimerPhases() {
+    return timerPhases.map(phase => ({ ...phase }));
+}
+
+export function getCurrentTimerPhaseId() {
+    return currentTimerPhaseId;
+}
+
+export function setTimerPhases(phases) {
+    const previousCurrentPhase = timerPhases.find(phase => phase.id === currentTimerPhaseId);
+    const validPhases = Array.isArray(phases)
+        ? phases.filter(phase =>
+            phase &&
+            typeof phase.id === 'string' &&
+            phase.id.trim() &&
+            typeof phase.name === 'string' &&
+            phase.name.trim() &&
+            Number.isInteger(phase.durationSeconds) &&
+            phase.durationSeconds >= 60 &&
+            phase.durationSeconds <= 86400
+        ).map(phase => ({
+            id: phase.id,
+            name: phase.name.trim(),
+            durationSeconds: phase.durationSeconds
+        }))
+        : [];
+    const seenIds = new Set();
+    timerPhases = (validPhases.length ? validPhases : defaultTimerPhases)
+        .filter(phase => {
+            if (seenIds.has(phase.id)) return false;
+            seenIds.add(phase.id);
+            return true;
+        })
+        .map(phase => ({ ...phase }));
+
+    const updatedCurrentPhase = timerPhases.find(phase => phase.id === currentTimerPhaseId);
+    if (!updatedCurrentPhase) {
+        currentTimerPhaseId = timerPhases[0].id;
+        setTimerPhase(currentTimerPhaseId);
+    } else if (
+        previousCurrentPhase &&
+        (previousCurrentPhase.name !== updatedCurrentPhase.name ||
+            previousCurrentPhase.durationSeconds !== updatedCurrentPhase.durationSeconds)
+    ) {
+        setTimerPhase(currentTimerPhaseId);
+    } else {
+        renderTimerPhases();
+    }
+}
+
+export function renderTimerPhases(onEdit = editPhaseHandler, onRemove = removePhaseHandler) {
+    editPhaseHandler = onEdit;
+    removePhaseHandler = onRemove;
+    const container = document.getElementById('timer-phases-list');
+    if (!container) return;
+
+    container.replaceChildren();
+    timerPhases.forEach(phase => {
+        const group = document.createElement('div');
+        group.className = "inline-flex items-center rounded border border-slate-700 overflow-hidden";
+
+        const selectButton = document.createElement('button');
+        selectButton.type = "button";
+        selectButton.className = phase.id === currentTimerPhaseId
+            ? "px-2 py-0.5 text-[10px] font-bold bg-sky-600 text-white transition shadow"
+            : "px-2 py-0.5 text-[10px] font-bold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+        selectButton.setAttribute('aria-pressed', String(phase.id === currentTimerPhaseId));
+        const minutes = phase.durationSeconds / 60;
+        const durationLabel = minutes >= 60 && minutes % 60 === 0
+            ? `${minutes / 60} ч`
+            : `${minutes} мин`;
+        selectButton.textContent = `${phase.name} (${durationLabel})`;
+        selectButton.addEventListener('click', () => setTimerPhase(phase.id));
+
+        const editButton = document.createElement('button');
+        editButton.type = "button";
+        editButton.className = "px-1.5 py-0.5 bg-slate-900 text-slate-400 hover:text-sky-300 transition";
+        editButton.title = `Редактировать фазу «${phase.name}»`;
+        editButton.setAttribute('aria-label', editButton.title);
+        editButton.innerHTML = '<i class="fa-solid fa-pen"></i>';
+        editButton.addEventListener('click', () => editPhaseHandler(phase.id));
+
+        const removeButton = document.createElement('button');
+        removeButton.type = "button";
+        removeButton.className = "px-1.5 py-0.5 bg-slate-900 text-slate-400 hover:text-red-400 transition disabled:opacity-30 disabled:cursor-not-allowed";
+        removeButton.title = `Удалить фазу «${phase.name}»`;
+        removeButton.setAttribute('aria-label', removeButton.title);
+        removeButton.disabled = timerPhases.length === 1;
+        removeButton.innerHTML = '<i class="fa-solid fa-trash"></i>';
+        removeButton.addEventListener('click', () => removePhaseHandler(phase.id));
+
+        group.append(selectButton, editButton, removeButton);
+        container.append(group);
+    });
+}
+
 export function setCustomTimerFromInputs() {
     const h = parseInt(document.getElementById('input-hours')?.value) || 0;
     const m = parseInt(document.getElementById('input-mins')?.value) || 0;
@@ -76,34 +181,25 @@ export function setCustomTimerFromInputs() {
     updateTimerDisplay();
 }
 
-export function setTimerPhase(phaseType) {
+export function setTimerPhase(phaseId) {
+    const phase = timerPhases.find(item => item.id === phaseId);
+    if (!phase) return;
+
     pauseTimer();
-    
-    const prepBtn = document.getElementById('phase-prep-btn');
-    const workBtn = document.getElementById('phase-work-btn');
-    const breakBtn = document.getElementById('phase-break-btn');
-    
-    if (prepBtn) prepBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition";
-    if (workBtn) workBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition";
-    if (breakBtn) breakBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition";
+    currentTimerPhaseId = phase.id;
+    currentPhaseName = `Фаза: ${phase.name}`;
+    timerTotalSeconds = phase.durationSeconds;
+    timerRemainingSeconds = timerTotalSeconds;
+    updateTimerDisplay();
+    renderTimerPhases();
 
-    let mins = 25;
-    if (phaseType === 'prep') {
-        mins = 5;
-        currentPhaseName = "Фаза: Подготовка / Расстановка света";
-        if (prepBtn) prepBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500 text-slate-950 transition shadow";
-    } else if (phaseType === 'work') {
-        mins = 25;
-        currentPhaseName = "Фаза: Мотор / Рабочий дубль";
-        if (workBtn) workBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-sky-600 text-white transition shadow";
-    } else if (phaseType === 'break') {
-        mins = 5;
-        currentPhaseName = "Фаза: Технический перерыв / Переход";
-        if (breakBtn) breakBtn.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-600 text-white transition shadow";
-    }
+    const hInput = document.getElementById('input-hours');
+    const mInput = document.getElementById('input-mins');
+    const sInput = document.getElementById('input-secs');
+    if (hInput) hInput.value = String(Math.floor(timerTotalSeconds / 3600)).padStart(2, '0');
+    if (mInput) mInput.value = String(Math.floor((timerTotalSeconds % 3600) / 60)).padStart(2, '0');
+    if (sInput) sInput.value = String(timerTotalSeconds % 60).padStart(2, '0');
 
-    setTimerPreset(mins, 0);
-    
     const modeDesc = document.getElementById('timer-mode-desc');
     const fsDesc = document.getElementById('fs-timer-phase-desc');
     if (modeDesc) modeDesc.innerText = currentPhaseName;

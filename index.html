@@ -337,11 +337,12 @@
                             <button onclick="openTimerFullscreen()" class="px-3 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition flex items-center space-x-1 shadow" title="На весь экран"><i class="fa-solid fa-expand"></i><span>Экран</span></button>
                         </div>
                     </div>
-                    <div class="flex items-center space-x-1.5 mt-2.5 flex-wrap gap-y-1.5 no-print" id="timer-phases-container">
+                    <div class="flex items-center gap-1.5 mt-2.5 flex-wrap no-print" id="timer-phases-container">
                         <span class="text-[10px] uppercase font-bold text-slate-400">Фаза:</span>
-                        <button onclick="setTimerPhase('prep')" id="phase-prep-btn" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition">Подготовка (5 мин)</button>
-                        <button onclick="setTimerPhase('work')" id="phase-work-btn" class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-600 text-white transition shadow">Мотор / Съемка (25 мин)</button>
-                        <button onclick="setTimerPhase('break')" id="phase-break-btn" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700 transition">Перерыв (5 мин)</button>
+                        <div id="timer-phases-list" class="flex items-center gap-1.5 flex-wrap"></div>
+                        <button type="button" onclick="addTimerPhase()" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-700 transition" title="Добавить фазу">
+                            <i class="fa-solid fa-plus mr-1"></i>Добавить фазу
+                        </button>
                     </div>
                     <p class="text-xs text-slate-300 mt-1.5" id="timer-mode-desc">Фаза: Мотор / Рабочий дубль</p>
                 </div>
@@ -652,6 +653,30 @@
         </div>
 
     </main>
+
+    <!-- Редактор фазы таймера -->
+    <div id="timer-phase-modal" class="fixed inset-0 z-[60] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="timer-phase-modal-title">
+        <form id="timer-phase-form" onsubmit="saveTimerPhase(event)" class="glass-card w-full max-w-md rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 id="timer-phase-modal-title" class="text-lg font-bold text-white">Новая фаза</h2>
+                <button type="button" onclick="closeTimerPhaseEditor()" class="text-slate-400 hover:text-white" aria-label="Закрыть">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <label class="block text-xs font-semibold text-slate-300">
+                Название фазы
+                <input id="timer-phase-name" type="text" maxlength="60" required class="mt-1 w-full bg-slate-950 text-white px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-sky-500">
+            </label>
+            <label class="block text-xs font-semibold text-slate-300">
+                Длительность (минуты)
+                <input id="timer-phase-duration" type="number" min="1" max="1440" step="1" required class="mt-1 w-full bg-slate-950 text-white px-3 py-2 rounded-lg border border-slate-700 outline-none focus:border-sky-500">
+            </label>
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="closeTimerPhaseEditor()" class="px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm">Отмена</button>
+                <button type="submit" class="px-3 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-sm">Сохранить фазу</button>
+            </div>
+        </form>
+    </div>
 
     <!-- Модальное окно таймера -->
     <div id="timer-fullscreen-modal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl hidden flex flex-col items-center justify-center p-6 select-none">

@@ -2,7 +2,8 @@
 import { defaultData } from './data.js';
 import { 
     startTimer, pauseTimer, resetTimer, updateTimerDisplay, 
-    setTimerPreset, setCustomTimerFromInputs, setTimerPhase, 
+    setTimerPreset, setCustomTimerFromInputs, setTimerPhase,
+    getTimerPhases, setTimerPhases, renderTimerPhases,
     openTimerFullscreen, closeTimerFullscreen, initDayTimeSync 
 } from './timer.js';
 import { 
@@ -31,6 +32,7 @@ let isNightVision = false;
 let currentProductionType = "film";
 let currentLat = 55.7618;
 let currentLon = 37.6338;
+let editingTimerPhaseId = null;
 
 let sceneGlobe, cameraGlobe, rendererGlobe, earthGroup, cloudsMesh, starFieldGlobe, sunLightGlobe, sunMeshGlobe, moonMeshGlobe;
 
@@ -41,6 +43,11 @@ window.resetTimer = resetTimer;
 window.setTimerPreset = setTimerPreset;
 window.setCustomTimerFromInputs = setCustomTimerFromInputs;
 window.setTimerPhase = setTimerPhase;
+window.addTimerPhase = addTimerPhase;
+window.editTimerPhase = editTimerPhase;
+window.removeTimerPhase = removeTimerPhase;
+window.saveTimerPhase = saveTimerPhase;
+window.closeTimerPhaseEditor = closeTimerPhaseEditor;
 window.openTimerFullscreen = openTimerFullscreen;
 window.closeTimerFullscreen = closeTimerFullscreen;
 window.toggleThemeMode = toggleThemeMode;
@@ -91,6 +98,8 @@ function initApp() {
 
 function renderData(data) {
     currentProductionType = data.productionType || "film";
+    setTimerPhases(data.timerPhases);
+    renderTimerPhases(editTimerPhase, removeTimerPhase);
     
     const filmBtn = document.getElementById('type-film-btn');
     const theaterBtn = document.getElementById('type-theater-btn');
@@ -600,6 +609,7 @@ function collectDataFromDOM() {
         locationParking: document.getElementById('location-parking')?.innerText || '',
         lat: currentLat,
         lon: currentLon,
+        timerPhases: getTimerPhases(),
         scenes: [], theaterScenes: [], timeline: [], theaterTimeline: [], departments: [], theaterDepartments: [], contacts: []
     };
 
@@ -716,6 +726,77 @@ function saveChanges() {
     localStorage.setItem('call_sheet_stage_data_v19', JSON.stringify(data));
     calculateGoldenHours();
     updateReadinessProgress();
+}
+
+function addTimerPhase() {
+    editingTimerPhaseId = null;
+    document.getElementById('timer-phase-modal-title').innerText = "Новая фаза";
+    document.getElementById('timer-phase-name').value = "";
+    document.getElementById('timer-phase-duration').value = "10";
+    document.getElementById('timer-phase-modal').classList.remove('hidden');
+    document.getElementById('timer-phase-modal').classList.add('flex');
+    document.getElementById('timer-phase-name').focus();
+}
+
+function editTimerPhase(phaseId) {
+    const phase = getTimerPhases().find(item => item.id === phaseId);
+    if (!phase) return;
+
+    editingTimerPhaseId = phaseId;
+    document.getElementById('timer-phase-modal-title').innerText = "Редактировать фазу";
+    document.getElementById('timer-phase-name').value = phase.name;
+    document.getElementById('timer-phase-duration').value = String(Math.floor(phase.durationSeconds / 60));
+    document.getElementById('timer-phase-modal').classList.remove('hidden');
+    document.getElementById('timer-phase-modal').classList.add('flex');
+    document.getElementById('timer-phase-name').focus();
+}
+
+function closeTimerPhaseEditor() {
+    const modal = document.getElementById('timer-phase-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.getElementById('timer-phase-form').reset();
+    editingTimerPhaseId = null;
+}
+
+function saveTimerPhase(event) {
+    event.preventDefault();
+    const nameInput = document.getElementById('timer-phase-name');
+    const durationInput = document.getElementById('timer-phase-duration');
+    const name = nameInput.value.trim();
+    nameInput.setCustomValidity(name ? "" : "Введите название фазы.");
+    if (!event.currentTarget.reportValidity()) return;
+
+    const durationSeconds = Number(durationInput.value) * 60;
+    if (!Number.isInteger(durationSeconds) || durationSeconds < 60 || durationSeconds > 86400) {
+        durationInput.reportValidity();
+        return;
+    }
+
+    const isNewPhase = editingTimerPhaseId === null;
+    const phaseId = editingTimerPhaseId || `phase-${crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
+    const phases = getTimerPhases();
+    const existingIndex = phases.findIndex(phase => phase.id === phaseId);
+    const phase = { id: phaseId, name, durationSeconds };
+    if (existingIndex === -1) phases.push(phase);
+    else phases[existingIndex] = phase;
+
+    setTimerPhases(phases);
+    renderTimerPhases(editTimerPhase, removeTimerPhase);
+    if (isNewPhase) setTimerPhase(phaseId);
+    closeTimerPhaseEditor();
+    saveChanges();
+}
+
+function removeTimerPhase(phaseId) {
+    const phases = getTimerPhases();
+    if (phases.length <= 1) return;
+    const phase = phases.find(item => item.id === phaseId);
+    if (!phase || !confirm(`Удалить фазу «${phase.name}»?`)) return;
+
+    setTimerPhases(phases.filter(item => item.id !== phaseId));
+    renderTimerPhases(editTimerPhase, removeTimerPhase);
+    saveChanges();
 }
 
 function resetToDefaults() {
