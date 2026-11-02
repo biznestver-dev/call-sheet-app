@@ -28,41 +28,55 @@ function formatNearbyStops(stops, mode) {
     const nearby = stops
         .filter(stop => stop.mode === mode)
         .slice(0, 3)
-        .map(stop => `${stop.name} — ${stop.distance < 1000
-            ? `${Math.round(stop.distance / 10) * 10} м`
-            : `${(stop.distance / 1000).toFixed(1)} км`}`);
-    return nearby.length ? nearby.join('; ') : 'Не найдено в радиусе 1 км';
+        .map(stop => {
+            const distance = stop.distance < 100
+                ? `${Math.round(stop.distance)} м`
+                : stop.distance < 1000
+                    ? `${Math.round(stop.distance / 10) * 10} м`
+                    : `${(stop.distance / 1000).toFixed(1)} км`;
+            return `${stop.name} — ${distance}`;
+        });
+    return nearby.length ? nearby.join('\n') : 'Не найдено в радиусе 1 км';
 }
 
-async function updateNearbyTransport(lat, lon) {
+export async function updateNearbyTransport(lat, lon) {
     const metro = document.getElementById('location-metro');
     const bus = document.getElementById('location-bus');
     const lookupId = ++transportLookupId;
     if (metro) metro.innerText = 'Ищем ближайшие станции…';
     if (bus) bus.innerText = 'Ищем ближайшие остановки…';
 
-    const query = `[out:json][timeout:15];(
-      node(around:1000,${lat},${lon})["highway"="bus_stop"];
-      node(around:1000,${lat},${lon})["public_transport"="platform"]["name"];
-      node(around:1000,${lat},${lon})["railway"~"^(station|tram_stop|halt)$"];
-      node(around:1000,${lat},${lon})["station"="subway"];
-      node(around:1000,${lat},${lon})["subway"="yes"];
-      way(around:1000,${lat},${lon})["highway"="bus_stop"];
-      way(around:1000,${lat},${lon})["public_transport"="platform"]["name"];
-      way(around:1000,${lat},${lon})["railway"~"^(station|tram_stop|halt)$"];
-      way(around:1000,${lat},${lon})["station"="subway"];
-      way(around:1000,${lat},${lon})["subway"="yes"];
+    const query = `[out:json][timeout:10];(
+      nwr(around:1000,${lat},${lon})["highway"="bus_stop"];
+      nwr(around:1000,${lat},${lon})["public_transport"="platform"]["name"];
+      nwr(around:1000,${lat},${lon})["railway"~"^(station|tram_stop|halt)$"];
+      nwr(around:1000,${lat},${lon})["station"="subway"];
+      nwr(around:1000,${lat},${lon})["subway"="yes"];
     );out center tags;`;
 
     try {
-        const response = await fetch('https://overpass-api.de/api/interpreter', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-            body: `data=${encodeURIComponent(query)}`,
-            signal: AbortSignal.timeout(20000)
-        });
-        if (!response.ok) throw new Error(`Overpass API returned ${response.status}`);
-        const data = await response.json();
+        let data;
+        let lastError;
+        for (const endpoint of [
+            'https://overpass-api.de/api/interpreter',
+            'https://overpass.kumi.systems/api/interpreter'
+        ]) {
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body: `data=${encodeURIComponent(query)}`,
+                    signal: AbortSignal.timeout(12000)
+                });
+                if (!response.ok) throw new Error(`Overpass API returned ${response.status}`);
+                data = await response.json();
+                if (!Array.isArray(data.elements)) throw new Error('Overpass API returned invalid data');
+                break;
+            } catch (error) {
+                lastError = error;
+            }
+        }
+        if (!data) throw lastError || new Error('No Overpass API endpoint is available');
         if (lookupId !== transportLookupId) return;
 
         const stops = (data.elements || []).flatMap(element => {
@@ -70,7 +84,7 @@ async function updateNearbyTransport(lat, lon) {
             const name = tags.name || tags['name:ru'];
             if (!name) return [];
 
-            const point = element.type === 'way' ? element.center : element;
+            const point = element.type === 'node' ? element : element.center;
             if (!point || !Number.isFinite(point.lat) || !Number.isFinite(point.lon)) return [];
 
             const isBus = tags.highway === 'bus_stop' ||
@@ -103,9 +117,8 @@ async function updateNearbyTransport(lat, lon) {
     } catch (error) {
         if (lookupId !== transportLookupId) return;
         console.error('Не удалось загрузить остановки общественного транспорта:', error);
-        if (metro) metro.innerText = 'Не удалось загрузить данные транспорта';
-        if (bus) bus.innerText = 'Проверьте подключение к интернету';
-        notifyLocationUpdated(lat, lon);
+        if (metro) metro.innerText = 'Сервис транспорта временно недоступен';
+        if (bus) bus.innerText = 'Попробуйте обновить данные позже';
     }
 }
 

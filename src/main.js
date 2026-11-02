@@ -13,7 +13,7 @@ import {
 } from './weather.js';
 import { 
     initMiniMap, openMapRoute, showVenueDropdown, 
-    filterVenues, handleCustomAddressKey, detectUserLocation 
+    filterVenues, handleCustomAddressKey, detectUserLocation, updateNearbyTransport
 } from './map.js';
 import {
     connectSharedStore, getSharedStoreMode, saveSharedData
@@ -152,6 +152,7 @@ async function initApp() {
     initCurrentDateTime();
     init3DWidget();
     initMiniMap(currentLat, currentLon);
+    updateNearbyTransport(currentLat, currentLon);
     calculateGoldenHours();
     updateSunLightPosition();
     updateTimerDisplay();
