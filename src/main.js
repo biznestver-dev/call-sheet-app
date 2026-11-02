@@ -293,12 +293,12 @@ function renderData(data) {
             activeTheaterScenes.forEach((scene, index) => {
                 scenesTbody.innerHTML += `
                     <tr class="hover:bg-slate-800/40 transition">
-                        <td class="py-2.5 px-3 font-mono font-bold text-amber-400" contenteditable="${isEditMode}" data-tscene-act="${index}">${scene.act}</td>
-                        <td class="py-2.5 px-3 text-slate-300 font-semibold" contenteditable="${isEditMode}" data-tscene-scene="${index}">${scene.scene}</td>
-                        <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-tscene-desc="${index}">${scene.desc}</td>
-                        <td class="py-2.5 px-3 text-slate-400 font-mono" contenteditable="${isEditMode}" data-tscene-time="${index}">${scene.time}</td>
-                        <td class="py-2.5 px-3 text-sky-400 font-medium" contenteditable="${isEditMode}" data-tscene-cast="${index}">${scene.cast}</td>
-                        <td class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
+                        <td data-label="Акт" class="py-2.5 px-3 font-mono font-bold text-amber-400" contenteditable="${isEditMode}" data-tscene-act="${index}">${scene.act}</td>
+                        <td data-label="Картина" class="py-2.5 px-3 text-slate-300 font-semibold" contenteditable="${isEditMode}" data-tscene-scene="${index}">${scene.scene}</td>
+                        <td data-label="Описание" class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-tscene-desc="${index}">${scene.desc}</td>
+                        <td data-label="Хронометраж" class="py-2.5 px-3 text-slate-400 font-mono" contenteditable="${isEditMode}" data-tscene-time="${index}">${scene.time}</td>
+                        <td data-label="Участники" class="py-2.5 px-3 text-sky-400 font-medium" contenteditable="${isEditMode}" data-tscene-cast="${index}">${scene.cast}</td>
+                        <td data-label="Действия" class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
                             <button onclick="removeSceneRow(${index})" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
@@ -309,12 +309,12 @@ function renderData(data) {
             activeScenes.forEach((scene, index) => {
                 scenesTbody.innerHTML += `
                     <tr class="hover:bg-slate-800/40 transition">
-                        <td class="py-2.5 px-3 font-mono font-bold text-amber-400" contenteditable="${isEditMode}" data-scene-num="${index}">${scene.num}</td>
-                        <td class="py-2.5 px-3 text-slate-300 font-semibold" contenteditable="${isEditMode}" data-scene-ie="${index}">${scene.ie}</td>
-                        <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-scene-desc="${index}">${scene.desc}</td>
-                        <td class="py-2.5 px-3 text-slate-400 font-mono" contenteditable="${isEditMode}" data-scene-time="${index}">${scene.time}</td>
-                        <td class="py-2.5 px-3 text-sky-400 font-medium" contenteditable="${isEditMode}" data-scene-cast="${index}">${scene.cast}</td>
-                        <td class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
+                        <td data-label="Сцена" class="py-2.5 px-3 font-mono font-bold text-amber-400" contenteditable="${isEditMode}" data-scene-num="${index}">${scene.num}</td>
+                        <td data-label="Интерьер / экстерьер" class="py-2.5 px-3 text-slate-300 font-semibold" contenteditable="${isEditMode}" data-scene-ie="${index}">${scene.ie}</td>
+                        <td data-label="Описание / объект" class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-scene-desc="${index}">${scene.desc}</td>
+                        <td data-label="Хронометраж" class="py-2.5 px-3 text-slate-400 font-mono" contenteditable="${isEditMode}" data-scene-time="${index}">${scene.time}</td>
+                        <td data-label="Персонажи" class="py-2.5 px-3 text-sky-400 font-medium" contenteditable="${isEditMode}" data-scene-cast="${index}">${scene.cast}</td>
+                        <td data-label="Действия" class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
                             <button onclick="removeSceneRow(${index})" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
@@ -338,13 +338,13 @@ function renderData(data) {
 
             timelineTbody.innerHTML += `
                 <tr class="hover:bg-slate-800/40 transition ${rowClass}" id="timeline-row-${index}">
-                    <td class="py-2.5 px-3 flex items-center space-x-2">
+                    <td data-label="Время / готовность" class="py-2.5 px-3 flex items-center space-x-2">
                         <input type="checkbox" class="timeline-done-checkbox accent-emerald-500 cursor-pointer w-4 h-4" ${isDone} onchange="updateTimelineProgress(${index})" title="Отметить выполненным">
                         ${timeCellContent}
                     </td>
-                    <td class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-timeline-event="${index}">${item.event}</td>
-                    <td class="py-2.5 px-3 text-slate-400 editable-field" contenteditable="${isEditMode}" data-timeline-resp="${index}">${item.responsible}</td>
-                    <td class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
+                    <td data-label="Событие / веха" class="py-2.5 px-3 text-slate-200 editable-field" contenteditable="${isEditMode}" data-timeline-event="${index}">${item.event}</td>
+                    <td data-label="Ответственный" class="py-2.5 px-3 text-slate-400 editable-field" contenteditable="${isEditMode}" data-timeline-resp="${index}">${item.responsible}</td>
+                    <td data-label="Действия" class="py-2.5 px-3 text-right edit-action-btn ${isEditMode ? '' : 'hidden'}">
                         <button onclick="removeTimelineRow(${index})" class="text-red-400 hover:text-red-300 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>

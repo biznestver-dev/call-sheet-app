@@ -315,7 +315,7 @@
         </div>
 
         <!-- Таймер смены -->
-        <div id="shift-timer-panel" class="bg-gradient-to-r from-sky-600/20 via-slate-900 to-slate-900 border border-sky-500/40 rounded-xl p-4 sm:p-5 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div id="shift-timer-panel" class="scroll-mt-24 bg-gradient-to-r from-sky-600/20 via-slate-900 to-slate-900 border border-sky-500/40 rounded-xl p-4 sm:p-5 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div class="flex items-start space-x-4">
                 <div class="w-12 h-12 rounded-xl bg-sky-500 text-slate-950 flex items-center justify-center font-black text-xl shrink-0 shadow-md">
                     <i class="fa-solid fa-stopwatch"></i>
@@ -361,7 +361,7 @@
         </div>
 
         <!-- Общий сбор и готовность -->
-        <div class="bg-gradient-to-r from-amber-500/20 via-slate-900 to-slate-900 border border-amber-500/40 rounded-xl p-4 sm:p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div id="call-sheet-overview" class="scroll-mt-24 bg-gradient-to-r from-amber-500/20 via-slate-900 to-slate-900 border border-amber-500/40 rounded-xl p-4 sm:p-5 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-start space-x-4">
                 <div class="w-12 h-12 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shrink-0 shadow-md">
                     <i class="fa-solid fa-bell" id="general-bell-icon"></i>
@@ -536,7 +536,7 @@
             </div>
 
             <!-- Локация и GPS геолокация -->
-            <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500 flex flex-col justify-between space-y-3" id="location-card">
+            <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500 flex flex-col justify-between space-y-3 scroll-mt-24" id="location-card">
                 <div>
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-xs uppercase tracking-wider text-slate-400 font-bold"><i class="fa-solid fa-location-dot text-amber-500 mr-1.5"></i> <span id="location-title-label">Локация / Площадка</span></span>
@@ -583,7 +583,7 @@
         </div>
 
         <!-- Таблицы сцен, таймлайн, департаменты, контакты -->
-        <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500">
+        <div id="scenes-section" class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500 scroll-mt-24">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-film text-amber-500" id="table-icon-scenes"></i>
@@ -592,7 +592,7 @@
                 <button onclick="addSceneRow()" class="hidden edit-action-btn text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg transition items-center space-x-1.5"><i class="fa-solid fa-plus"></i><span id="add-scene-btn-text">Добавить сцену</span></button>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+                <table class="mobile-card-table w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase" id="scenes-table-head">
                             <th class="py-2.5 px-3 font-semibold w-20">Сцена</th>
@@ -608,7 +608,7 @@
             </div>
         </div>
 
-        <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500">
+        <div id="timeline-section" class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500 scroll-mt-24">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-clock text-amber-500"></i>
@@ -617,7 +617,7 @@
                 <button onclick="addTimelineRow()" class="hidden edit-action-btn text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-lg transition items-center space-x-1.5"><i class="fa-solid fa-plus"></i><span>Добавить веху</span></button>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+                <table class="mobile-card-table w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-slate-800 text-xs text-slate-400 uppercase">
                             <th class="py-2.5 px-3 font-semibold w-40">Время</th>
@@ -631,7 +631,7 @@
             </div>
         </div>
 
-        <div>
+        <div id="departments-section" class="scroll-mt-24">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-users text-amber-500"></i>
@@ -642,7 +642,7 @@
             <div id="departments-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
 
-        <div class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500">
+        <div id="contacts-section" class="glass-card rounded-3xl p-5 relative overflow-hidden transition-all duration-500 scroll-mt-24">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-address-book text-amber-500"></i>
@@ -654,6 +654,14 @@
         </div>
 
     </main>
+
+    <nav id="mobile-quick-nav" class="no-print" aria-label="Быстрая навигация">
+        <a href="#shift-timer-panel"><i class="fa-solid fa-stopwatch" aria-hidden="true"></i><span>Таймер</span></a>
+        <a href="#call-sheet-overview"><i class="fa-solid fa-bell" aria-hidden="true"></i><span>Сбор</span></a>
+        <a href="#timeline-section"><i class="fa-solid fa-clock" aria-hidden="true"></i><span>План</span></a>
+        <a href="#location-card"><i class="fa-solid fa-location-dot" aria-hidden="true"></i><span>Локация</span></a>
+        <a href="#contacts-section"><i class="fa-solid fa-phone" aria-hidden="true"></i><span>Контакты</span></a>
+    </nav>
 
     <!-- Редактор фазы таймера -->
     <div id="timer-phase-modal" class="fixed inset-0 z-[60] bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="timer-phase-modal-title">

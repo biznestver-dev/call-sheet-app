@@ -3,6 +3,116 @@
 @tailwind utilities;
 
 @media (max-width: 639px) {
+  body {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+
+  .scroll-mt-24 {
+    scroll-margin-top: 10rem;
+  }
+
+  #mobile-quick-nav {
+    position: fixed;
+    z-index: 60;
+    inset-inline: 0;
+    bottom: 0;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 0.45rem 0.5rem calc(0.45rem + env(safe-area-inset-bottom));
+    border-top: 1px solid rgb(51 65 85 / 0.9);
+    background: rgb(15 23 42 / 0.96);
+    backdrop-filter: blur(16px);
+  }
+
+  #mobile-quick-nav a {
+    display: flex;
+    min-width: 0;
+    min-height: 2.75rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    color: #cbd5e1;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  #mobile-quick-nav a:active,
+  #mobile-quick-nav a:focus-visible {
+    color: #fbbf24;
+  }
+
+  #mobile-quick-nav i {
+    font-size: 1rem;
+  }
+
+  .mobile-card-table {
+    display: block;
+    width: 100%;
+  }
+
+  .mobile-card-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    clip-path: inset(50%);
+  }
+
+  .mobile-card-table tbody {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .mobile-card-table tbody tr {
+    display: block;
+    overflow: hidden;
+    border: 1px solid rgb(51 65 85 / 0.75);
+    border-radius: 0.75rem;
+    background: rgb(15 23 42 / 0.5);
+  }
+
+  .mobile-card-table tbody td:not(.hidden) {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, 38%) minmax(0, 1fr);
+    align-items: start;
+    gap: 0.5rem;
+    width: auto;
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid rgb(51 65 85 / 0.45);
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
+  .mobile-card-table tbody td:not(.hidden)::before {
+    content: attr(data-label);
+    color: #94a3b8;
+    font-size: 0.62rem;
+    font-weight: 700;
+    line-height: 1.4;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .mobile-card-table tbody td:last-child:not(.hidden) {
+    display: flex;
+    justify-content: flex-end;
+    min-height: 2.5rem;
+    border-bottom: 0;
+  }
+
+  .mobile-card-table tbody td:last-child:not(.hidden)::before {
+    margin-right: auto;
+    align-self: center;
+  }
+
+  .mobile-card-table tbody td:has(.timeline-done-checkbox) {
+    align-items: center;
+  }
+
   #shift-timer-panel > div:first-child {
     min-width: 0;
   }
@@ -22,5 +132,11 @@
 
   #timer-setting-label {
     width: 100%;
+  }
+}
+
+@media (min-width: 640px) {
+  #mobile-quick-nav {
+    display: none;
   }
 }
