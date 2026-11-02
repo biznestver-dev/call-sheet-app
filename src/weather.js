@@ -268,26 +268,55 @@ export function checkStormAlert(windSpeed, windGusts = 0, precipitation = 0) {
     if (!banner || !statusText) return;
 
     const peakWind = Math.max(windSpeed, windGusts);
+    const criticalWind = peakWind >= 12.0;
+    const criticalPrecipitation = precipitation > 2.5;
+    const formatValue = value => Math.round(value * 10) / 10;
+    const windDescription = windGusts > windSpeed
+        ? `Ветер ${formatValue(windSpeed)} м/с, порывы до ${formatValue(windGusts)} м/с`
+        : `Ветер ${formatValue(windSpeed)} м/с`;
 
-    if (peakWind >= 12.0 || precipitation > 2.5) {
+    banner.style.background = "";
+
+    if (criticalWind || criticalPrecipitation) {
         // КРАСНЫЙ уровень: Шторм / Стоп-кадр
         banner.className = "banner-danger p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 backdrop-blur-md transition-all duration-500 animate-pulse";
-        if (titleText) titleText.innerHTML = `<i class="fa-solid fa-skull mr-1"></i> СТОП-КАДР: Штормовая тревогА! (${peakWind} м/с)`;
-        statusText.innerText = `⚠️ Критический ветер ${peakWind} м/с или сильные осадки! Требуется немедленный демонтаж рассеивателей, фиксация ферм и перевод съемок в павильон.`;
+        const reasons = [
+            criticalWind && 'опасные порывы ветра',
+            criticalPrecipitation && 'сильные осадки',
+        ].filter(Boolean);
+        const messages = [
+            criticalWind && `${windDescription}. Проверьте крепление стоек и отражателей; при работе с крупным текстилем перенесите съёмку в помещение.`,
+            criticalPrecipitation && `Осадки сейчас: ${formatValue(precipitation)} мм. Защитите технику от влаги и рассмотрите перенос съёмки в помещение.`,
+        ].filter(Boolean);
+        if (titleText) titleText.innerHTML = `<i class="fa-solid fa-skull mr-1"></i> СТОП-КАДР: ${reasons.join(' и ')}`;
+        statusText.innerText = `⚠️ ${messages.join(' ')}`;
         if (alertIcon) alertIcon.className = "fa-solid fa-skull text-[10px] animate-spin";
     } else if (peakWind >= 6.0 || precipitation > 0) {
         // ЖЕЛТЫЙ уровень: Внимание / Утяжеление
         banner.className = "banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 backdrop-blur-md transition-all duration-500";
         banner.style.background = "linear-gradient(135deg, rgba(202, 138, 4, 0.9) 0%, rgba(161, 98, 7, 0.95) 100%)";
-        if (titleText) titleText.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> ВНИМАНИЕ: Умеренный ветер (${peakWind} м/с)`;
-        statusText.innerText = `⚡ Порывы до ${peakWind} м/с. Техслужбе: обязательно установить сэндбэги на тяжелые стойки C-Stand и закрепить отражатели-паруса!`;
-        if (alertIcon) alertIcon.className = "fa-solid fa-wind text-[10px] animate-bounce";
+        const messages = [];
+        if (peakWind >= 6.0) {
+            messages.push(`${windDescription}. Установите сэндбэги на тяжёлые стойки C-Stand и закрепите отражатели.`);
+        }
+        if (precipitation > 0) {
+            messages.push(`Осадки сейчас: ${formatValue(precipitation)} мм. Защитите оборудование от влаги и учитывайте состояние площадки.`);
+        }
+        const title = peakWind >= 6.0 && precipitation > 0
+            ? 'ВНИМАНИЕ: Ветер и осадки'
+            : peakWind >= 6.0
+                ? `ВНИМАНИЕ: ${windGusts > windSpeed ? 'Порывы ветра' : 'Ветер'}`
+                : 'ВНИМАНИЕ: Осадки';
+        if (titleText) titleText.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> ${title}`;
+        statusText.innerText = `⚡ ${messages.join(' ')}`;
+        if (alertIcon) alertIcon.className = peakWind >= 6.0
+            ? "fa-solid fa-wind text-[10px] animate-bounce"
+            : "fa-solid fa-cloud-rain text-[10px] animate-bounce";
     } else {
         // ЗЕЛЕНЫЙ уровень: Штатно
         banner.className = "banner-day p-3.5 rounded-2xl border relative z-10 overflow-hidden mb-3 backdrop-blur-md transition-all duration-500";
-        banner.style.background = "";
         if (titleText) titleText.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Штатный режим / Безопасно`;
-        statusTest.innerText = `✅ Слабый ветер (${peakWind} м/с), осадков нет. Идеальные условия для работы со световыми базами и текстилем.`;
+        statusText.innerText = `✅ ${windDescription}, осадков нет.`;
         if (alertIcon) alertIcon.className = "fa-solid fa-check text-[10px]";
     }
 }
